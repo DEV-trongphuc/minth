@@ -67,7 +67,7 @@ export default function AddressSelect({ value, onChange, placeholder = "Ch·ªçn ƒ
       </div>
 
       {showModal && createPortal(
-        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }} style={{ zIndex: 1000 }}>
           <div className="modal" style={{ width: '400px', height: '550px', display: 'flex', flexDirection: 'column' }}>
             <div className="modal-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '1rem' }}>
               <div>
