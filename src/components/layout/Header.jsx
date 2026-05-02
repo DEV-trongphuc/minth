@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Bell, Search, ChevronRight, RefreshCw, AlertTriangle, PackageX } from 'lucide-react';
+import { Menu, Bell, Search, ChevronRight, RefreshCw, AlertTriangle, PackageX, X } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,18 +10,28 @@ const Header = ({ toggleSidebar, pageName }) => {
 
   const fetchAlerts = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/batches.php`);
-      if (res.ok) {
-        const data = await res.json();
+      const [bRes, sRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/batches.php`),
+        fetch(`${API_BASE_URL}/settings.php`)
+      ]);
+      
+      if (bRes.ok) {
+        const data = await bRes.json();
+        let lowStockThreshold = 5;
+        if (sRes.ok) {
+          const settings = await sRes.json();
+          if (settings.low_stock_threshold !== undefined) lowStockThreshold = Number(settings.low_stock_threshold);
+        }
+
         const alerts = [];
         data.forEach(b => {
-          if (b.current_qty <= 5) {
+          if (b.current_qty > 0 && b.current_qty <= lowStockThreshold) {
             alerts.push({
               id: `stock_${b.id}`,
               type: 'stock',
-              title: b.current_qty === 0 ? 'Hết hàng' : 'Sắp hết hàng',
+              title: 'Sắp hết hàng',
               message: `${b.product_name} (Lô: ${b.batch_code}) - Tồn: ${b.current_qty} chai`,
-              color: b.current_qty === 0 ? 'var(--danger)' : 'var(--warning)',
+              color: 'var(--warning)',
               icon: <PackageX size={16} />
             });
           }
@@ -43,9 +53,21 @@ const Header = ({ toggleSidebar, pageName }) => {
             }
           }
         });
-        setNotifications(alerts);
+        
+        let dismissed = [];
+        try { dismissed = JSON.parse(localStorage.getItem('dismissed_alerts') || '[]'); } catch {}
+        setNotifications(alerts.filter(a => !dismissed.includes(a.id)));
       }
     } catch (e) {}
+  };
+
+  const dismissAlert = (e, id) => {
+    e.stopPropagation();
+    let dismissed = [];
+    try { dismissed = JSON.parse(localStorage.getItem('dismissed_alerts') || '[]'); } catch {}
+    dismissed.push(id);
+    localStorage.setItem('dismissed_alerts', JSON.stringify(dismissed));
+    setNotifications(prev => prev.filter(n => n.id !== id));
   };
 
   useEffect(() => {
@@ -103,12 +125,15 @@ const Header = ({ toggleSidebar, pageName }) => {
                     </div>
                   ) : (
                     notifications.map(n => (
-                      <div key={n.id} style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-light)', display: 'flex', gap: '0.75rem', alignItems: 'flex-start', cursor: 'pointer', transition: 'background .2s' }} className="hover-bg" onClick={() => { setShowDropdown(false); navigate('/inventory'); }}>
+                      <div key={n.id} style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-light)', display: 'flex', gap: '0.75rem', alignItems: 'flex-start', cursor: 'pointer', transition: 'background .2s', position: 'relative' }} className="hover-bg" onClick={() => { setShowDropdown(false); navigate('/inventory'); }}>
                         <div style={{ color: n.color, marginTop: '0.1rem' }}>{n.icon}</div>
-                        <div>
+                        <div style={{ flex: 1, paddingRight: '1rem' }}>
                           <div style={{ fontWeight: 600, fontSize: '0.85rem', color: n.color }}>{n.title}</div>
                           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>{n.message}</div>
                         </div>
+                        <button className="icon-btn" style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', opacity: 0.5, padding: '0.25rem' }} onClick={(e) => dismissAlert(e, n.id)} title="Xóa thông báo này">
+                          <X size={14} />
+                        </button>
                       </div>
                     ))
                   )}

@@ -33,12 +33,24 @@ export default function Inventory() {
     { id: 3, product_name: 'Dior Sauvage 100ml', batch_code: 'LO-2026-003', import_date: '2026-04-20', import_price: 3200000, initial_qty: 20, current_qty: 3, current_ml: 300, ml_per_unit: 100, status: 'active' },
   ];
 
+  const [lowStockThreshold, setLowStockThreshold] = useState(5);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [pRes, bRes] = await Promise.all([fetch(`${API_BASE_URL}/products.php`), fetch(`${API_BASE_URL}/batches.php`)]);
-      if (pRes.ok && bRes.ok) { setProducts(await pRes.json()); setBatches(await bRes.json()); }
-      else throw new Error();
+      const [pRes, bRes, sRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/products.php`), 
+        fetch(`${API_BASE_URL}/batches.php`),
+        fetch(`${API_BASE_URL}/settings.php`)
+      ]);
+      if (pRes.ok && bRes.ok) { 
+        setProducts(await pRes.json()); 
+        setBatches(await bRes.json()); 
+      } else throw new Error();
+      if (sRes.ok) {
+        const settings = await sRes.json();
+        if (settings.low_stock_threshold) setLowStockThreshold(Number(settings.low_stock_threshold));
+      }
     } catch {
       setProducts([{ id: 1, name: 'Nước hoa Chanel No.5', unit: 'chai', ml_per_unit: 100 }, { id: 2, name: 'Sữa rửa mặt Cetaphil', unit: 'chai', ml_per_unit: 0 }]);
       setBatches(mockBatches);
@@ -140,7 +152,7 @@ export default function Inventory() {
 
   const stockStatus = (b) => {
     if (b.current_qty === 0 && b.current_ml === 0) return { label: 'Hết hàng', cls: 'badge-danger' };
-    if (b.current_qty <= 5) return { label: 'Sắp hết', cls: 'badge-warning' };
+    if (b.current_qty <= lowStockThreshold) return { label: 'Sắp hết', cls: 'badge-warning' };
     return { label: 'Còn hàng', cls: 'badge-success' };
   };
 
@@ -262,7 +274,7 @@ export default function Inventory() {
                       </td>
                       <td style={{ fontWeight: 700 }}>{Number(b.import_price).toLocaleString('vi-VN')} đ</td>
                       <td>
-                        <div style={{ fontWeight: 600, color: b.current_qty <= 5 ? 'var(--danger)' : 'var(--text)' }}>
+                        <div style={{ fontWeight: 600, color: b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--text)' }}>
                           {b.current_qty} / {b.initial_qty} chai
                         </div>
                         {b.ml_per_unit > 0 && <div className="text-muted text-xs mt-1">Còn {b.current_ml} ml</div>}
@@ -291,7 +303,7 @@ export default function Inventory() {
               const isOutOfStock = b.current_qty <= 0 && b.current_ml <= 0;
               const pct = Math.round((b.current_qty / b.initial_qty) * 100);
               return (
-                <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: `3px solid ${b.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)'}`, opacity: isOutOfStock ? 0.5 : 1 }}>
+                <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: `3px solid ${b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--primary)'}`, opacity: isOutOfStock ? 0.5 : 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <div style={{ fontWeight: 700 }}>{b.product_name}</div>
@@ -318,7 +330,7 @@ export default function Inventory() {
                       <span className="text-xs" style={{ fontWeight: 600 }}>{b.current_qty}/{b.initial_qty} chai</span>
                     </div>
                     <div style={{ height: 6, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: b.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)', transition: 'width .5s' }} />
+                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--primary)', transition: 'width .5s' }} />
                     </div>
                   </div>
 
@@ -341,7 +353,7 @@ export default function Inventory() {
             const s = stockStatus(b);
             const pct = Math.round((b.current_qty / b.initial_qty) * 100);
             return (
-              <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: `3px solid ${b.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)'}` }}>
+              <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: `3px solid ${b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--primary)'}` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
                     <div style={{ fontWeight: 700 }}>{b.product_name}</div>
@@ -368,7 +380,7 @@ export default function Inventory() {
                     <span className="text-xs" style={{ fontWeight: 600 }}>{b.current_qty}/{b.initial_qty} chai</span>
                   </div>
                   <div style={{ height: 6, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: b.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)', transition: 'width .5s' }} />
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--primary)', transition: 'width .5s' }} />
                   </div>
                 </div>
 
