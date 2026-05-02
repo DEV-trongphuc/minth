@@ -4,8 +4,10 @@ import { ShoppingCart, Search, Trash2, CreditCard, Printer, UserPlus, CheckCircl
 import { API_BASE_URL } from '../config';
 import AddressSelect from '../components/ui/AddressSelect';
 import { useDialog } from '../components/ui/DialogContext';
+import { useNavigate } from 'react-router-dom';
 
 const POS = ({ onClose, onSuccess }) => {
+  const navigate = useNavigate();
   const [batches, setBatches] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [cart, setCart] = useState([]);
@@ -162,7 +164,15 @@ const POS = ({ onClose, onSuccess }) => {
         </div>
         
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '0.5rem' }}>
-          {filteredBatches.map(batch => (
+          {filteredBatches.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <Package size={40} opacity={0.3} />
+              <p style={{ margin: 0 }}>Chưa có sản phẩm nào trong kho để bán.</p>
+              <button className="btn btn-primary btn-sm" onClick={() => { if (onClose) onClose(); navigate('/inventory'); }}>
+                <Plus size={14} /> Đến trang Nhập kho
+              </button>
+            </div>
+          ) : filteredBatches.map(batch => (
             <div key={batch.id} style={{ padding: '1rem', border: `1px solid ${batch.current_qty <= 5 ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', gap: '0.75rem', transition: 'var(--transition)' }} className="hover-shadow">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>

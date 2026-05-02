@@ -3,8 +3,10 @@ import { createPortal } from 'react-dom';
 import { Package, Plus, Edit, Trash2, LayoutGrid, List, Search, Filter, History, Share, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Inventory() {
+  const navigate = useNavigate();
   const [batches, setBatches] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -396,10 +398,19 @@ export default function Inventory() {
               <div className="modal-body">
                 <div className="form-group">
                   <label className="form-label">Sản phẩm <span style={{ color: 'var(--danger)' }}>*</span></label>
-                  <select className="form-control" required value={form.product_id} onChange={e => setForm({ ...form, product_id: e.target.value })}>
-                    <option value="">— Chọn sản phẩm —</option>
-                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
+                  {products.length === 0 ? (
+                    <div style={{ padding: '1rem', background: 'var(--warning-bg)', borderRadius: 'var(--r-sm)', border: '1px dashed var(--warning)', display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-start' }}>
+                      <p className="text-sm" style={{ color: 'var(--warning-dark, #b45309)', margin: 0, fontWeight: 500 }}>Chưa có danh mục sản phẩm nào, vui lòng tạo sản phẩm trước khi nhập kho!</p>
+                      <button type="button" className="btn btn-sm btn-primary" onClick={() => { setShowModal(false); navigate('/products'); }}>
+                        <Plus size={14} /> Đến trang Tạo Sản phẩm
+                      </button>
+                    </div>
+                  ) : (
+                    <select className="form-control" required value={form.product_id} onChange={e => setForm({ ...form, product_id: e.target.value })}>
+                      <option value="">— Chọn sản phẩm —</option>
+                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  )}
                 </div>
                 <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
