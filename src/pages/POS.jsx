@@ -337,7 +337,7 @@ const POS = ({ onClose, onSuccess }) => {
                     {showGuide && (
                       <div className="anim-slide-in" style={{ background: 'var(--info-bg, #eff6ff)', color: 'var(--info, #3b82f6)', padding: '0.75rem 1rem', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', marginTop: '0.5rem', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
                         <ul style={{ margin: '0', paddingLeft: '1.25rem' }}>
-                          <li style={{ marginBottom: '0.25rem' }}><strong>Giao tại quầy:</strong> Khách mua trực tiếp, đơn sẽ được tính là Hoàn thành ngay lập tức.</li>
+                          <li style={{ marginBottom: '0.25rem' }}><strong>Tự giao:</strong> Bạn tự giao cho khách hoặc khách mua trực tiếp, đơn sẽ được tính là Hoàn thành ngay lập tức.</li>
                           <li style={{ marginBottom: '0.25rem' }}><strong>Cần ship:</strong> Khách đặt giao hàng, đơn sẽ vào danh sách "Chờ xử lý" trong Quản lý đơn hàng.</li>
                           <li><strong>Thanh toán:</strong> Nếu khách chưa trả tiền (COD), hãy chọn "Chưa thu". Doanh thu sẽ chỉ được tính khi đơn đã thu tiền.</li>
                         </ul>
@@ -362,7 +362,7 @@ const POS = ({ onClose, onSuccess }) => {
                         <select className="form-control" value={orderConfig.status} onChange={e => setOrderConfig({...orderConfig, status: e.target.value})} style={{ padding: '.65rem 1rem', paddingRight: '2.5rem', fontSize: '.875rem', appearance: 'none', cursor: 'pointer', fontWeight: 600, background: 'var(--surface)', border: '1.5px solid var(--border)' }}>
                           <option value="pending">Cần ship (Chờ xử lý)</option>
                           <option value="shipping">Đang giao hàng</option>
-                          <option value="completed">Giao tại quầy (Hoàn thành)</option>
+                          <option value="completed">Tự giao (Hoàn thành)</option>
                         </select>
                         <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }} />
                       </div>
