@@ -20,7 +20,7 @@ export default function Products() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/products.php`);
+      const res = await fetch(`${API_BASE_URL}/products.php?t=${Date.now()}`);
       if (res.ok) setProducts(await res.json());
     } catch {
       setProducts([
@@ -125,10 +125,10 @@ export default function Products() {
                   </td>
                   <td style={{ fontWeight: 600 }}>{p.name}</td>
                   <td>
-                    {p.total_qty > 0 || p.total_ml > 0 ? (
+                    {Number(p.total_qty || 0) > 0 || Number(p.total_ml || 0) > 0 ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                        <span style={{ fontWeight: 700, color: 'var(--success)' }}>{p.total_qty} {unitLabels[p.unit] || p.unit}</span>
-                        {p.ml_per_unit > 0 && <span className="text-xs text-muted">Còn {p.total_ml} ml</span>}
+                        <span style={{ fontWeight: 700, color: 'var(--success)' }}>{p.total_qty || 0} {unitLabels[p.unit] || p.unit}</span>
+                        {p.ml_per_unit > 0 && <span className="text-xs text-muted">Còn {p.total_ml || 0} ml</span>}
                       </div>
                     ) : (
                       <span className="badge badge-danger">Hết sạch hàng</span>
@@ -178,8 +178,8 @@ export default function Products() {
                     )}
                   </div>
                   <div style={{ marginTop: '0.5rem' }}>
-                    {p.total_qty > 0 || p.total_ml > 0 ? (
-                      <span className="badge badge-success" style={{ fontWeight: 600 }}>Tồn: {p.total_qty} {unitLabels[p.unit] || p.unit} {p.ml_per_unit > 0 ? `| ${p.total_ml} ml` : ''}</span>
+                    {Number(p.total_qty || 0) > 0 || Number(p.total_ml || 0) > 0 ? (
+                      <span className="badge badge-success" style={{ fontWeight: 600 }}>Tồn: {p.total_qty || 0} {unitLabels[p.unit] || p.unit} {p.ml_per_unit > 0 ? `| ${p.total_ml || 0} ml` : ''}</span>
                     ) : (
                       <span className="badge badge-danger">Hết sạch hàng</span>
                     )}

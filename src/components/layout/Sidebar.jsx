@@ -103,11 +103,22 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <div className="sidebar-footer-avatar">HM</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="sidebar-footer-name">Hà Miên</div>
-          <div className="sidebar-footer-role">Chủ cửa hàng</div>
-        </div>
+        {(() => {
+          const u = JSON.parse(localStorage.getItem('luccy_user') || '{}');
+          return (
+            <>
+              {u.avatar ? (
+                <img src={u.avatar} alt="Avatar" className="sidebar-footer-avatar" style={{ objectFit: 'cover' }} />
+              ) : (
+                <div className="sidebar-footer-avatar">AD</div>
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="sidebar-footer-name">{u.username === 'admin' ? 'Hà Miên' : (u.username || 'Admin')}</div>
+                <div className="sidebar-footer-role">Chủ cửa hàng</div>
+              </div>
+            </>
+          );
+        })()}
         <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.4)', padding: '.25rem' }}>
           <LogOut size={16} />
         </button>

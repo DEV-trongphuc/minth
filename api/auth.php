@@ -10,14 +10,14 @@ if ($method === 'POST' && $action === 'login') {
     $username = $data['username'] ?? '';
     $password = $data['password'] ?? '';
 
-    $stmt = $pdo->prepare("SELECT id, username, password, role FROM users WHERE username = ?");
+    $stmt = $pdo->prepare("SELECT id, username, password, role, avatar FROM users WHERE username = ?");
     $stmt->execute([$username]);
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password'])) {
         // Return a simple mock token for frontend state
         $token = base64_encode(json_encode(['id' => $user['id'], 'username' => $user['username'], 'role' => $user['role']]));
-        echo json_encode(["success" => true, "token" => $token, "user" => ["username" => $user['username'], "role" => $user['role']]]);
+        echo json_encode(["success" => true, "token" => $token, "user" => ["username" => $user['username'], "role" => $user['role'], "avatar" => $user['avatar']]]);
     } else {
         http_response_code(401);
         echo json_encode(["error" => "Sai tài khoản hoặc mật khẩu!"]);

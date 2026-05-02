@@ -287,10 +287,10 @@ export default function Dashboard() {
       {/* Alerts Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
         {/* Low Stock Alert */}
-        <div className="card" style={{ borderLeft: '4px solid var(--warning)' }}>
+        <div className="card" style={{ borderLeft: `4px solid ${(report.low_stock || []).length === 0 ? 'var(--success)' : 'var(--warning)'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '.625rem', marginBottom: '1rem' }}>
-            <Package size={20} color="var(--warning)" />
-            <h3 style={{ fontWeight: 700, color: 'var(--warning-dark)' }}>Sắp hết hàng ({report.low_stock?.length || 0})</h3>
+            <Package size={20} color={(report.low_stock || []).length === 0 ? 'var(--success)' : 'var(--warning-dark)'} />
+            <h3 style={{ fontWeight: 700, color: (report.low_stock || []).length === 0 ? 'var(--success)' : 'var(--warning-dark)' }}>Sắp hết hàng ({report.low_stock?.length || 0})</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
             {(report.low_stock || []).length === 0 ? (
@@ -308,10 +308,10 @@ export default function Dashboard() {
         </div>
 
         {/* Expiring Soon Alert */}
-        <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+        <div className="card" style={{ borderLeft: `4px solid ${(report.expiring_soon || []).length === 0 ? 'var(--success)' : 'var(--danger)'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '.625rem', marginBottom: '1rem' }}>
-            <Clock size={20} color="var(--danger)" />
-            <h3 style={{ fontWeight: 700, color: 'var(--danger)' }}>Sắp hết hạn ({report.expiring_soon?.length || 0})</h3>
+            <Clock size={20} color={(report.expiring_soon || []).length === 0 ? 'var(--success)' : 'var(--danger)'} />
+            <h3 style={{ fontWeight: 700, color: (report.expiring_soon || []).length === 0 ? 'var(--success)' : 'var(--danger)' }}>Sắp hết hạn ({report.expiring_soon?.length || 0})</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
             {(report.expiring_soon || []).length === 0 ? (

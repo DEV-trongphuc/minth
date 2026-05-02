@@ -21,6 +21,7 @@ const tierConfig = {
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState('');
   const [viewMode, setViewMode] = useState('list');
@@ -42,7 +43,11 @@ export default function Customers() {
     fetch(`${API_BASE_URL}/settings.php`).then(r => r.json()).then(d => {
       setSettings({ tier_loyal: Number(d.tier_loyal || 5000000), tier_vip: Number(d.tier_vip || 20000000) });
     }).catch(() => {});
-    fetch(`${API_BASE_URL}/customers.php`).then(r => r.json()).then(d => { if (Array.isArray(d) && d.length) setCustomers(d); }).catch(() => {});
+    fetch(`${API_BASE_URL}/customers.php`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d) && d.length) setCustomers(d); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   const filtered = customers.filter(c => {
@@ -214,6 +219,7 @@ export default function Customers() {
           {filtered.map(c => <CustomerCard key={c.id} c={c} />)}
         </div>
       ) : (
+        <>
           <div className="table-wrap">
             <table className="data-table">
               <thead>
@@ -260,7 +266,6 @@ export default function Customers() {
               </tbody>
             </table>
           </div>
-        </div>
         
         {/* MOBILE CARD VIEW */}
         <div className="mobile-only">

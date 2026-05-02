@@ -9,15 +9,22 @@ try {
         username VARCHAR(50) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         role VARCHAR(20) DEFAULT 'admin',
+        avatar VARCHAR(255) DEFAULT '/imgs/avatar.jpg',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
+    
+    // Fix cho bảng users nếu thiếu cột avatar
+    try { $pdo->exec("ALTER TABLE users ADD COLUMN avatar VARCHAR(255) DEFAULT '/imgs/avatar.jpg'"); } catch (\PDOException $e) {}
 
     // Tạo user admin mặc định nếu chưa có
     $stmt = $pdo->query("SELECT COUNT(*) FROM users");
     if ($stmt->fetchColumn() == 0) {
         $defaultPassword = password_hash('admin123', PASSWORD_DEFAULT);
-        $pdo->exec("INSERT INTO users (username, password, role) VALUES ('admin', '$defaultPassword', 'admin')");
+        $pdo->exec("INSERT INTO users (username, password, role, avatar) VALUES ('admin', '$defaultPassword', 'admin', '/imgs/avatar.jpg')");
+    } else {
+        // Ensure existing admin gets the avatar if empty
+        $pdo->exec("UPDATE users SET avatar = '/imgs/avatar.jpg' WHERE username = 'admin' AND (avatar IS NULL OR avatar = '')");
     }
 
     // Bảng Sản phẩm
