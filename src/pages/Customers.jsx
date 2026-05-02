@@ -192,14 +192,14 @@ export default function Customers() {
       </div>
 
       {/* Stats mini - Clean Premium Design */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+      <div className="grid-stats">
         {[
           { label: 'Khách VIP', count: customers.filter(c => c.tier === 'VIP').length, color: '#f59e0b' },
           { label: 'Khách Loyal', count: customers.filter(c => c.tier === 'Loyal').length, color: 'var(--primary)' },
           { label: 'Doanh thu từ CRM', count: customers.reduce((s, c) => s + Number(c.total_spent || 0), 0).toLocaleString('vi-VN') + ' đ', color: '#ec4899' },
           { label: 'Tổng khách', count: customers.length, color: '#ec4899' },
         ].map(s => (
-          <div key={s.label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '1.25rem', borderRadius: 'var(--r-md)' }}>
+          <div key={s.label} className="stat-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)' }}>
             <div className="text-xs text-muted">{s.label}</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{s.count}</div>
           </div>
