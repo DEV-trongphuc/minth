@@ -289,6 +289,7 @@ export default function Inventory() {
             {filtered.map(b => {
               const s = stockStatus(b);
               const isOutOfStock = b.current_qty <= 0 && b.current_ml <= 0;
+              const pct = Math.round((b.current_qty / b.initial_qty) * 100);
               return (
                 <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: `3px solid ${b.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)'}`, opacity: isOutOfStock ? 0.5 : 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
