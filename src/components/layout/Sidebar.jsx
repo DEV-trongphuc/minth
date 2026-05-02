@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Users, BarChart2, Settings, LogOut, Store } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, BarChart2, Settings, LogOut, Store, PlusCircle } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 
 const navItems = [
@@ -69,7 +69,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               boxShadow: 'var(--shadow-sm)'
             }}
           >
-            <ShoppingCart size={18} /> Tạo Đơn Nhanh
+            <PlusCircle size={18} /> Tạo Đơn Nhanh
           </button>
         </div>
 
