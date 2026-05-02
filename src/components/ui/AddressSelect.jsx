@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, ChevronRight, Check, Loader2 } from 'lucide-react';
+import { MapPin, ChevronRight, Check, Loader2, Search } from 'lucide-react';
 
 export default function AddressSelect({ value, onChange, placeholder = "Chọn địa chỉ giao hàng..." }) {
   const [showModal, setShowModal] = useState(false);
   const [step, setStep] = useState(1); // 1: City, 2: District, 3: Ward, 4: Specific
   const [selections, setSelections] = useState({ city: null, district: null, ward: null, specific: '' });
+  const [searchQuery, setSearchQuery] = useState('');
   
   const [cities, setCities] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -25,6 +26,7 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
   const selectCity = (city) => {
     setSelections({ ...selections, city, district: null, ward: null });
     setStep(2);
+    setSearchQuery('');
     setLoading(true);
     fetch(`https://provinces.open-api.vn/api/p/${city.code}?depth=2`)
       .then(r => r.json())
@@ -35,6 +37,7 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
   const selectDistrict = (district) => {
     setSelections({ ...selections, district, ward: null });
     setStep(3);
+    setSearchQuery('');
     setLoading(true);
     fetch(`https://provinces.open-api.vn/api/d/${district.code}?depth=2`)
       .then(r => r.json())
@@ -44,6 +47,7 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
 
   const handleOpen = () => {
     setStep(1);
+    setSearchQuery('');
     setShowModal(true);
   };
 
@@ -67,23 +71,39 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
       </div>
 
       {showModal && createPortal(
-        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }} style={{ zIndex: 1000 }}>
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }} style={{ zIndex: 1060 }}>
           <div className="modal" style={{ width: '400px', height: '550px', display: 'flex', flexDirection: 'column' }}>
             <div className="modal-header" style={{ borderBottom: '1px solid var(--border-light)', paddingBottom: '1rem' }}>
               <div>
                 <h2 className="modal-title">Chọn địa chỉ</h2>
                 <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  <span style={{ fontWeight: step >= 1 ? 700 : 400, color: step >= 1 ? 'var(--primary)' : '', cursor: 'pointer' }} onClick={() => setStep(1)}>Tỉnh/Thành</span>
+                  <span style={{ fontWeight: step >= 1 ? 700 : 400, color: step >= 1 ? 'var(--primary)' : '', cursor: 'pointer' }} onClick={() => { setStep(1); setSearchQuery(''); }}>Tỉnh/Thành</span>
                   <ChevronRight size={12} />
-                  <span style={{ fontWeight: step >= 2 ? 700 : 400, color: step >= 2 ? 'var(--primary)' : '', cursor: step >= 2 ? 'pointer' : 'default' }} onClick={() => step >= 2 && setStep(2)}>Quận/Huyện</span>
+                  <span style={{ fontWeight: step >= 2 ? 700 : 400, color: step >= 2 ? 'var(--primary)' : '', cursor: step >= 2 ? 'pointer' : 'default' }} onClick={() => { if (step >= 2) { setStep(2); setSearchQuery(''); } }}>Quận/Huyện</span>
                   <ChevronRight size={12} />
-                  <span style={{ fontWeight: step >= 3 ? 700 : 400, color: step >= 3 ? 'var(--primary)' : '', cursor: step >= 3 ? 'pointer' : 'default' }} onClick={() => step >= 3 && setStep(3)}>Phường/Xã</span>
+                  <span style={{ fontWeight: step >= 3 ? 700 : 400, color: step >= 3 ? 'var(--primary)' : '', cursor: step >= 3 ? 'pointer' : 'default' }} onClick={() => { if (step >= 3) { setStep(3); setSearchQuery(''); } }}>Phường/Xã</span>
                 </div>
               </div>
               <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button>
             </div>
             
-            <div className="modal-body" style={{ flex: 1, overflowY: 'auto', padding: '0', position: 'relative' }}>
+            <div className="modal-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0', position: 'relative' }}>
+              {step < 4 && (
+                <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-light)', flexShrink: 0, position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 5 }}>
+                  <div style={{ position: 'relative' }}>
+                    <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      placeholder="Tìm nhanh..." 
+                      style={{ paddingLeft: '2.2rem', paddingRight: '0.5rem', paddingTop: '0.6rem', paddingBottom: '0.6rem', width: '100%', fontSize: '0.9rem' }} 
+                      value={searchQuery} 
+                      onChange={e => setSearchQuery(e.target.value)} 
+                    />
+                  </div>
+                </div>
+              )}
+              <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
               {loading && (
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
                   <Loader2 className="animate-spin" color="var(--primary)" size={24} />
@@ -91,7 +111,7 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
               )}
               {step === 1 && (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {cities.map(c => (
+                  {cities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map(c => (
                     <div key={c.code} style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-light)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
                          className="hover-bg" onClick={() => selectCity(c)}>
                       <span>{c.name}</span>
@@ -102,7 +122,7 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
               )}
               {step === 2 && (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {districts.map(d => (
+                  {districts.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase())).map(d => (
                     <div key={d.code} style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-light)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
                          className="hover-bg" onClick={() => selectDistrict(d)}>
                       <span>{d.name}</span>
@@ -114,9 +134,9 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
               )}
               {step === 3 && (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {wards.map(w => (
+                  {wards.filter(w => w.name.toLowerCase().includes(searchQuery.toLowerCase())).map(w => (
                     <div key={w.code} style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-light)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
-                         className="hover-bg" onClick={() => { setSelections({ ...selections, ward: w }); setStep(4); }}>
+                         className="hover-bg" onClick={() => { setSelections({ ...selections, ward: w }); setStep(4); setSearchQuery(''); }}>
                       <span>{w.name}</span>
                       {selections.ward?.code === w.code && <Check size={16} color="var(--primary)" />}
                     </div>
@@ -124,11 +144,12 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
                   {!loading && wards.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center' }}>
                       <p className="text-muted mb-3">Không có dữ liệu phường/xã.</p>
-                      <button className="btn btn-primary" onClick={() => setStep(4)}>Nhập địa chỉ cụ thể ngay</button>
+                      <button className="btn btn-primary" onClick={() => {setStep(4); setSearchQuery('');}}>Nhập địa chỉ cụ thể ngay</button>
                     </div>
                   )}
                 </div>
               )}
+              </div>
               {step === 4 && (
                 <div style={{ padding: '1.5rem' }}>
                   <div style={{ background: 'var(--surface2)', padding: '1rem', borderRadius: 'var(--r-sm)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>

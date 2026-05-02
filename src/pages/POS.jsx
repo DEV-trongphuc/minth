@@ -369,14 +369,15 @@ const POS = ({ onClose, onSuccess }) => {
                   </div>
                   
                   {orderConfig.status !== 'completed' && (
-                    <div className="form-group" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px dashed var(--border)' }}>
-                      <label className="text-sm text-muted" style={{ margin: 0, fontWeight: 500 }}>Phí ship (nếu có)</label>
-                      <div style={{ position: 'relative', width: '120px' }}>
-                        <input type="text" className="form-control" style={{ textAlign: 'right', padding: '0.4rem 1.5rem 0.4rem 0.5rem', fontWeight: 600 }} value={shippingFee > 0 ? shippingFee.toLocaleString('vi-VN') : ''} placeholder="0" onChange={e => {
+                    <div className="form-group" style={{ marginBottom: '1rem', padding: '0.5rem 0', borderBottom: '1px dashed var(--border)' }}>
+                      <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Phí ship (nếu có)</label>
+                      <div style={{ position: 'relative', width: '100%' }}>
+                        <Truck size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                        <input type="text" className="form-control" style={{ width: '100%', textAlign: 'right', padding: '0.6rem 2.2rem 0.6rem 2.2rem', fontWeight: 600 }} value={shippingFee > 0 ? shippingFee.toLocaleString('vi-VN') : ''} placeholder="0" onChange={e => {
                           const val = Number(e.target.value.replace(/\D/g, ''));
                           setShippingFee(val);
                         }} />
-                        <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>đ</span>
+                        <span style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>đ</span>
                       </div>
                     </div>
                   )}
