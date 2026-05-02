@@ -161,7 +161,13 @@ const POS = ({ onClose, onSuccess }) => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <h4 style={{ margin: 0, fontSize: '1rem' }}>{batch.product_name}</h4>
-                  <span className="text-muted text-sm">Mã lô: {batch.batch_code}</span>
+                  <div className="text-muted text-sm" style={{ marginTop: '0.2rem' }}>
+                    Mã lô: <strong>{batch.batch_code}</strong>
+                  </div>
+                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.2rem', display: 'flex', gap: '0.75rem' }}>
+                    <span>Nhập: {batch.import_date ? new Date(batch.import_date).toLocaleDateString('vi-VN') : 'N/A'}</span>
+                    <span>Giá vốn: <strong style={{ color: 'var(--warning-dark, #b45309)' }}>{batch.import_price ? Number(batch.import_price).toLocaleString('vi-VN') : 0} đ</strong></span>
+                  </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <span className={`badge ${batch.current_qty <= 5 ? 'badge-danger' : 'badge-success'}`} style={{ background: batch.current_qty <= 5 ? 'var(--danger-bg)' : '', color: batch.current_qty <= 5 ? 'var(--danger)' : '' }}>
@@ -193,14 +199,22 @@ const POS = ({ onClose, onSuccess }) => {
                 <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}><Trash2 size={16} /></button>
                 <h4 style={{ fontSize: '0.95rem', margin: '0 0 0.25rem 0', paddingRight: '1.5rem' }}>{item.product_name}</h4>
                 <span className="text-muted text-xs">Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên chai' : 'Chiết ml'})</span>
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', alignItems: 'center' }}>
-                  <input type="number" className="form-control" style={{ width: '80px', padding: '0.4rem' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
-                  <span className="text-muted">x</span>
-                  <input type="text" className="form-control" style={{ flex: 1, padding: '0.4rem' }} value={item.price ? item.price.toLocaleString('vi-VN') : ''} onChange={e => {
-                    const val = e.target.value.replace(/\D/g, '');
-                    updateCartItem(idx, 'price', val);
-                  }} />
-                  <span style={{ fontWeight: 600, width: '100px', textAlign: 'right', color: 'var(--primary)' }}>{(item.price * item.quantity).toLocaleString()} đ</span>
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem', alignItems: 'flex-end' }}>
+                  <div>
+                    <label className="text-xs text-muted" style={{display: 'block', marginBottom: '0.2rem'}}>Số lượng</label>
+                    <input type="number" className="form-control" style={{ width: '80px', padding: '0.4rem' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
+                  </div>
+                  <div style={{ paddingBottom: '0.4rem', color: 'var(--text-muted)' }}>x</div>
+                  <div style={{ flex: 1 }}>
+                    <label className="text-xs text-muted" style={{display: 'block', marginBottom: '0.2rem'}}>Đơn giá (đ)</label>
+                    <input type="text" className="form-control" style={{ width: '100%', padding: '0.4rem' }} value={item.price ? item.price.toLocaleString('vi-VN') : ''} onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      updateCartItem(idx, 'price', val);
+                    }} />
+                  </div>
+                  <div style={{ paddingBottom: '0.4rem', fontWeight: 600, width: '100px', textAlign: 'right', color: 'var(--primary)' }}>
+                    {(item.price * item.quantity).toLocaleString()} đ
+                  </div>
                 </div>
                 {item.sell_type === 'ml' && (
                   <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
@@ -227,7 +241,7 @@ const POS = ({ onClose, onSuccess }) => {
             <button className="btn btn-primary" style={{ flex: 3, padding: '1rem', fontSize: '1.125rem' }} onClick={() => {
               if (cart.length === 0) return showAlert('Giỏ hàng trống', 'Vui lòng chọn ít nhất 1 sản phẩm vào giỏ.', 'warning');
               setShowCheckout(true);
-            }}><CreditCard size={20} /> Tạo Đơn</button>
+            }}><Plus size={20} /> Tạo Đơn</button>
           </div>
         </div>
       </div>
