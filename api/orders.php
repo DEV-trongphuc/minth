@@ -164,11 +164,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Tạo Đơn hàng
-        $status = $data['status'] ?? 'completed';
+        $status = $data['status'] ?? 'pending';
         $paymentStatus = $data['payment_status'] ?? 'paid';
+        $shippingFee = $data['shipping_fee'] ?? 0;
+        $finalAmount = $data['final_amount'] ?? ($data['total_amount'] + $shippingFee);
         
-        $stmt = $pdo->prepare("INSERT INTO orders (customer_id, total_amount, final_amount, status, payment_status) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$customerId, $data['total_amount'], $data['total_amount'], $status, $paymentStatus]);
+        $stmt = $pdo->prepare("INSERT INTO orders (customer_id, total_amount, shipping_fee, final_amount, status, payment_status) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$customerId, $data['total_amount'], $shippingFee, $finalAmount, $status, $paymentStatus]);
         $orderId = $pdo->lastInsertId();
         
         // Thêm chi tiết và trừ tồn kho

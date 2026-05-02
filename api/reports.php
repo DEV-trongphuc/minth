@@ -36,10 +36,10 @@ if ($method === 'GET') {
         // Query Tổng đơn (Tính tất cả trừ đơn bị hủy)
         $stmt = $pdo->prepare("
             SELECT 
-                SUM(CASE WHEN payment_status = 'paid' THEN final_amount ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END) as total_revenue,
                 SUM(
                   CASE WHEN payment_status = 'paid' THEN 
-                    final_amount - COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
+                    total_amount - COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
                   ELSE 0 END
                 ) as gross_profit,
                 COUNT(id) as total_orders
@@ -53,10 +53,10 @@ if ($method === 'GET') {
         $stmtChart = $pdo->prepare("
             SELECT 
                 DATE(created_at) as date,
-                SUM(CASE WHEN payment_status = 'paid' THEN final_amount ELSE 0 END) as revenue,
+                SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END) as revenue,
                 SUM(
                     CASE WHEN payment_status = 'paid' THEN 
-                        final_amount - COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
+                        total_amount - COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
                     ELSE 0 END
                 ) as profit
             FROM orders 

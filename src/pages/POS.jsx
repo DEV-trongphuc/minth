@@ -12,7 +12,8 @@ const POS = ({ onClose, onSuccess }) => {
   const [search, setSearch] = useState('');
   const [customerInfo, setCustomerInfo] = useState({ id: null, name: '', phone: '', address: '', note: '' });
   const [showCheckout, setShowCheckout] = useState(false);
-  const [orderConfig, setOrderConfig] = useState({ status: 'pending', payment_status: 'unpaid' });
+  const [orderConfig, setOrderConfig] = useState({ status: 'pending', payment_status: 'paid' });
+  const [shippingFee, setShippingFee] = useState(0);
   const { showAlert } = useDialog();
 
   useEffect(() => {
@@ -102,6 +103,7 @@ const POS = ({ onClose, onSuccess }) => {
         body: JSON.stringify({
           cart,
           total_amount: totalAmount,
+          shipping_fee: shippingFee,
           customer_name: customerInfo.name,
           customer_phone: customerInfo.phone,
           customer_address: customerInfo.address,
@@ -115,7 +117,8 @@ const POS = ({ onClose, onSuccess }) => {
         showAlert('Thành công', 'Tạo đơn hàng thành công!', 'success');
         setCart([]);
         setCustomerInfo({ id: null, name: '', phone: '', address: '', note: '' });
-        setOrderConfig({ status: 'pending', payment_status: 'unpaid' });
+        setOrderConfig({ status: 'pending', payment_status: 'paid' });
+        setShippingFee(0);
         setShowCheckout(false);
         fetchBatches(); // Reload inventory
         fetchCustomers(); // Reload CRM
@@ -315,26 +318,46 @@ const POS = ({ onClose, onSuccess }) => {
                     </ul>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: 'auto', marginBottom: '1rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: 'auto', marginBottom: '0.75rem' }}>
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="text-xs text-muted" style={{ marginBottom: '.25rem', display: 'block' }}>Thanh toán</label>
-                      <select className="form-control" value={orderConfig.payment_status} onChange={e => setOrderConfig({...orderConfig, payment_status: e.target.value})} style={{ padding: '.5rem', fontSize: '.875rem' }}>
-                        <option value="unpaid">Chưa thu (COD)</option>
-                        <option value="paid">Đã thu tiền</option>
-                      </select>
+                      <div style={{ position: 'relative' }}>
+                        <select className="form-control" value={orderConfig.payment_status} onChange={e => setOrderConfig({...orderConfig, payment_status: e.target.value})} style={{ padding: '.65rem 1rem', paddingRight: '2.5rem', fontSize: '.875rem', appearance: 'none', cursor: 'pointer', fontWeight: 600, background: 'var(--surface)', border: '1.5px solid var(--border)' }}>
+                          <option value="unpaid">Chưa thu (COD)</option>
+                          <option value="paid">Đã thu tiền</option>
+                        </select>
+                        <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }} />
+                      </div>
                     </div>
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="text-xs text-muted" style={{ marginBottom: '.25rem', display: 'block' }}>Giao hàng</label>
-                      <select className="form-control" value={orderConfig.status} onChange={e => setOrderConfig({...orderConfig, status: e.target.value})} style={{ padding: '.5rem', fontSize: '.875rem' }}>
-                        <option value="pending">Cần ship (Chờ xử lý)</option>
-                        <option value="completed">Giao tại quầy (Hoàn thành)</option>
-                      </select>
+                      <div style={{ position: 'relative' }}>
+                        <select className="form-control" value={orderConfig.status} onChange={e => setOrderConfig({...orderConfig, status: e.target.value})} style={{ padding: '.65rem 1rem', paddingRight: '2.5rem', fontSize: '.875rem', appearance: 'none', cursor: 'pointer', fontWeight: 600, background: 'var(--surface)', border: '1.5px solid var(--border)' }}>
+                          <option value="pending">Cần ship (Chờ xử lý)</option>
+                          <option value="shipping">Đang giao hàng</option>
+                          <option value="completed">Giao tại quầy (Hoàn thành)</option>
+                        </select>
+                        <ChevronDown size={16} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }} />
+                      </div>
                     </div>
                   </div>
                   
+                  {orderConfig.status !== 'completed' && (
+                    <div className="form-group" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px dashed var(--border)' }}>
+                      <label className="text-sm text-muted" style={{ margin: 0, fontWeight: 500 }}>Phí ship (nếu có)</label>
+                      <div style={{ position: 'relative', width: '120px' }}>
+                        <input type="text" className="form-control" style={{ textAlign: 'right', padding: '0.4rem 1.5rem 0.4rem 0.5rem', fontWeight: 600 }} value={shippingFee > 0 ? shippingFee.toLocaleString('vi-VN') : ''} placeholder="0" onChange={e => {
+                          const val = Number(e.target.value.replace(/\D/g, ''));
+                          setShippingFee(val);
+                        }} />
+                        <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>đ</span>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--primary-light)', padding: '1.25rem', borderRadius: 'var(--r-sm)' }}>
                     <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--primary-dark)' }}>Tổng cộng:</span>
-                    <span style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--primary)' }}>{totalAmount.toLocaleString('vi-VN')} đ</span>
+                    <span style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--primary)' }}>{(totalAmount + (orderConfig.status !== 'completed' ? shippingFee : 0)).toLocaleString('vi-VN')} đ</span>
                   </div>
                 </div>
                 
