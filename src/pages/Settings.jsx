@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, User, Bell, Shield, Palette, Star } from 'lucide-react';
 import { API_BASE_URL } from '../config';
+import { useDialog } from '../components/ui/DialogContext';
 
 export default function Settings() {
   const [settings, setSettings] = useState({ tier_loyal: 5000000, tier_vip: 20000000 });
+  const { showAlert } = useDialog();
   
   useEffect(() => {
     fetch(`${API_BASE_URL}/settings.php`)
@@ -114,6 +116,12 @@ export default function Settings() {
             </div>
           </div>
         </section>
+
+        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
+          <button className="btn btn-primary" onClick={() => showAlert('Thành công', 'Đã lưu các cài đặt giao diện và hệ thống!', 'success')}>
+            Lưu Cài đặt Hệ thống
+          </button>
+        </div>
 
       </div>
     </div>

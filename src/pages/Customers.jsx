@@ -24,7 +24,7 @@ export default function Customers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState('');
-  const [viewMode, setViewMode] = useState('list');
+  const [viewMode, setViewMode] = useState('card');
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [detailItem, setDetailItem] = useState(null);
@@ -35,8 +35,8 @@ export default function Customers() {
   const [settings, setSettings] = useState({ tier_loyal: 5000000, tier_vip: 20000000 });
 
   const handleCreateOrder = (c) => {
-    localStorage.setItem('luccy_pos_customer_draft', JSON.stringify({ phone: c.phone, name: c.name, address: c.address, note: c.note, id: c.id }));
-    navigate('/pos');
+    localStorage.setItem('luccy_pos_customer_draft', JSON.stringify(c));
+    window.dispatchEvent(new Event('open-pos'));
   };
 
   useEffect(() => {

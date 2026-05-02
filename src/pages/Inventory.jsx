@@ -243,7 +243,7 @@ export default function Inventory() {
                 {filtered.map(b => {
                   const s = stockStatus(b);
                   return (
-                    <tr key={b.id} className={selectedIds.includes(b.id) ? 'row-selected' : ''}>
+                    <tr key={b.id} style={{ opacity: b.current_qty <= 0 && b.current_ml <= 0 ? 0.5 : 1 }} className={selectedIds.includes(b.id) ? 'row-selected' : ''}>
                       <td onClick={e => e.stopPropagation()}>
                         <input type="checkbox" className="custom-check" checked={selectedIds.includes(b.id)} onChange={() => setSelectedIds(prev => prev.includes(b.id) ? prev.filter(i => i !== b.id) : [...prev, b.id])} />
                       </td>
@@ -288,9 +288,9 @@ export default function Inventory() {
           <div className="grid-auto">
             {filtered.map(b => {
               const s = stockStatus(b);
-              const pct = Math.round((b.current_qty / b.initial_qty) * 100);
+              const isOutOfStock = b.current_qty <= 0 && b.current_ml <= 0;
               return (
-                <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: `3px solid ${b.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)'}` }}>
+                <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: `3px solid ${b.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)'}`, opacity: isOutOfStock ? 0.5 : 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <div style={{ fontWeight: 700 }}>{b.product_name}</div>

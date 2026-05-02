@@ -29,7 +29,6 @@ const POS = ({ onClose, onSuccess }) => {
       if (draft) {
         const p = JSON.parse(draft);
         setCustomerInfo({ id: p.id || null, name: p.name, phone: p.phone, address: p.address || '', note: p.note || '' });
-        setShowCheckout(true);
         localStorage.removeItem('luccy_pos_customer_draft');
       }
     } catch(e) {}
@@ -178,7 +177,7 @@ const POS = ({ onClose, onSuccess }) => {
               </button>
             </div>
           ) : filteredBatches.map(batch => (
-            <div key={batch.id} style={{ padding: '0.875rem', border: `1px solid ${batch.current_qty <= 5 ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', gap: '0.75rem', transition: 'var(--transition)' }} className="hover-shadow">
+            <div key={batch.id} style={{ padding: '0.875rem', border: `1px solid ${batch.current_qty <= 5 ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 'var(--r-md)', display: 'flex', flexDirection: 'column', gap: '0.75rem', transition: 'var(--transition)' }} className="hover-shadow">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ paddingRight: '0.5rem' }}>
