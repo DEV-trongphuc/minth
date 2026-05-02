@@ -4,15 +4,27 @@ import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
 
 export default function Settings() {
-  const [settings, setSettings] = useState({ tier_loyal: 5000000, tier_vip: 20000000 });
+  const [settings, setSettings] = useState({ 
+    tier_loyal: 5000000, 
+    tier_vip: 20000000,
+    theme_mode: 'light',
+    sound_notification: 1,
+    low_stock_threshold: 5
+  });
   const { showAlert } = useDialog();
   
   useEffect(() => {
     fetch(`${API_BASE_URL}/settings.php`)
       .then(res => res.json())
       .then(data => {
-        if (data.tier_loyal) setSettings(s => ({ ...s, tier_loyal: Number(data.tier_loyal) }));
-        if (data.tier_vip) setSettings(s => ({ ...s, tier_vip: Number(data.tier_vip) }));
+        setSettings(s => ({ 
+          ...s, 
+          tier_loyal: data.tier_loyal ? Number(data.tier_loyal) : s.tier_loyal,
+          tier_vip: data.tier_vip ? Number(data.tier_vip) : s.tier_vip,
+          theme_mode: data.theme_mode || 'light',
+          sound_notification: data.sound_notification !== undefined ? Number(data.sound_notification) : 1,
+          low_stock_threshold: data.low_stock_threshold !== undefined ? Number(data.low_stock_threshold) : 5
+        }));
       })
       .catch(console.error);
   }, []);
@@ -28,6 +40,23 @@ export default function Settings() {
       alert('Cập nhật phân hạng thành công!');
     } catch (e) {
       alert('Lỗi cập nhật');
+    }
+  };
+
+  const handleSaveSystemSettings = async () => {
+    try {
+      await fetch(`${API_BASE_URL}/settings.php`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          theme_mode: settings.theme_mode,
+          sound_notification: settings.sound_notification,
+          low_stock_threshold: settings.low_stock_threshold
+        })
+      });
+      showAlert('Thành công', 'Đã lưu các cài đặt giao diện và hệ thống!', 'success');
+    } catch (e) {
+      showAlert('Lỗi', 'Không thể lưu cài đặt. Vui lòng thử lại!', 'error');
     }
   };
 
@@ -88,7 +117,7 @@ export default function Settings() {
           </h3>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <span style={{ flex: '1 1 150px', color: 'var(--text-muted)' }}>Chế độ hiển thị mặc định</span>
-            <select className="form-control" style={{ flex: '1 1 200px' }}>
+            <select className="form-control" style={{ flex: '1 1 200px' }} value={settings.theme_mode} onChange={e => setSettings({...settings, theme_mode: e.target.value})}>
               <option value="light">Sáng (Light Mode)</option>
               <option value="dark" disabled>Tối (Dark Mode) - Sắp ra mắt</option>
             </select>
@@ -103,22 +132,22 @@ export default function Settings() {
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-              <input type="checkbox" defaultChecked />
+              <input type="checkbox" checked={settings.sound_notification === 1} onChange={e => setSettings({...settings, sound_notification: e.target.checked ? 1 : 0})} />
               <span>Bật âm thanh báo đơn hàng mới</span>
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                <input type="checkbox" defaultChecked />
+                <input type="checkbox" checked={settings.low_stock_threshold > 0} onChange={e => setSettings({...settings, low_stock_threshold: e.target.checked ? 5 : 0})} />
                 <span>Cảnh báo khi lô hàng sắp hết (dưới</span>
               </label>
-              <input type="number" className="form-control" defaultValue={5} min={1} style={{ width: '60px', padding: '0.3rem 0.5rem', textAlign: 'center' }} />
+              <input type="number" className="form-control" value={settings.low_stock_threshold || 5} min={1} onChange={e => setSettings({...settings, low_stock_threshold: Number(e.target.value)})} disabled={settings.low_stock_threshold === 0} style={{ width: '60px', padding: '0.3rem 0.5rem', textAlign: 'center' }} />
               <span>chai)</span>
             </div>
           </div>
         </section>
 
         <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
-          <button className="btn btn-primary" onClick={() => showAlert('Thành công', 'Đã lưu các cài đặt giao diện và hệ thống!', 'success')}>
+          <button className="btn btn-primary" onClick={handleSaveSystemSettings}>
             Lưu Cài đặt Hệ thống
           </button>
         </div>

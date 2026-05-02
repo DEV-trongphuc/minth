@@ -16,8 +16,6 @@ export default function Products() {
 
   const [form, setForm] = useState({ name: '', unit: 'chai', ml_per_unit: 0 });
 
-  useEffect(() => { fetchData(); }, []);
-
   const fetchData = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/products.php?t=${Date.now()}`);
@@ -29,6 +27,8 @@ export default function Products() {
       ]);
     } finally { setLoading(false); }
   };
+
+  useEffect(() => { fetchData(); }, []);
 
   const openAdd = () => { setEditItem(null); setForm({ name: '', unit: 'chai', ml_per_unit: 0 }); setShowModal(true); };
   const openEdit = (p) => { setEditItem(p); setForm({ name: p.name, unit: p.unit, ml_per_unit: p.ml_per_unit }); setShowModal(true); };
