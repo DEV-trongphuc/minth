@@ -90,7 +90,7 @@ const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
         <div className="nav-section-label" style={{ marginTop: '1.5rem' }}>Hệ thống</div>
         <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
           <span className="nav-icon-wrap"><Settings size={17} /></span>
-          Cài đặt
+          <span style={{ flex: 1 }}>Cài đặt</span>
         </NavLink>
       </nav>
 

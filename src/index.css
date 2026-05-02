@@ -90,6 +90,8 @@ body {
 }
 .app-shell.sidebar-collapsed .sidebar-footer {
   justify-content: center;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 .app-shell.sidebar-collapsed .sidebar-create-btn {
   padding: 0.75rem 0;
