@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: localhost:3306
--- Thời gian đã tạo: Th5 02, 2026 lúc 01:23 PM
+-- Thời gian đã tạo: Th5 02, 2026 lúc 01:52 PM
 -- Phiên bản máy phục vụ: 10.6.18-MariaDB-cll-lve-log
 -- Phiên bản PHP: 8.4.20
 
@@ -45,23 +45,6 @@ CREATE TABLE `batches` (
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `inventory_logs`
---
-
-CREATE TABLE `inventory_logs` (
-  `id` int(11) NOT NULL,
-  `batch_id` int(11) NOT NULL,
-  `action_type` varchar(50) NOT NULL,
-  `qty_change` int(11) DEFAULT 0,
-  `ml_change` int(11) DEFAULT 0,
-  `reason` varchar(255) DEFAULT NULL,
-  `user_name` varchar(100) DEFAULT 'System',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Cấu trúc bảng cho bảng `customers`
 --
 
@@ -73,6 +56,23 @@ CREATE TABLE `customers` (
   `note` text DEFAULT NULL,
   `total_spent` decimal(15,2) DEFAULT 0.00,
   `customer_tier` varchar(50) DEFAULT 'New',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `inventory_logs`
+--
+
+CREATE TABLE `inventory_logs` (
+  `id` int(11) NOT NULL,
+  `batch_id` int(11) NOT NULL,
+  `action_type` varchar(50) NOT NULL,
+  `qty_change` int(11) DEFAULT 0,
+  `ml_change` int(11) DEFAULT 0,
+  `reason` varchar(255) DEFAULT NULL,
+  `user_name` varchar(100) DEFAULT 'System',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -165,6 +165,13 @@ ALTER TABLE `batches`
   ADD KEY `idx_batches_product` (`product_id`);
 
 --
+-- Chỉ mục cho bảng `customers`
+--
+ALTER TABLE `customers`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_customers_phone` (`phone`);
+
+--
 -- Chỉ mục cho bảng `inventory_logs`
 --
 ALTER TABLE `inventory_logs`
@@ -172,13 +179,6 @@ ALTER TABLE `inventory_logs`
   ADD KEY `batch_id` (`batch_id`),
   ADD KEY `idx_inventory_logs_created` (`created_at`),
   ADD KEY `idx_inventory_logs_action` (`action_type`);
-
---
--- Chỉ mục cho bảng `customers`
---
-ALTER TABLE `customers`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_customers_phone` (`phone`);
 
 --
 -- Chỉ mục cho bảng `orders`
@@ -228,15 +228,15 @@ ALTER TABLE `batches`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT cho bảng `inventory_logs`
---
-ALTER TABLE `inventory_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT cho bảng `customers`
 --
 ALTER TABLE `customers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT cho bảng `inventory_logs`
+--
+ALTER TABLE `inventory_logs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --

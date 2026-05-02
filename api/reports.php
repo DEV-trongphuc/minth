@@ -134,7 +134,7 @@ if ($method === 'GET') {
         $stmtCost = $pdo->prepare("
             SELECT SUM(
                 CASE WHEN i.qty_change < 0 THEN ABS(i.qty_change) * b.import_price 
-                ELSE ABS(i.ml_change) * (b.import_price / p.ml_per_unit) END
+                ELSE ABS(i.ml_change) * (b.import_price / CASE WHEN p.ml_per_unit > 0 THEN p.ml_per_unit ELSE 1 END) END
             ) as op_cost
             FROM inventory_logs i
             JOIN batches b ON i.batch_id = b.id

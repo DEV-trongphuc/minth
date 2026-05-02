@@ -29,6 +29,7 @@ try {
         unit VARCHAR(50) DEFAULT 'chai',
         ml_per_unit INT DEFAULT 0,
         image TEXT,
+        status VARCHAR(50) DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
@@ -66,7 +67,9 @@ try {
         reason VARCHAR(255),
         user_name VARCHAR(100) DEFAULT 'System',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE
+        FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE,
+        INDEX idx_inventory_logs_created (created_at),
+        INDEX idx_inventory_logs_action (action_type)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
@@ -96,7 +99,8 @@ try {
         payment_status VARCHAR(50) DEFAULT 'paid',
         status VARCHAR(50) DEFAULT 'completed',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (customer_id) REFERENCES customers(id)
+        FOREIGN KEY (customer_id) REFERENCES customers(id),
+        INDEX idx_orders_created (created_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 

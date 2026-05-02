@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 COUNT(o.id) as order_count,
                 MAX(o.created_at) as last_order
             FROM customers c
-            LEFT JOIN orders o ON c.id = o.customer_id
+            LEFT JOIN orders o ON c.id = o.customer_id AND o.status != 'cancelled'
             GROUP BY c.id
             ORDER BY c.total_spent DESC
         ");
