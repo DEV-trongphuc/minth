@@ -154,7 +154,7 @@ export default function Customers() {
             <Users size={24} color="var(--pink)" /> Quản lý Khách hàng (CRM)
           </h1>
           <p className="page-sub" style={{ marginTop: '0.25rem' }}>{customers.length} khách hàng · Phân loại hạng VIP tự động theo chi tiêu.</p>
-          <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', background: 'var(--surface2)', padding: '0.5rem 0.75rem', borderRadius: 'var(--r-sm)' }}>
+          <div className="desktop-only" style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', background: 'var(--surface2)', padding: '0.5rem 0.75rem', borderRadius: 'var(--r-sm)' }}>
             <strong style={{ color: 'var(--text)' }}>Hướng dẫn phân hạng:</strong>
             <span><span className="badge badge-success" style={{ padding: '0.1rem 0.3rem' }}>New</span> Khách mới</span>
             <span><span className="badge badge-primary" style={{ padding: '0.1rem 0.3rem' }}>Loyal</span> Chi tiêu {'>'} {settings.tier_loyal.toLocaleString('vi-VN')}đ</span>

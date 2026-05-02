@@ -224,6 +224,9 @@ body {
   transition: var(--transition);
 }
 .user-chip:hover { border-color: var(--primary-light); background: var(--primary-muted); }
+@media (max-width: 768px) {
+  .user-chip { padding: .375rem; gap: 0; }
+}
 .user-avatar {
   width: 30px; height: 30px; border-radius: 50%;
   background: linear-gradient(135deg, var(--primary), var(--pink));
@@ -570,5 +573,9 @@ body {
 }
 @media (max-width: 1024px) {
   .dashboard-products-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .view-toggle { display: none !important; }
 }
 
