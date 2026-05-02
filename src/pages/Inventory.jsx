@@ -266,8 +266,8 @@ export default function Inventory() {
                         {b.ml_per_unit > 0 && <div className="text-muted text-xs mt-1">Còn {b.current_ml} ml</div>}
                       </td>
                       <td><span className={`badge ${s.cls}`}>{s.label}</span></td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '.375rem', flexWrap: 'wrap' }}>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'flex', gap: '.375rem' }}>
                           <button className="btn btn-secondary btn-icon btn-sm" onClick={() => { setExportForm({ batch_id: b.id, qty: '', reason: 'Hàng Tester', export_type: 'chai' }); setEditItem(b); setShowExportModal(true); }} title="Xuất nội bộ"><Share size={14} /></button>
                           <button className="btn btn-secondary btn-icon btn-sm" onClick={() => openHistory(b)} title="Lịch sử lô"><History size={14} /></button>
                           <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditModal(b)} title="Sửa"><Edit size={14} /></button>
