@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ShoppingCart, Search, Trash2, CreditCard, Printer, UserPlus, CheckCircle, Package, Plus } from 'lucide-react';
+import { ShoppingCart, Search, Trash2, CreditCard, Printer, UserPlus, CheckCircle, Package, Plus, ChevronDown } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import AddressSelect from '../components/ui/AddressSelect';
 import { useDialog } from '../components/ui/DialogContext';
