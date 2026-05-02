@@ -172,8 +172,10 @@ export default function Inventory() {
     e.preventDefault();
     if (!exportForm.qty || exportForm.qty <= 0) return showAlert('Lỗi', 'Số lượng không hợp lệ', 'warning');
     try {
+      const u = JSON.parse(localStorage.getItem('luccy_user') || '{}');
+      const uName = (u.username === 'admin' || u.username === 'hamien_luccy') ? 'Hà Miên' : (u.username || 'Hà Miên');
       const res = await fetch(`${API_BASE_URL}/inventory_logs.php`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({...exportForm, user_name: JSON.parse(localStorage.getItem('luccy_user'))?.username || 'Admin'})
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({...exportForm, user_name: uName})
       });
       if (res.ok) {
         setShowExportModal(false);
@@ -588,7 +590,7 @@ export default function Inventory() {
                           <span className="text-xs text-muted">{new Date(log.created_at).toLocaleString('vi-VN')}</span>
                         </div>
                         <div className="text-sm" style={{ display: 'flex', gap: '1rem', color: 'var(--text-muted)' }}>
-                          <span>Thực hiện: <strong style={{ color: 'var(--text)' }}>{log.user_name}</strong></span>
+                          <span>Thực hiện: <strong style={{ color: 'var(--text)' }}>{log.user_name?.toLowerCase() === 'admin' ? 'Hà Miên' : log.user_name}</strong></span>
                           <span>Thay đổi: <strong style={{ color: log.qty_change > 0 || log.ml_change > 0 ? 'var(--success)' : (log.qty_change < 0 || log.ml_change < 0 ? 'var(--danger)' : 'var(--text)') }}>{log.qty_change !== 0 ? `${log.qty_change > 0 ? '+' : ''}${log.qty_change} chai` : ''} {log.ml_change !== 0 ? `(${log.ml_change > 0 ? '+' : ''}${log.ml_change} ml)` : ''}</strong></span>
                         </div>
                       </div>

@@ -147,13 +147,17 @@ const Header = ({ toggleSidebar, pageName }) => {
         <div className="user-chip">
           {(() => {
             const u = JSON.parse(localStorage.getItem('luccy_user') || '{}');
-            return u.avatar ? (
-              <img src={u.avatar} alt="Avatar" className="user-avatar" style={{ objectFit: 'cover' }} />
-            ) : (
-              <div className="user-avatar">AD</div>
+            return (
+              <>
+                {u.avatar ? (
+                  <img src={u.avatar} alt="Avatar" className="user-avatar" style={{ objectFit: 'cover' }} />
+                ) : (
+                  <div className="user-avatar">AD</div>
+                )}
+                <span className="user-chip-name desktop-only">{(u.username === 'admin' || u.username === 'hamien_luccy') ? 'Hà Miên' : (u.name || u.username || 'Hà Miên')}</span>
+              </>
             );
           })()}
-          <span className="user-chip-name desktop-only">Admin</span>
         </div>
       </div>
     </header>

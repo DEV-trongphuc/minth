@@ -336,7 +336,7 @@ export default function Customers() {
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '.75rem' }}>
                 {[
-                  { label: 'Tổng chi tiêu', val: `${(detailItem.total_spent || 0).toLocaleString('vi-VN')} đ`, icon: <TrendingUp size={16} color="var(--primary)" /> },
+                  { label: 'Tổng chi tiêu', val: `${Number(detailItem.total_spent || 0).toLocaleString('vi-VN')} đ`, icon: <TrendingUp size={16} color="var(--primary)" /> },
                   { label: 'Số đơn hàng', val: `${detailItem.order_count || 0} đơn`, icon: <ShoppingBag size={16} color="var(--success)" /> },
                   { label: 'Mua lần cuối', val: detailItem.last_order || '—', icon: <Calendar size={16} color="var(--warning)" /> },
                 ].map(info => (
