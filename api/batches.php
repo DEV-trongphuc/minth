@@ -34,13 +34,14 @@ if ($method === 'GET') {
         $initial_ml = ($product && $product['ml_per_unit']) ? ($data->initial_qty * $product['ml_per_unit']) : 0;
         
         $stmt = $pdo->prepare("
-            INSERT INTO batches (product_id, batch_code, import_date, import_price, initial_qty, current_qty, initial_ml, current_ml) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO batches (product_id, batch_code, import_date, expiry_date, import_price, initial_qty, current_qty, initial_ml, current_ml) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $data->product_id,
             $data->batch_code ?? 'MINTH-'.rand(10000, 99999),
             $data->import_date,
+            $data->expiry_date ?? null,
             $data->import_price,
             $data->initial_qty,
             $data->initial_qty, // current = initial
@@ -48,9 +49,17 @@ if ($method === 'GET') {
             $initial_ml
         ]);
         
+        $batchId = $pdo->lastInsertId();
+        
+        $logStmt = $pdo->prepare("
+            INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason)
+            VALUES (?, 'IMPORT', ?, ?, ?)
+        ");
+        $logStmt->execute([$batchId, $data->initial_qty, $initial_ml, "Nhập kho ban đầu"]);
+        
         echo json_encode([
             "message" => "Thêm lô hàng thành công",
-            "id" => $pdo->lastInsertId()
+            "id" => $batchId
         ]);
     } catch (\PDOException $e) {
         http_response_code(500);

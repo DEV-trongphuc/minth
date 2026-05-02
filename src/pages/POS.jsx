@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Search, Trash2, CreditCard, Printer, UserPlus, CheckCircle, Package } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import AddressSelect from '../components/ui/AddressSelect';
@@ -12,8 +13,9 @@ const POS = () => {
   const [search, setSearch] = useState('');
   const [customerInfo, setCustomerInfo] = useState({ id: null, name: '', phone: '', address: '', note: '' });
   const [showCheckout, setShowCheckout] = useState(false);
-  const [orderConfig, setOrderConfig] = useState({ status: 'completed', payment_status: 'paid' });
+  const [orderConfig, setOrderConfig] = useState({ status: 'pending', payment_status: 'unpaid' });
   const { showAlert } = useDialog();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchBatches();
@@ -113,10 +115,11 @@ const POS = () => {
         showAlert('Thành công', 'Tạo đơn hàng thành công!', 'success');
         setCart([]);
         setCustomerInfo({ id: null, name: '', phone: '', address: '', note: '' });
-        setOrderConfig({ status: 'completed', payment_status: 'paid' });
+        setOrderConfig({ status: 'pending', payment_status: 'unpaid' });
         setShowCheckout(false);
         fetchBatches(); // Reload inventory
         fetchCustomers(); // Reload CRM
+        navigate('/orders');
       } else {
         showAlert('Lỗi hệ thống', 'Lỗi lưu đơn hàng.', 'danger');
       }
@@ -286,15 +289,15 @@ const POS = () => {
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="text-xs text-muted" style={{ marginBottom: '.25rem', display: 'block' }}>Thanh toán</label>
                       <select className="form-control" value={orderConfig.payment_status} onChange={e => setOrderConfig({...orderConfig, payment_status: e.target.value})} style={{ padding: '.5rem', fontSize: '.875rem' }}>
-                        <option value="paid">Đã thu tiền</option>
                         <option value="unpaid">Chưa thu (COD)</option>
+                        <option value="paid">Đã thu tiền</option>
                       </select>
                     </div>
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="text-xs text-muted" style={{ marginBottom: '.25rem', display: 'block' }}>Giao hàng</label>
                       <select className="form-control" value={orderConfig.status} onChange={e => setOrderConfig({...orderConfig, status: e.target.value})} style={{ padding: '.5rem', fontSize: '.875rem' }}>
-                        <option value="completed">Giao tại quầy (Hoàn thành)</option>
                         <option value="pending">Cần ship (Chờ xử lý)</option>
+                        <option value="completed">Giao tại quầy (Hoàn thành)</option>
                       </select>
                     </div>
                   </div>

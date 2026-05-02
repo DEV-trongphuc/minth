@@ -51,19 +51,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                 $stmtAddBatchMl = $pdo->prepare("UPDATE batches SET current_ml = current_ml + ? WHERE id = ?");
                 $stmtSyncQty = $pdo->prepare("UPDATE batches SET current_qty = FLOOR(current_ml / ?) WHERE id = ?");
                 
+                $stmtLog = $pdo->prepare("INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason) VALUES (?, 'CANCEL_ORDER', ?, ?, ?)");
+                
                 foreach ($items->fetchAll() as $item) {
                     if ($item['sell_type'] === 'ml' && $item['ml_per_unit'] > 0) {
                         $stmtAddBatchMl->execute([$item['quantity'], $item['batch_id']]);
                         $stmtSyncQty->execute([$item['ml_per_unit'], $item['batch_id']]);
+                        $stmtLog->execute([$item['batch_id'], 0, $item['quantity'], "Hủy đơn hàng #{$data['id']}"]);
                     } else {
                         $stmtAddBatchChai->execute([$item['quantity'], $item['batch_id']]);
+                        $mlDeduct = 0;
                         if ($item['ml_per_unit'] > 0) {
-                            $stmtAddBatchMl->execute([$item['quantity'] * $item['ml_per_unit'], $item['batch_id']]);
+                            $mlDeduct = $item['quantity'] * $item['ml_per_unit'];
+                            $stmtAddBatchMl->execute([$mlDeduct, $item['batch_id']]);
                         }
+                        $stmtLog->execute([$item['batch_id'], $item['quantity'], $mlDeduct, "Hủy đơn hàng #{$data['id']}"]);
                     }
                 }
                 
                 // 2. Trừ CRM (Moved to end)
+            } else if ($order['status'] === 'cancelled' && $data['status'] !== 'cancelled') {
+                // PHỤC HỒI TỪ ĐƠN HỦY -> TRỪ LẠI KHO
+                $items = $pdo->prepare("
+                    SELECT oi.*, p.ml_per_unit 
+                    FROM order_items oi
+                    JOIN batches b ON oi.batch_id = b.id
+                    JOIN products p ON b.product_id = p.id
+                    WHERE oi.order_id = ?
+                ");
+                $items->execute([$data['id']]);
+                
+                $stmtSubBatchChai = $pdo->prepare("UPDATE batches SET current_qty = current_qty - ? WHERE id = ?");
+                $stmtSubBatchMl = $pdo->prepare("UPDATE batches SET current_ml = current_ml - ? WHERE id = ?");
+                $stmtSyncQty = $pdo->prepare("UPDATE batches SET current_qty = FLOOR(current_ml / ?) WHERE id = ?");
+                $stmtLog = $pdo->prepare("INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason) VALUES (?, 'ADJUST', ?, ?, ?)");
+                
+                foreach ($items->fetchAll() as $item) {
+                    if ($item['sell_type'] === 'ml' && $item['ml_per_unit'] > 0) {
+                        $stmtSubBatchMl->execute([$item['quantity'], $item['batch_id']]);
+                        $stmtSyncQty->execute([$item['ml_per_unit'], $item['batch_id']]);
+                        $stmtLog->execute([$item['batch_id'], 0, -$item['quantity'], "Phục hồi đơn hàng #{$data['id']}"]);
+                    } else {
+                        $stmtSubBatchChai->execute([$item['quantity'], $item['batch_id']]);
+                        $mlDeduct = 0;
+                        if ($item['ml_per_unit'] > 0) {
+                            $mlDeduct = $item['quantity'] * $item['ml_per_unit'];
+                            $stmtSubBatchMl->execute([$mlDeduct, $item['batch_id']]);
+                        }
+                        $stmtLog->execute([$item['batch_id'], -$item['quantity'], -$mlDeduct, "Phục hồi đơn hàng #{$data['id']}"]);
+                    }
+                }
             }
             
             // Luôn tính lại tổng chi tiêu của Khách hàng sau khi có thay đổi trạng thái
@@ -172,6 +209,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtItem->execute([
                 $orderId, $item['batch_id'], $item['sell_type'], $item['quantity'], $item['price'], $subtotal, $costPerUnit
             ]);
+            
+            $logQtyChange = ($item['sell_type'] === 'chai') ? -$item['quantity'] : 0;
+            $logMlChange = ($item['sell_type'] === 'ml') ? -$item['quantity'] : (isset($mlDeduct) ? -$mlDeduct : 0);
+            $pdo->prepare("INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason) VALUES (?, 'SALE', ?, ?, ?)")
+                ->execute([$item['batch_id'], $logQtyChange, $logMlChange, "Bán hàng Đơn #{$orderId}"]);
         }
         
         // Cập nhật hạng thành viên CRM tự động (Recalculate)

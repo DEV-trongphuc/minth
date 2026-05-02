@@ -40,6 +40,7 @@ try {
         product_id INT,
         batch_code VARCHAR(100),
         import_date DATE NOT NULL,
+        expiry_date DATE,
         import_price DECIMAL(15, 2) NOT NULL,
         initial_qty INT NOT NULL,
         current_qty INT NOT NULL,
@@ -48,6 +49,24 @@ try {
         status VARCHAR(50) DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
+    
+    // Fix cho bảng batches nếu thiếu cột expiry_date
+    try { $pdo->exec("ALTER TABLE batches ADD COLUMN expiry_date DATE"); } catch (\PDOException $e) {}
+
+    // Bảng Lịch sử & Xuất kho nội bộ
+    $pdo->exec("
+      CREATE TABLE IF NOT EXISTS inventory_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        batch_id INT NOT NULL,
+        action_type VARCHAR(50) NOT NULL, /* IMPORT, SALE, ADJUST, EXPORT_INTERNAL, CANCEL_ORDER */
+        qty_change INT DEFAULT 0,
+        ml_change INT DEFAULT 0,
+        reason VARCHAR(255),
+        user_name VARCHAR(100) DEFAULT 'System',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 

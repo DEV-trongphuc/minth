@@ -195,13 +195,27 @@ export default function Orders() {
                           </div>
                         )}
                         {o.status === 'completed' && (
-                          <span className="text-xs text-muted" style={{ display: 'flex', alignItems: 'center', gap: '.25rem', justifyContent: 'center' }}><CheckCircle size={14} color="var(--success)" /> Đã xong</span>
+                          <div style={{ display: 'flex', gap: '.25rem', flexDirection: 'column' }}>
+                            <span className="text-xs text-muted" style={{ display: 'flex', alignItems: 'center', gap: '.25rem', justifyContent: 'center' }}><CheckCircle size={14} color="var(--success)" /> Đã xong</span>
+                            <select className="form-control" style={{ fontSize: '0.75rem', padding: '0.2rem', marginTop: '0.25rem' }} value={o.status} onChange={e => updateOrderStatus(o.id, e.target.value, o.payment_status)}>
+                              <option value="completed" disabled>Sửa trạng thái</option>
+                              <option value="pending">Về Chờ xử lý</option>
+                              <option value="shipping">Về Đang giao</option>
+                              <option value="cancelled">Hủy đơn</option>
+                            </select>
+                          </div>
                         )}
                         {o.status === 'cancelled' && (
-                          <span className="text-xs text-muted" style={{ display: 'flex', alignItems: 'center', gap: '.25rem', justifyContent: 'center', color: 'var(--danger)' }}><XCircle size={14} color="var(--danger)" /> Đã hủy</span>
+                          <div style={{ display: 'flex', gap: '.25rem', flexDirection: 'column' }}>
+                            <span className="text-xs text-muted" style={{ display: 'flex', alignItems: 'center', gap: '.25rem', justifyContent: 'center', color: 'var(--danger)' }}><XCircle size={14} color="var(--danger)" /> Đã hủy</span>
+                            <select className="form-control" style={{ fontSize: '0.75rem', padding: '0.2rem', marginTop: '0.25rem' }} value={o.status} onChange={e => updateOrderStatus(o.id, e.target.value, o.payment_status)}>
+                              <option value="cancelled" disabled>Phục hồi đơn</option>
+                              <option value="pending">Về Chờ xử lý</option>
+                              <option value="shipping">Về Đang giao</option>
+                              <option value="completed">Về Hoàn thành</option>
+                            </select>
+                          </div>
                         )}
-                      </td>
-                    </tr>
                   );
                 })}
               </tbody>

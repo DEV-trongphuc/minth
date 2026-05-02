@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Package, Plus, Edit, Trash2, LayoutGrid, List, Search, Filter } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, LayoutGrid, List, Search, Filter, History, Share, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
 
@@ -9,13 +9,17 @@ export default function Inventory() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [logs, setLogs] = useState([]);
+  const [exportForm, setExportForm] = useState({ batch_id: '', qty: '', reason: 'Hàng Tester', export_type: 'chai' });
   const [editItem, setEditItem] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'card'
   const [search, setSearch] = useState('');
   const { showConfirm, showAlert } = useDialog();
 
-  const [form, setForm] = useState({ product_id: '', import_date: new Date().toISOString().split('T')[0], import_price: '', initial_qty: '' });
+  const [form, setForm] = useState({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '' });
   const [totalValue, setTotalValue] = useState('');
   const [priceInputMode, setPriceInputMode] = useState('unit'); // 'unit' | 'total'
 
@@ -41,14 +45,14 @@ export default function Inventory() {
 
   const openAddModal = () => { 
     setEditItem(null); 
-    setForm({ product_id: '', import_date: new Date().toISOString().split('T')[0], import_price: '', initial_qty: '' }); 
+    setForm({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '' }); 
     setTotalValue('');
     setPriceInputMode('unit');
     setShowModal(true); 
   };
   const openEditModal = (batch) => { 
     setEditItem(batch); 
-    setForm({ product_id: batch.product_id || '', import_date: batch.import_date, import_price: batch.import_price, initial_qty: batch.initial_qty }); 
+    setForm({ product_id: batch.product_id || '', import_date: batch.import_date, expiry_date: batch.expiry_date || '', import_price: batch.import_price, initial_qty: batch.initial_qty }); 
     setTotalValue(batch.import_price * batch.initial_qty || '');
     setShowModal(true); 
   };
@@ -138,6 +142,46 @@ export default function Inventory() {
     return { label: 'Còn hàng', cls: 'badge-success' };
   };
 
+  const getExpiryWarning = (dateStr) => {
+    if (!dateStr) return null;
+    const exp = new Date(dateStr);
+    const now = new Date();
+    const diffTime = exp - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return { label: 'Đã hết hạn', color: 'var(--danger)' };
+    if (diffDays <= 90) return { label: `Còn ${diffDays} ngày`, color: 'var(--warning)' };
+    return null;
+  };
+
+  const handleExportSubmit = async (e) => {
+    e.preventDefault();
+    if (!exportForm.qty || exportForm.qty <= 0) return showAlert('Lỗi', 'Số lượng không hợp lệ', 'warning');
+    try {
+      const res = await fetch(`${API_BASE_URL}/inventory_logs.php`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({...exportForm, user_name: JSON.parse(localStorage.getItem('luccy_user'))?.username || 'Admin'})
+      });
+      if (res.ok) {
+        setShowExportModal(false);
+        fetchData();
+        showAlert('Thành công', 'Xuất kho nội bộ thành công!', 'success');
+      } else {
+        const d = await res.json();
+        showAlert('Lỗi', d.error || 'Lỗi xuất kho', 'danger');
+      }
+    } catch { showAlert('Lỗi', 'Lỗi kết nối', 'danger'); }
+  };
+
+  const openHistory = async (batch) => {
+    setEditItem(batch);
+    setLogs([]);
+    setShowHistoryModal(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/inventory_logs.php?batch_id=${batch.id}`);
+      if (res.ok) setLogs(await res.json());
+    } catch {}
+  };
+
   return (
     <div className="anim-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Header */}
@@ -186,12 +230,11 @@ export default function Inventory() {
                     <input type="checkbox" className="custom-check" onChange={e => setSelectedIds(e.target.checked ? filtered.map(b => b.id) : [])} checked={selectedIds.length === filtered.length && filtered.length > 0} />
                   </th>
                   <th>Sản phẩm & Mã lô</th>
-                  <th>Ngày nhập</th>
+                  <th>Ngày nhập / HSD</th>
                   <th>Giá vốn</th>
                   <th>Tồn kho</th>
-                  <th>Dung tích (ml)</th>
                   <th>Trạng thái</th>
-                  <th style={{ width: 90 }}>Thao tác</th>
+                  <th style={{ width: 140 }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
@@ -206,19 +249,28 @@ export default function Inventory() {
                         <div style={{ fontWeight: 600 }}>{b.product_name}</div>
                         <div className="text-xs text-muted">{b.batch_code}</div>
                       </td>
-                      <td className="text-sm text-muted">{b.import_date}</td>
+                      <td>
+                        <div className="text-sm text-muted">Nhập: {b.import_date}</div>
+                        {b.expiry_date && (
+                          <div className="text-xs" style={{ display: 'flex', gap: '.3rem', marginTop: '.2rem' }}>
+                            <span className="text-muted">HSD: {b.expiry_date}</span>
+                            {getExpiryWarning(b.expiry_date) && <span style={{ color: getExpiryWarning(b.expiry_date).color, fontWeight: 700 }}>({getExpiryWarning(b.expiry_date).label})</span>}
+                          </div>
+                        )}
+                      </td>
                       <td style={{ fontWeight: 700 }}>{Number(b.import_price).toLocaleString('vi-VN')} đ</td>
                       <td>
-                        <span style={{ fontWeight: 600, color: b.current_qty <= 5 ? 'var(--danger)' : 'var(--text)' }}>
-                          {b.current_qty} / {b.initial_qty}
-                        </span>
+                        <div style={{ fontWeight: 600, color: b.current_qty <= 5 ? 'var(--danger)' : 'var(--text)' }}>
+                          {b.current_qty} / {b.initial_qty} chai
+                        </div>
+                        {b.ml_per_unit > 0 && <div className="text-muted text-xs mt-1">Còn {b.current_ml} ml</div>}
                       </td>
-                      <td className="text-muted text-sm">{b.current_ml > 0 ? `${b.current_ml.toLocaleString()} ml` : '—'}</td>
                       <td><span className={`badge ${s.cls}`}>{s.label}</span></td>
                       <td>
-                        <div style={{ display: 'flex', gap: '.375rem' }}>
+                        <div style={{ display: 'flex', gap: '.375rem', flexWrap: 'wrap' }}>
+                          <button className="btn btn-secondary btn-icon btn-sm" onClick={() => { setExportForm({ batch_id: b.id, qty: '', reason: 'Hàng Tester', export_type: 'chai' }); setEditItem(b); setShowExportModal(true); }} title="Xuất nội bộ"><Share size={14} /></button>
+                          <button className="btn btn-secondary btn-icon btn-sm" onClick={() => openHistory(b)} title="Lịch sử lô"><History size={14} /></button>
                           <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditModal(b)} title="Sửa"><Edit size={14} /></button>
-                          <button className="btn btn-ghost btn-icon btn-sm" style={{ color: 'var(--danger)' }} onClick={() => handleDelete([b.id])} title="Xóa"><Trash2 size={14} /></button>
                         </div>
                       </td>
                     </tr>
@@ -349,10 +401,14 @@ export default function Inventory() {
                     {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
-                <div className="form-row">
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
                     <label className="form-label">Ngày nhập <span style={{ color: 'var(--danger)' }}>*</span></label>
                     <input type="date" className="form-control" required value={form.import_date} onChange={e => setForm({ ...form, import_date: e.target.value })} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Ngày hết hạn (HSD)</label>
+                    <input type="date" className="form-control" value={form.expiry_date} onChange={e => setForm({ ...form, expiry_date: e.target.value })} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Số lượng <span style={{ color: 'var(--danger)' }}>*</span></label>
@@ -399,6 +455,118 @@ export default function Inventory() {
                 <button type="submit" className="btn btn-primary">{editItem ? 'Cập nhật' : 'Lưu Lô Hàng'}</button>
               </div>
             </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Xuất nội bộ */}
+      {showExportModal && editItem && createPortal(
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowExportModal(false); }}>
+          <div className="modal" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <div>
+                <h2 className="modal-title">Xuất kho Nội bộ</h2>
+                <p className="text-sm text-muted">Lô: {editItem.batch_code}</p>
+              </div>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowExportModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleExportSubmit}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ background: 'var(--surface2)', padding: '1rem', borderRadius: 'var(--r-sm)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.5rem' }}>
+                    <span className="text-sm">Tồn kho nguyên chai:</span>
+                    <strong>{editItem.current_qty} chai</strong>
+                  </div>
+                  {editItem.ml_per_unit > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span className="text-sm">Tồn kho dung tích:</span>
+                      <strong>{editItem.current_ml} ml</strong>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label">Loại xuất</label>
+                  <select className="form-control" value={exportForm.export_type} onChange={e => setExportForm({...exportForm, export_type: e.target.value})}>
+                    <option value="chai">Nguyên chai</option>
+                    {editItem.ml_per_unit > 0 && <option value="ml">Chiết ml</option>}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Số lượng xuất <span style={{ color: 'var(--danger)' }}>*</span></label>
+                  <input type="number" className="form-control" required min="1" max={exportForm.export_type === 'chai' ? editItem.current_qty : editItem.current_ml} value={exportForm.qty} onChange={e => setExportForm({...exportForm, qty: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Lý do xuất</label>
+                  <select className="form-control" value={exportForm.reason} onChange={e => setExportForm({...exportForm, reason: e.target.value})}>
+                    <option value="Làm hàng Tester">Làm hàng Tester</option>
+                    <option value="Hư hỏng, bể vỡ">Hư hỏng, bể vỡ</option>
+                    <option value="Hao hụt chiết rót">Hao hụt chiết rót</option>
+                    <option value="Hàng tặng, quà tặng">Hàng tặng, quà tặng</option>
+                    <option value="Tiêu dùng nội bộ">Tiêu dùng nội bộ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                </div>
+                {exportForm.reason === 'Khác' && (
+                  <div className="form-group">
+                    <input type="text" className="form-control" placeholder="Ghi rõ lý do..." onChange={e => setExportForm({...exportForm, reason: e.target.value})} />
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowExportModal(false)}>Hủy bỏ</button>
+                <button type="submit" className="btn btn-primary">Xác nhận Xuất</button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Modal Lịch sử Lô */}
+      {showHistoryModal && editItem && createPortal(
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowHistoryModal(false); }}>
+          <div className="modal" style={{ maxWidth: '600px' }}>
+            <div className="modal-header">
+              <div>
+                <h2 className="modal-title">Lịch sử Lô hàng</h2>
+                <p className="text-sm text-muted">{editItem.product_name} ({editItem.batch_code})</p>
+              </div>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowHistoryModal(false)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              {logs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Chưa có lịch sử giao dịch</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', paddingLeft: '1rem', borderLeft: '2px solid var(--border)' }}>
+                  {logs.map(log => {
+                    let icon, color, bg;
+                    if (log.action_type === 'IMPORT') { icon = <Plus size={14} />; color = 'var(--success)'; bg = 'var(--success-bg)'; }
+                    else if (log.action_type === 'SALE') { icon = <CheckCircle size={14} />; color = 'var(--primary)'; bg = 'var(--primary-light)'; }
+                    else if (log.action_type === 'EXPORT_INTERNAL') { icon = <Share size={14} />; color = 'var(--warning)'; bg = 'var(--warning-bg)'; }
+                    else if (log.action_type === 'CANCEL_ORDER' || log.action_type === 'ADJUST') { icon = <AlertTriangle size={14} />; color = 'var(--danger)'; bg = 'var(--danger-bg)'; }
+                    
+                    return (
+                      <div key={log.id} style={{ position: 'relative', padding: '0.75rem', background: 'var(--surface2)', borderRadius: 'var(--r-sm)' }}>
+                        <div style={{ position: 'absolute', left: '-1.5rem', top: '1rem', width: '1rem', height: '2px', background: 'var(--border)' }}></div>
+                        <div style={{ position: 'absolute', left: '-2rem', top: '0.5rem', width: '24px', height: '24px', borderRadius: '50%', background: bg, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--surface)' }}>
+                          {icon}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.25rem' }}>
+                          <span style={{ fontWeight: 600 }}>{log.reason}</span>
+                          <span className="text-xs text-muted">{new Date(log.created_at).toLocaleString('vi-VN')}</span>
+                        </div>
+                        <div className="text-sm" style={{ display: 'flex', gap: '1rem', color: 'var(--text-muted)' }}>
+                          <span>Thực hiện: <strong style={{ color: 'var(--text)' }}>{log.user_name}</strong></span>
+                          <span>Thay đổi: <strong style={{ color: log.qty_change > 0 || log.ml_change > 0 ? 'var(--success)' : (log.qty_change < 0 || log.ml_change < 0 ? 'var(--danger)' : 'var(--text)') }}>{log.qty_change !== 0 ? `${log.qty_change > 0 ? '+' : ''}${log.qty_change} chai` : ''} {log.ml_change !== 0 ? `(${log.ml_change > 0 ? '+' : ''}${log.ml_change} ml)` : ''}</strong></span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>,
         document.body
