@@ -35,69 +35,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             $pdo->prepare("UPDATE orders SET status = ?, payment_status = ? WHERE id = ?")
                 ->execute([$data['status'], $data['payment_status'], $data['id']]);
                 
-            // NẾU HỦY ĐƠN VÀ TRẠNG THÁI CŨ KHÁC HỦY -> HOÀN KHO VÀ TRỪ TIỀN KHÁCH
+            // NẾU HỦY ĐƠN VÀ TRẠNG THÁI CŨ KHÁC HỦY -> HOÀN KHO
             if ($data['status'] === 'cancelled' && $order['status'] !== 'cancelled') {
-                // 1. Hoàn Kho
-                $items = $pdo->prepare("
-                    SELECT oi.*, p.ml_per_unit 
-                    FROM order_items oi
-                    JOIN batches b ON oi.batch_id = b.id
-                    JOIN products p ON b.product_id = p.id
-                    WHERE oi.order_id = ?
-                ");
+                $items = $pdo->prepare("SELECT oi.*, p.ml_per_unit FROM order_items oi JOIN batches b ON oi.batch_id = b.id JOIN products p ON b.product_id = p.id WHERE oi.order_id = ?");
                 $items->execute([$data['id']]);
                 
-                $stmtAddBatchChai = $pdo->prepare("UPDATE batches SET current_qty = current_qty + ? WHERE id = ?");
-                $stmtAddBatchMl = $pdo->prepare("UPDATE batches SET current_ml = current_ml + ? WHERE id = ?");
-                $stmtSyncQty = $pdo->prepare("UPDATE batches SET current_qty = FLOOR(current_ml / ?) WHERE id = ?");
-                
+                $stmtUpdateBatch = $pdo->prepare("UPDATE batches SET current_qty = ?, current_ml = ? WHERE id = ?");
                 $stmtLog = $pdo->prepare("INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason) VALUES (?, 'CANCEL_ORDER', ?, ?, ?)");
                 
                 foreach ($items->fetchAll() as $item) {
+                    $stmtBatch = $pdo->prepare("SELECT current_qty, current_ml FROM batches WHERE id = ? FOR UPDATE");
+                    $stmtBatch->execute([$item['batch_id']]);
+                    $batch = $stmtBatch->fetch();
+                    if (!$batch) continue;
+                    
+                    $newQty = $batch['current_qty'];
+                    $newMl = $batch['current_ml'];
+                    
                     if ($item['sell_type'] === 'ml' && $item['ml_per_unit'] > 0) {
-                        $stmtAddBatchMl->execute([$item['quantity'], $item['batch_id']]);
-                        $stmtSyncQty->execute([$item['ml_per_unit'], $item['batch_id']]);
+                        $newMl += $item['quantity'];
+                        $newQty = floor($newMl / $item['ml_per_unit']);
+                        $stmtUpdateBatch->execute([$newQty, $newMl, $item['batch_id']]);
                         $stmtLog->execute([$item['batch_id'], 0, $item['quantity'], "Hủy đơn hàng #{$data['id']}"]);
                     } else {
-                        $stmtAddBatchChai->execute([$item['quantity'], $item['batch_id']]);
+                        $newQty += $item['quantity'];
                         $mlDeduct = 0;
                         if ($item['ml_per_unit'] > 0) {
                             $mlDeduct = $item['quantity'] * $item['ml_per_unit'];
-                            $stmtAddBatchMl->execute([$mlDeduct, $item['batch_id']]);
+                            $newMl += $mlDeduct;
                         }
+                        $stmtUpdateBatch->execute([$newQty, $newMl, $item['batch_id']]);
                         $stmtLog->execute([$item['batch_id'], $item['quantity'], $mlDeduct, "Hủy đơn hàng #{$data['id']}"]);
                     }
                 }
-                
-                // 2. Trừ CRM (Moved to end)
             } else if ($order['status'] === 'cancelled' && $data['status'] !== 'cancelled') {
                 // PHỤC HỒI TỪ ĐƠN HỦY -> TRỪ LẠI KHO
-                $items = $pdo->prepare("
-                    SELECT oi.*, p.ml_per_unit 
-                    FROM order_items oi
-                    JOIN batches b ON oi.batch_id = b.id
-                    JOIN products p ON b.product_id = p.id
-                    WHERE oi.order_id = ?
-                ");
+                $items = $pdo->prepare("SELECT oi.*, p.ml_per_unit FROM order_items oi JOIN batches b ON oi.batch_id = b.id JOIN products p ON b.product_id = p.id WHERE oi.order_id = ?");
                 $items->execute([$data['id']]);
                 
-                $stmtSubBatchChai = $pdo->prepare("UPDATE batches SET current_qty = current_qty - ? WHERE id = ?");
-                $stmtSubBatchMl = $pdo->prepare("UPDATE batches SET current_ml = current_ml - ? WHERE id = ?");
-                $stmtSyncQty = $pdo->prepare("UPDATE batches SET current_qty = FLOOR(current_ml / ?) WHERE id = ?");
+                $stmtUpdateBatch = $pdo->prepare("UPDATE batches SET current_qty = ?, current_ml = ? WHERE id = ?");
                 $stmtLog = $pdo->prepare("INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason) VALUES (?, 'ADJUST', ?, ?, ?)");
                 
                 foreach ($items->fetchAll() as $item) {
+                    $stmtBatch = $pdo->prepare("SELECT current_qty, current_ml FROM batches WHERE id = ? FOR UPDATE");
+                    $stmtBatch->execute([$item['batch_id']]);
+                    $batch = $stmtBatch->fetch();
+                    if (!$batch) throw new Exception("Không tìm thấy lô hàng ID " . $item['batch_id'] . " để phục hồi");
+                    
+                    $newQty = $batch['current_qty'];
+                    $newMl = $batch['current_ml'];
+                    
                     if ($item['sell_type'] === 'ml' && $item['ml_per_unit'] > 0) {
-                        $stmtSubBatchMl->execute([$item['quantity'], $item['batch_id']]);
-                        $stmtSyncQty->execute([$item['ml_per_unit'], $item['batch_id']]);
+                        if ($newMl < $item['quantity']) throw new Exception("Không đủ tồn kho (ml) để phục hồi đơn hàng này.");
+                        $newMl -= $item['quantity'];
+                        $newQty = floor($newMl / $item['ml_per_unit']);
+                        $stmtUpdateBatch->execute([$newQty, $newMl, $item['batch_id']]);
                         $stmtLog->execute([$item['batch_id'], 0, -$item['quantity'], "Phục hồi đơn hàng #{$data['id']}"]);
                     } else {
-                        $stmtSubBatchChai->execute([$item['quantity'], $item['batch_id']]);
+                        if ($newQty < $item['quantity']) throw new Exception("Không đủ tồn kho (chai) để phục hồi đơn hàng này.");
+                        $newQty -= $item['quantity'];
                         $mlDeduct = 0;
                         if ($item['ml_per_unit'] > 0) {
                             $mlDeduct = $item['quantity'] * $item['ml_per_unit'];
-                            $stmtSubBatchMl->execute([$mlDeduct, $item['batch_id']]);
+                            if ($newMl < $mlDeduct) throw new Exception("Không đủ tồn kho (ml chiết) để phục hồi đơn hàng này.");
+                            $newMl -= $mlDeduct;
                         }
+                        $stmtUpdateBatch->execute([$newQty, $newMl, $item['batch_id']]);
                         $stmtLog->execute([$item['batch_id'], -$item['quantity'], -$mlDeduct, "Phục hồi đơn hàng #{$data['id']}"]);
                     }
                 }
@@ -173,39 +176,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$customerId, $data['total_amount'], $shippingFee, $finalAmount, $status, $paymentStatus]);
         $orderId = $pdo->lastInsertId();
         
-        // Thêm chi tiết và trừ tồn kho
         $stmtItem = $pdo->prepare("INSERT INTO order_items (order_id, batch_id, sell_type, quantity, price_per_unit, subtotal, cost_per_unit) VALUES (?, ?, ?, ?, ?, ?, ?)");
         
-        $stmtUpdateBatchChai = $pdo->prepare("UPDATE batches SET current_qty = current_qty - ? WHERE id = ? AND current_qty >= ?");
-        $stmtUpdateBatchMl = $pdo->prepare("UPDATE batches SET current_ml = current_ml - ? WHERE id = ? AND current_ml >= ?");
+        $stmtUpdateBatch = $pdo->prepare("UPDATE batches SET current_qty = ?, current_ml = ? WHERE id = ?");
         
         foreach ($data['cart'] as $item) {
-            $stmtBatch = $pdo->prepare("SELECT b.import_price, p.ml_per_unit FROM batches b JOIN products p ON b.product_id = p.id WHERE b.id = ?");
+            $stmtBatch = $pdo->prepare("SELECT b.current_qty, b.current_ml, b.import_price, p.ml_per_unit FROM batches b JOIN products p ON b.product_id = p.id WHERE b.id = ? FOR UPDATE");
             $stmtBatch->execute([$item['batch_id']]);
             $batch = $stmtBatch->fetch();
             
             if (!$batch) throw new Exception("Không tìm thấy lô hàng ID " . $item['batch_id']);
 
             $costPerUnit = $batch['import_price'];
+            $newQty = $batch['current_qty'];
+            $newMl = $batch['current_ml'];
+
             if ($item['sell_type'] === 'ml' && $batch['ml_per_unit'] > 0) {
                 $costPerUnit = $batch['import_price'] / $batch['ml_per_unit'];
-                // Trừ ml
-                $stmtUpdateBatchMl->execute([$item['quantity'], $item['batch_id'], $item['quantity']]);
-                if ($stmtUpdateBatchMl->rowCount() === 0) throw new Exception("Lô hàng ID " . $item['batch_id'] . " không đủ dung tích chiết (ml) trong kho.");
                 
-                // Cập nhật lại số chai nguyên (chai nguyên = tổng ml còn lại chia cho dung tích 1 chai)
-                $pdo->prepare("UPDATE batches SET current_qty = FLOOR(current_ml / ?) WHERE id = ?")->execute([$batch['ml_per_unit'], $item['batch_id']]);
+                if ($newMl < $item['quantity']) throw new Exception("Lô hàng ID " . $item['batch_id'] . " không đủ dung tích chiết (ml).");
+                $newMl -= $item['quantity'];
+                $newQty = floor($newMl / $batch['ml_per_unit']);
             } else {
-                // Trừ chai
-                $stmtUpdateBatchChai->execute([$item['quantity'], $item['batch_id'], $item['quantity']]);
-                if ($stmtUpdateBatchChai->rowCount() === 0) throw new Exception("Lô hàng ID " . $item['batch_id'] . " không đủ số chai nguyên trong kho.");
+                if ($newQty < $item['quantity']) throw new Exception("Lô hàng ID " . $item['batch_id'] . " không đủ số chai nguyên.");
+                $newQty -= $item['quantity'];
                 
-                // Nếu sản phẩm này có chiết, phải trừ song song số ml tương ứng
                 if ($batch['ml_per_unit'] > 0) {
                     $mlDeduct = $item['quantity'] * $batch['ml_per_unit'];
-                    $stmtUpdateBatchMl->execute([$mlDeduct, $item['batch_id'], $mlDeduct]);
+                    if ($newMl < $mlDeduct) throw new Exception("Lô hàng ID " . $item['batch_id'] . " bị bất đồng bộ dung tích (không đủ ml tương ứng).");
+                    $newMl -= $mlDeduct;
                 }
             }
+            
+            $stmtUpdateBatch->execute([$newQty, $newMl, $item['batch_id']]);
             
             $subtotal = $item['price'] * $item['quantity'];
             $stmtItem->execute([

@@ -10,6 +10,7 @@ if ($method === 'GET') {
             SELECT b.*, p.name as product_name, p.ml_per_unit 
             FROM batches b
             JOIN products p ON b.product_id = p.id
+            WHERE b.status != 'archived' OR b.status IS NULL
             ORDER BY b.import_date DESC
         ");
         echo json_encode($stmt->fetchAll());
@@ -73,15 +74,11 @@ if ($method === 'GET') {
         exit();
     }
     try {
-        $pdo->prepare("DELETE FROM batches WHERE id = ?")->execute([$data->id]);
+        $pdo->prepare("UPDATE batches SET status = 'archived' WHERE id = ?")->execute([$data->id]);
         echo json_encode(["message" => "Đã xóa lô hàng"]);
     } catch (\PDOException $e) {
-        http_response_code(400);
-        if ($e->getCode() == 23000) {
-            echo json_encode(["error" => "Lô hàng này đã phát sinh giao dịch bán hàng (nằm trong đơn hàng). Không thể xóa để bảo toàn dữ liệu kế toán."]);
-        } else {
-            echo json_encode(["error" => $e->getMessage()]);
-        }
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
     }
 } else {
     http_response_code(405);

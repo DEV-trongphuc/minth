@@ -30,15 +30,11 @@ if ($method === 'GET') {
     try {
         $pdo->beginTransaction();
         
-        $stmtBatch = $pdo->prepare("SELECT current_qty, current_ml, product_id FROM batches WHERE id = ?");
+        $stmtBatch = $pdo->prepare("SELECT b.current_qty, b.current_ml, b.product_id, p.ml_per_unit FROM batches b JOIN products p ON b.product_id = p.id WHERE b.id = ? FOR UPDATE");
         $stmtBatch->execute([$data->batch_id]);
         $batch = $stmtBatch->fetch();
         
         if (!$batch) throw new Exception("Không tìm thấy lô hàng");
-        
-        $stmtProd = $pdo->prepare("SELECT ml_per_unit FROM products WHERE id = ?");
-        $stmtProd->execute([$batch['product_id']]);
-        $product = $stmtProd->fetch();
         
         $exportType = $data->export_type ?? 'chai';
         $qty = (int)$data->qty;
@@ -46,30 +42,29 @@ if ($method === 'GET') {
         $qtyChange = 0;
         $mlChange = 0;
         
-        if ($exportType === 'ml' && $product['ml_per_unit'] > 0) {
-            if ($batch['current_ml'] < $qty) throw new Exception("Không đủ dung tích ml để xuất");
+        $newQty = $batch['current_qty'];
+        $newMl = $batch['current_ml'];
+        
+        if ($exportType === 'ml' && $batch['ml_per_unit'] > 0) {
+            if ($newMl < $qty) throw new Exception("Không đủ dung tích ml để xuất");
             $mlChange = -$qty;
-            
-            // Cập nhật lô
-            $stmtUpdate = $pdo->prepare("UPDATE batches SET current_ml = current_ml - ? WHERE id = ?");
-            $stmtUpdate->execute([$qty, $data->batch_id]);
-            
-            // Đồng bộ chai
-            $pdo->prepare("UPDATE batches SET current_qty = FLOOR(current_ml / ?) WHERE id = ?")->execute([$product['ml_per_unit'], $data->batch_id]);
+            $newMl -= $qty;
+            $newQty = floor($newMl / $batch['ml_per_unit']);
         } else {
-            if ($batch['current_qty'] < $qty) throw new Exception("Không đủ số lượng chai để xuất");
+            if ($newQty < $qty) throw new Exception("Không đủ số lượng chai để xuất");
             $qtyChange = -$qty;
+            $newQty -= $qty;
             
-            // Cập nhật lô
-            $stmtUpdate = $pdo->prepare("UPDATE batches SET current_qty = current_qty - ? WHERE id = ?");
-            $stmtUpdate->execute([$qty, $data->batch_id]);
-            
-            if ($product['ml_per_unit'] > 0) {
-                $mlDeduct = $qty * $product['ml_per_unit'];
+            if ($batch['ml_per_unit'] > 0) {
+                $mlDeduct = $qty * $batch['ml_per_unit'];
+                if ($newMl < $mlDeduct) throw new Exception("Không đủ dung tích ml chiết tương ứng để xuất");
                 $mlChange = -$mlDeduct;
-                $pdo->prepare("UPDATE batches SET current_ml = current_ml - ? WHERE id = ?")->execute([$mlDeduct, $data->batch_id]);
+                $newMl -= $mlDeduct;
             }
         }
+        
+        $stmtUpdate = $pdo->prepare("UPDATE batches SET current_qty = ?, current_ml = ? WHERE id = ?");
+        $stmtUpdate->execute([$newQty, $newMl, $data->batch_id]);
         
         $logStmt = $pdo->prepare("
             INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason, user_name)

@@ -7,7 +7,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
-        $stmt = $pdo->query("SELECT * FROM products ORDER BY created_at DESC");
+        $stmt = $pdo->query("SELECT * FROM products WHERE status != 'archived' OR status IS NULL ORDER BY created_at DESC");
         $products = $stmt->fetchAll();
         echo json_encode($products);
     } catch (\PDOException $e) {
@@ -23,7 +23,7 @@ if ($method === 'GET') {
     }
     
     try {
-        $stmt = $pdo->prepare("INSERT INTO products (name, category, unit, ml_per_unit, image) VALUES (:name, :category, :unit, :ml, :img)");
+        $stmt = $pdo->prepare("INSERT INTO products (name, category, unit, ml_per_unit, image, status) VALUES (:name, :category, :unit, :ml, :img, 'active')");
         $stmt->execute([
             ':name' => $data->name,
             ':category' => $data->category ?? null,
@@ -72,15 +72,11 @@ if ($method === 'GET') {
         exit();
     }
     try {
-        $pdo->prepare("DELETE FROM products WHERE id = ?")->execute([$data->id]);
+        $pdo->prepare("UPDATE products SET status = 'archived' WHERE id = ?")->execute([$data->id]);
         echo json_encode(["message" => "Đã xóa sản phẩm"]);
     } catch (\PDOException $e) {
-        http_response_code(400); // Bad Request for constraint violation
-        if ($e->getCode() == 23000) {
-            echo json_encode(["error" => "Không thể xóa sản phẩm này vì đã có dữ liệu lô hàng hoặc đơn hàng liên quan. Xin vui lòng không xóa để đảm bảo toàn vẹn dữ liệu."]);
-        } else {
-            echo json_encode(["error" => $e->getMessage()]);
-        }
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
     }
 } else {
     http_response_code(405);

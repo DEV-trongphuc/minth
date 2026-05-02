@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Users, Search, Plus, Star, MessageCircle, Gift, Eye, LayoutGrid, List, Edit, Trash2, TrendingUp, ShoppingBag, Calendar } from 'lucide-react';
+import { Users, Search, Plus, Star, MessageCircle, Gift, Eye, LayoutGrid, List, Edit, Trash2, TrendingUp, ShoppingBag, Calendar, MapPin, MessageSquare } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import AddressSelect from '../components/ui/AddressSelect';
 import { useNavigate } from 'react-router-dom';
@@ -99,7 +99,9 @@ export default function Customers() {
   const CustomerCard = ({ c }) => (
     <div className="customer-card" onClick={() => setDetailItem(c)}>
       {c.tier === 'VIP' && (
-        <div style={{ position: 'absolute', top: 0, right: 0, background: 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', padding: '.2rem .875rem', fontSize: '.7rem', fontWeight: 700, borderBottomLeftRadius: 'var(--r-sm)' }}>⭐ VIP</div>
+        <div style={{ position: 'absolute', top: 0, right: 0, background: 'linear-gradient(135deg,#f59e0b,#f97316)', color: '#fff', padding: '.2rem .875rem', fontSize: '.7rem', fontWeight: 700, borderBottomLeftRadius: 'var(--r-sm)', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+          <Star size={10} fill="currentColor" /> VIP
+        </div>
       )}
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
         <div className="customer-avatar" style={{ background: tierConfig[c.tier]?.bg || 'var(--primary)' }}>
@@ -108,7 +110,7 @@ export default function Customers() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
           <div className="text-sm text-muted">{c.phone}</div>
-          {c.address && <div className="text-xs text-muted" style={{ marginTop: '.15rem' }}>📍 {c.address}</div>}
+          {c.address && <div className="text-xs text-muted" style={{ marginTop: '.15rem', display: 'flex', alignItems: 'flex-start', gap: '0.25rem' }}><MapPin size={12} style={{ marginTop: '0.1rem', flexShrink: 0 }} /> <span>{c.address}</span></div>}
         </div>
         <span className={`badge ${tierConfig[c.tier]?.cls}`} style={{ display: 'flex', alignItems: 'center', gap: '.25rem', flexShrink: 0 }}>
           {tierConfig[c.tier]?.icon} {c.tier}
@@ -117,7 +119,7 @@ export default function Customers() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '.5rem' }}>
         {[
-          { label: 'Tổng chi tiêu', val: `${(c.total_spent || 0).toLocaleString('vi-VN')} đ`, color: 'var(--primary)' },
+          { label: 'Tổng chi tiêu', val: `${(Number(c.total_spent) || 0).toLocaleString('vi-VN')} đ`, color: 'var(--primary)' },
           { label: 'Số đơn', val: `${c.order_count || 0} đơn`, color: 'var(--success)' },
           { label: 'Lần mua cuối', val: c.last_order || '—', color: 'var(--text)' },
         ].map(info => (
@@ -128,11 +130,10 @@ export default function Customers() {
         ))}
       </div>
 
-      {c.note && <div className="text-xs text-muted" style={{ fontStyle: 'italic', padding: '.5rem .75rem', background: 'var(--warning-bg)', borderRadius: 'var(--r-xs)', borderLeft: '3px solid var(--warning)' }}>💬 {c.note}</div>}
+      {c.note && <div className="text-xs text-muted" style={{ fontStyle: 'italic', padding: '.5rem .75rem', background: 'var(--warning-bg)', borderRadius: 'var(--r-xs)', borderLeft: '3px solid var(--warning)', display: 'flex', gap: '0.35rem', alignItems: 'flex-start' }}><MessageSquare size={12} style={{ marginTop: '0.1rem', flexShrink: 0 }} /> <span>{c.note}</span></div>}
 
       <div style={{ display: 'flex', gap: '.5rem', marginTop: 'auto' }}>
         <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={e => { e.stopPropagation(); setDetailItem(c); }}><Eye size={13} /> Chi tiết</button>
-        <button className="btn btn-secondary btn-sm" style={{ flex: 1, color: '#10b981', borderColor: '#10b981' }} onClick={e => e.stopPropagation()}><MessageCircle size={13} /> Zalo</button>
         <button className="btn btn-ghost btn-icon btn-sm" onClick={e => { e.stopPropagation(); openEdit(c); }}><Edit size={13} /></button>
         <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={e => { e.stopPropagation(); handleCreateOrder(c); }}><ShoppingBag size={13} /> Tạo đơn</button>
       </div>
@@ -190,8 +191,7 @@ export default function Customers() {
         {[
           { label: 'Khách VIP', count: customers.filter(c => c.tier === 'VIP').length, color: '#f59e0b' },
           { label: 'Khách Loyal', count: customers.filter(c => c.tier === 'Loyal').length, color: 'var(--primary)' },
-          { label: 'Khách Mới', count: customers.filter(c => c.tier === 'New').length, color: '#10b981' },
-          { label: 'Doanh thu từ CRM', count: customers.reduce((s, c) => s + (c.total_spent || 0), 0).toLocaleString('vi-VN') + ' đ', color: '#ec4899' },
+          { label: 'Doanh thu từ CRM', count: customers.reduce((s, c) => s + Number(c.total_spent || 0), 0).toLocaleString('vi-VN') + ' đ', color: '#ec4899' },
         ].map(s => (
           <div key={s.label} className="stat-card" style={{ 
             background: 'var(--surface)', 

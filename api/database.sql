@@ -124,6 +124,7 @@ CREATE TABLE `products` (
   `unit` varchar(50) DEFAULT 'chai',
   `ml_per_unit` int(11) DEFAULT 0,
   `image` text DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -168,7 +169,9 @@ ALTER TABLE `batches`
 --
 ALTER TABLE `inventory_logs`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `batch_id` (`batch_id`);
+  ADD KEY `batch_id` (`batch_id`),
+  ADD KEY `idx_inventory_logs_created` (`created_at`),
+  ADD KEY `idx_inventory_logs_action` (`action_type`);
 
 --
 -- Chỉ mục cho bảng `customers`
@@ -184,7 +187,8 @@ ALTER TABLE `orders`
   ADD PRIMARY KEY (`id`),
   ADD KEY `customer_id` (`customer_id`),
   ADD KEY `idx_orders_status` (`status`),
-  ADD KEY `idx_orders_payment_status` (`payment_status`);
+  ADD KEY `idx_orders_payment_status` (`payment_status`),
+  ADD KEY `idx_orders_created` (`created_at`);
 
 --
 -- Chỉ mục cho bảng `order_items`
