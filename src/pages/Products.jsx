@@ -106,6 +106,7 @@ export default function Products() {
               <tr>
                 <th style={{ width: 60 }}>Ảnh</th>
                 <th>Tên sản phẩm</th>
+                <th>Tồn kho</th>
                 <th>Đơn vị nhập</th>
                 <th>Quy đổi bán lẻ</th>
                 <th style={{ width: 100 }}>Thao tác</th>
@@ -123,6 +124,16 @@ export default function Products() {
                     </div>
                   </td>
                   <td style={{ fontWeight: 600 }}>{p.name}</td>
+                  <td>
+                    {p.total_qty > 0 || p.total_ml > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <span style={{ fontWeight: 700, color: 'var(--success)' }}>{p.total_qty} {unitLabels[p.unit] || p.unit}</span>
+                        {p.ml_per_unit > 0 && <span className="text-xs text-muted">Còn {p.total_ml} ml</span>}
+                      </div>
+                    ) : (
+                      <span className="badge badge-danger">Hết sạch hàng</span>
+                    )}
+                  </td>
                   <td><span className="badge badge-muted">{unitLabels[p.unit] || p.unit}</span></td>
                   <td>
                     {(!['cai', 'hop'].includes(p.unit) && p.ml_per_unit > 0) ? (
@@ -164,6 +175,13 @@ export default function Products() {
                       <span className="badge badge-primary">Quy đổi: 1 {unitLabels[p.unit] || p.unit} = {p.ml_per_unit} {p.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'}</span>
                     ) : (
                       <span className="badge badge-muted">1 {unitLabels[p.unit] || p.unit} (Không xé lẻ)</span>
+                    )}
+                  </div>
+                  <div style={{ marginTop: '0.5rem' }}>
+                    {p.total_qty > 0 || p.total_ml > 0 ? (
+                      <span className="badge badge-success" style={{ fontWeight: 600 }}>Tồn: {p.total_qty} {unitLabels[p.unit] || p.unit} {p.ml_per_unit > 0 ? `| ${p.total_ml} ml` : ''}</span>
+                    ) : (
+                      <span className="badge badge-danger">Hết sạch hàng</span>
                     )}
                   </div>
                 </div>

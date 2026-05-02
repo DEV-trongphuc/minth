@@ -55,10 +55,15 @@ const POS = ({ onClose, onSuccess }) => {
     } catch {}
   };
 
-  const filteredBatches = batches.filter(b => 
-    b.product_name.toLowerCase().includes(search.toLowerCase()) || 
-    b.batch_code.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredBatches = batches.filter(b => {
+    const matchSearch = b.product_name.toLowerCase().includes(search.toLowerCase()) || 
+                        b.batch_code.toLowerCase().includes(search.toLowerCase());
+    
+    // Hide empty batches by default, only show if specifically searched
+    if (!search && b.current_qty <= 0 && b.current_ml <= 0) return false;
+    
+    return matchSearch;
+  });
 
   const addToCart = (batch, sellType) => {
     if (sellType === 'chai' && batch.current_qty <= 0) return showAlert('Hết hàng', 'Lô này đã hết chai nguyên!', 'warning');

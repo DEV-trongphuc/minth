@@ -293,8 +293,12 @@ export default function Dashboard() {
             <h3 style={{ fontWeight: 700, color: 'var(--warning-dark)' }}>Sắp hết hàng ({report.low_stock?.length || 0})</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
-            {(report.low_stock || []).length === 0 && <div className="text-muted text-sm" style={{ padding: '1rem', textAlign: 'center' }}>Hàng hóa đang ổn định</div>}
-            {(report.low_stock || []).map((item, idx) => (
+            {(report.low_stock || []).length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', padding: '1.5rem', background: 'var(--success-bg)', borderRadius: 'var(--r-sm)', color: 'var(--success)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                <CheckCircle size={32} />
+                <span style={{ fontWeight: 600 }}>Hàng hóa đang ổn định</span>
+              </div>
+            ) : (report.low_stock || []).map((item, idx) => (
               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '.75rem', background: 'var(--warning-bg)', borderRadius: 'var(--r-sm)' }}>
                 <span style={{ fontWeight: 600, fontSize: '.875rem' }}>{item.name} <span className="text-xs text-muted">({item.unit})</span></span>
                 <span className="badge badge-warning">Còn {item.qty} chai</span>
@@ -310,8 +314,12 @@ export default function Dashboard() {
             <h3 style={{ fontWeight: 700, color: 'var(--danger)' }}>Sắp hết hạn ({report.expiring_soon?.length || 0})</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
-            {(report.expiring_soon || []).length === 0 && <div className="text-muted text-sm" style={{ padding: '1rem', textAlign: 'center' }}>Không có lô hàng sắp hết hạn</div>}
-            {(report.expiring_soon || []).map((item, idx) => {
+            {(report.expiring_soon || []).length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', padding: '1.5rem', background: 'var(--success-bg)', borderRadius: 'var(--r-sm)', color: 'var(--success)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                <CheckCircle size={32} />
+                <span style={{ fontWeight: 600 }}>Hàng hóa đang khỏe mạnh</span>
+              </div>
+            ) : (report.expiring_soon || []).map((item, idx) => {
               const daysLeft = Math.ceil((new Date(item.expiry_date) - new Date()) / (1000 * 60 * 60 * 24));
               const isExpired = daysLeft < 0;
               return (

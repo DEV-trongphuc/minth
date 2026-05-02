@@ -139,7 +139,16 @@ export default function Orders() {
         {loading ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Đang tải dữ liệu...</div>
         ) : filteredOrders.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Không tìm thấy đơn hàng nào.</div>
+          <div style={{ padding: '4rem 2rem', textAlign: 'center', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', background: 'var(--surface2)', borderRadius: 'var(--r-md)', border: '1px dashed var(--border)' }}>
+            <ShoppingCart size={48} opacity={0.2} color="var(--primary)" />
+            <div>
+              <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text)' }}>Chưa có đơn hàng nào</h3>
+              <p style={{ margin: 0 }}>Hãy bắt đầu bán hàng và tạo đơn hàng đầu tiên của bạn!</p>
+            </div>
+            <button className="btn btn-primary" style={{ marginTop: '1rem', padding: '0.75rem 1.5rem', fontSize: '1rem' }} onClick={() => setShowPOS(true)}>
+              Tạo đơn hàng ngay
+            </button>
+          </div>
         ) : (
           <>
           <div className="table-wrap desktop-only" style={{ overflow: 'visible' }}>

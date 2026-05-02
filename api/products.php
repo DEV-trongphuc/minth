@@ -7,7 +7,17 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
-        $stmt = $pdo->query("SELECT * FROM products WHERE status != 'archived' OR status IS NULL ORDER BY created_at DESC");
+        $stmt = $pdo->query("
+            SELECT 
+                p.*, 
+                COALESCE(SUM(CASE WHEN b.status != 'archived' THEN b.current_qty ELSE 0 END), 0) as total_qty, 
+                COALESCE(SUM(CASE WHEN b.status != 'archived' THEN b.current_ml ELSE 0 END), 0) as total_ml
+            FROM products p
+            LEFT JOIN batches b ON p.id = b.product_id
+            WHERE p.status != 'archived' OR p.status IS NULL
+            GROUP BY p.id
+            ORDER BY p.created_at DESC
+        ");
         $products = $stmt->fetchAll();
         echo json_encode($products);
     } catch (\PDOException $e) {

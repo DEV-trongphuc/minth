@@ -192,35 +192,28 @@ export default function Customers() {
           { label: 'Khách VIP', count: customers.filter(c => c.tier === 'VIP').length, color: '#f59e0b' },
           { label: 'Khách Loyal', count: customers.filter(c => c.tier === 'Loyal').length, color: 'var(--primary)' },
           { label: 'Doanh thu từ CRM', count: customers.reduce((s, c) => s + Number(c.total_spent || 0), 0).toLocaleString('vi-VN') + ' đ', color: '#ec4899' },
+          { label: 'Tổng khách', count: customers.length, color: '#ec4899' },
         ].map(s => (
-          <div key={s.label} className="stat-card" style={{ 
-            background: 'var(--surface)', 
-            border: '1px solid var(--border)',
-            boxShadow: '0 2px 10px rgba(0, 0, 0, 0.02)',
-            padding: '1.25rem',
-            borderRadius: 'var(--r-md)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.25rem',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>{s.label}</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text)', fontFamily: 'Outfit' }}>{s.count}</div>
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: s.color, opacity: 0.8 }} />
+          <div key={s.label} style={{ background: 'var(--surface)', border: '1px solid var(--border)', padding: '1.25rem', borderRadius: 'var(--r-md)' }}>
+            <div className="text-xs text-muted">{s.label}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{s.count}</div>
           </div>
         ))}
       </div>
 
-      {/* Content */}
-      {viewMode === 'card' ? (
+      {loading ? (
+        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Đang tải dữ liệu...</div>
+      ) : filtered.length === 0 ? (
+        <div style={{ padding: '4rem 2rem', textAlign: 'center', color: 'var(--text-muted)', background: 'var(--surface2)', borderRadius: 'var(--r-md)', border: '1px dashed var(--border)' }}>
+          <Users size={48} opacity={0.2} color="var(--primary)" />
+          <h3 style={{ margin: '1rem 0 0.5rem 0' }}>Chưa có Khách hàng nào</h3>
+          <p>Hệ thống sẽ tự động lưu thông tin khách hàng mới khi bạn tạo đơn hàng thành công.</p>
+        </div>
+      ) : viewMode === 'card' ? (
         <div className="grid-3-cards">
-          {filtered.length === 0 && <div className="text-muted text-sm" style={{ padding: '2rem', textAlign: 'center', gridColumn: '1 / -1' }}>Chưa có khách hàng nào</div>}
           {filtered.map(c => <CustomerCard key={c.id} c={c} />)}
         </div>
       ) : (
-        <>
-        <div className="card card-no-pad desktop-only">
           <div className="table-wrap">
             <table className="data-table">
               <thead>
