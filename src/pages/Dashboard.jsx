@@ -232,7 +232,7 @@ export default function Dashboard() {
       </div>
 
       {/* Products & Costs Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '1.25rem' }}>
+      <div className="dashboard-products-row">
         {/* Top Products (70%) */}
         <div className="card">
           <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Sản phẩm bán chạy</h3>

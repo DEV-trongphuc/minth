@@ -341,7 +341,7 @@ const POS = ({ onClose, onSuccess }) => {
                     )}
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: 'auto', marginBottom: '0.75rem' }}>
+                  <div className="form-row" style={{ gap: '0.75rem', marginTop: 'auto', marginBottom: '0.75rem' }}>
                     <div className="form-group" style={{ marginBottom: 0 }}>
                       <label className="text-xs text-muted" style={{ marginBottom: '.25rem', display: 'block' }}>Thanh toán</label>
                       <div style={{ position: 'relative' }}>

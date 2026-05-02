@@ -412,7 +412,7 @@ export default function Inventory() {
                     </select>
                   )}
                 </div>
-                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                <div className="form-row-3">
                   <div className="form-group">
                     <label className="form-label">Ngày nhập <span style={{ color: 'var(--danger)' }}>*</span></label>
                     <input type="date" className="form-control" required value={form.import_date} onChange={e => setForm({ ...form, import_date: e.target.value })} />
