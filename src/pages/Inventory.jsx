@@ -145,7 +145,7 @@ export default function Inventory() {
   };
 
   const getExpiryWarning = (dateStr) => {
-    if (!dateStr) return null;
+    if (!dateStr || dateStr === '0000-00-00') return null;
     const exp = new Date(dateStr);
     const now = new Date();
     const diffTime = exp - now;
@@ -253,7 +253,7 @@ export default function Inventory() {
                       </td>
                       <td>
                         <div className="text-sm text-muted">Nhập: {b.import_date}</div>
-                        {b.expiry_date && (
+                        {b.expiry_date && b.expiry_date !== '0000-00-00' && (
                           <div className="text-xs" style={{ display: 'flex', gap: '.3rem', marginTop: '.2rem' }}>
                             <span className="text-muted">HSD: {b.expiry_date}</span>
                             {getExpiryWarning(b.expiry_date) && <span style={{ color: getExpiryWarning(b.expiry_date).color, fontWeight: 700 }}>({getExpiryWarning(b.expiry_date).label})</span>}

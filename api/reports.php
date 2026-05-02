@@ -113,7 +113,7 @@ if ($method === 'GET') {
             SELECT p.name, b.batch_code, b.expiry_date, b.current_qty as qty, b.current_ml as ml, p.unit
             FROM batches b
             JOIN products p ON b.product_id = p.id
-            WHERE b.status = 'active' AND b.expiry_date IS NOT NULL 
+            WHERE b.status = 'active' AND b.expiry_date IS NOT NULL AND b.expiry_date != '0000-00-00'
             AND b.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
             AND (b.current_qty > 0 OR b.current_ml > 0)
             ORDER BY b.expiry_date ASC

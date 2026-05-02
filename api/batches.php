@@ -42,7 +42,7 @@ if ($method === 'GET') {
             $data->product_id,
             $data->batch_code ?? 'MINTH-'.rand(10000, 99999),
             $data->import_date,
-            $data->expiry_date ?? null,
+            empty($data->expiry_date) ? null : $data->expiry_date,
             $data->import_price,
             $data->initial_qty,
             $data->initial_qty, // current = initial
