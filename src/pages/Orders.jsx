@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Package, Search, Filter, Edit, Eye, Clock, CheckCircle, Truck, DollarSign, XCircle, ShoppingCart } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
-import { useNavigate } from 'react-router-dom';
+import POS from './POS';
 
 const STATUS_CONFIG = {
   pending: { label: 'Chờ xử lý', color: 'var(--warning)', bg: 'var(--warning-bg)', icon: <Clock size={14} /> },
@@ -21,11 +21,19 @@ export default function Orders() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showPOS, setShowPOS] = useState(false);
   const { showConfirm, showAlert } = useDialog();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchOrders();
+    
+    // Check for draft customer passed from Customers page
+    try {
+      const draft = localStorage.getItem('luccy_pos_customer_draft');
+      if (draft) {
+        setShowPOS(true);
+      }
+    } catch(e) {}
   }, []);
 
   const fetchOrders = async () => {
@@ -92,10 +100,12 @@ export default function Orders() {
           </h1>
           <p className="page-sub" style={{ marginTop: '.25rem' }}>Theo dõi hành trình đơn hàng và cập nhật trạng thái giao hàng.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/pos')} style={{ padding: '.65rem 1.25rem', fontSize: '.95rem', boxShadow: 'var(--shadow-md)' }}>
+        <button className="btn btn-primary" onClick={() => setShowPOS(true)} style={{ padding: '.65rem 1.25rem', fontSize: '.95rem', boxShadow: 'var(--shadow-md)' }}>
           <ShoppingCart size={18} /> Tạo Đơn Hàng (POS)
         </button>
       </div>
+
+      {showPOS && <POS onClose={() => setShowPOS(false)} onSuccess={() => fetchOrders()} />}
 
       <div style={{ display: 'flex', gap: '.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <div className="search-wrap" style={{ flex: 1, minWidth: 200 }}>
@@ -216,6 +226,8 @@ export default function Orders() {
                             </select>
                           </div>
                         )}
+                      </td>
+                    </tr>
                   );
                 })}
               </tbody>

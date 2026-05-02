@@ -434,7 +434,10 @@ export default function Inventory() {
                   {priceInputMode === 'total' ? (
                     <div className="form-group anim-fade-up">
                       <label className="form-label">Tổng giá trị lô hàng (VND) <span style={{ color: 'var(--danger)' }}>*</span></label>
-                      <input type="number" className="form-control" placeholder="VD: 5000000" required min="0" value={totalValue} onChange={handleTotalChange} />
+                      <input type="text" className="form-control" placeholder="VD: 5.000.000" required value={totalValue ? Number(totalValue).toLocaleString('vi-VN') : ''} onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        handleTotalChange({ target: { value: val } });
+                      }} />
                       {(form.initial_qty > 0 && totalValue) ? (
                         <div className="form-hint" style={{ color: 'var(--primary)', fontWeight: 600 }}>Tự động chia ra: ≈ {Number(form.import_price || 0).toLocaleString('vi-VN')} đ / 1 đơn vị</div>
                       ) : null}
@@ -442,7 +445,10 @@ export default function Inventory() {
                   ) : (
                     <div className="form-group anim-fade-up">
                       <label className="form-label">Giá vốn / 1 đơn vị (VND) <span style={{ color: 'var(--danger)' }}>*</span></label>
-                      <input type="number" className="form-control" placeholder="VD: 100000" required min="0" value={form.import_price} onChange={handlePriceChange} />
+                      <input type="text" className="form-control" placeholder="VD: 100.000" required value={form.import_price ? Number(form.import_price).toLocaleString('vi-VN') : ''} onChange={e => {
+                        const val = e.target.value.replace(/\D/g, '');
+                        handlePriceChange({ target: { value: val } });
+                      }} />
                       {(form.initial_qty > 0 && form.import_price) ? (
                         <div className="form-hint" style={{ color: 'var(--primary)', fontWeight: 600 }}>Tổng giá trị lô hàng: ≈ {Number(totalValue || 0).toLocaleString('vi-VN')} đ</div>
                       ) : null}

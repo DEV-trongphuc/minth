@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Search, Trash2, CreditCard, Printer, UserPlus, CheckCircle, Package } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import AddressSelect from '../components/ui/AddressSelect';
 import { useDialog } from '../components/ui/DialogContext';
 
-const POS = () => {
+const POS = ({ onClose, onSuccess }) => {
   const [batches, setBatches] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [cart, setCart] = useState([]);
@@ -15,7 +14,6 @@ const POS = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderConfig, setOrderConfig] = useState({ status: 'pending', payment_status: 'unpaid' });
   const { showAlert } = useDialog();
-  const navigate = useNavigate();
 
   useEffect(() => {
     fetchBatches();
@@ -119,7 +117,8 @@ const POS = () => {
         setShowCheckout(false);
         fetchBatches(); // Reload inventory
         fetchCustomers(); // Reload CRM
-        navigate('/orders');
+        if (onSuccess) onSuccess();
+        if (onClose) onClose();
       } else {
         showAlert('Lỗi hệ thống', 'Lỗi lưu đơn hàng.', 'danger');
       }
@@ -129,8 +128,15 @@ const POS = () => {
     }
   };
 
-  return (
-    <div className="animate-fade-in pos-layout">
+  return createPortal(
+    <div className="modal-overlay" style={{ zIndex: 1000 }} onClick={e => { if (e.target === e.currentTarget && onClose) onClose(); }}>
+      <div className="modal" style={{ width: '98vw', maxWidth: '1400px', height: '95vh', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div className="modal-header" style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-light)', flexShrink: 0, background: 'var(--surface)' }}>
+          <h2 className="modal-title" style={{ fontSize: '1.25rem' }}>Tạo Đơn Hàng Mới (POS)</h2>
+          <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-body" style={{ flex: 1, padding: '1rem', overflowY: 'auto', background: 'var(--bg)' }}>
+          <div className="animate-fade-in pos-layout">
       {/* Product Selection */}
       <div className="card pos-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden', padding: '1.5rem 1rem' }}>
         <h2 style={{ fontSize: '1.25rem', padding: '0 0.5rem' }}>Bán hàng (POS) & Kiểm kho</h2>
@@ -190,7 +196,10 @@ const POS = () => {
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', alignItems: 'center' }}>
                   <input type="number" className="form-control" style={{ width: '80px', padding: '0.4rem' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
                   <span className="text-muted">x</span>
-                  <input type="number" className="form-control" style={{ flex: 1, padding: '0.4rem' }} value={item.price} onChange={e => updateCartItem(idx, 'price', e.target.value)} />
+                  <input type="text" className="form-control" style={{ flex: 1, padding: '0.4rem' }} value={item.price ? item.price.toLocaleString('vi-VN') : ''} onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    updateCartItem(idx, 'price', val);
+                  }} />
                   <span style={{ fontWeight: 600, width: '100px', textAlign: 'right', color: 'var(--primary)' }}>{(item.price * item.quantity).toLocaleString()} đ</span>
                 </div>
                 {item.sell_type === 'ml' && (
@@ -338,8 +347,12 @@ const POS = () => {
         .hover-shadow:hover { border-color: var(--primary) !important; box-shadow: var(--shadow-sm); }
         .hover-bg:hover { background-color: var(--surface-hover); }
         .autocomplete-dropdown::-webkit-scrollbar { width: 4px; }
-      `}</style>
-    </div>
+            `}</style>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 };
 

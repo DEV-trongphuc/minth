@@ -6,7 +6,6 @@ import Header from './Header';
 const routeNames = {
   '/dashboard': 'Tổng quan',
   '/inventory': 'Quản lý Kho',
-  '/pos': 'Bán hàng (POS)',
   '/customers': 'Khách hàng',
 };
 
