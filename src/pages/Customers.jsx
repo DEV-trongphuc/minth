@@ -134,8 +134,8 @@ export default function Customers() {
 
       <div style={{ display: 'flex', gap: '.5rem', marginTop: 'auto' }}>
         <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={e => { e.stopPropagation(); setDetailItem(c); }}><Eye size={13} /> Chi tiết</button>
-        <button className="btn btn-ghost btn-icon btn-sm" onClick={e => { e.stopPropagation(); openEdit(c); }}><Edit size={13} /></button>
         <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={e => { e.stopPropagation(); handleCreateOrder(c); }}><ShoppingBag size={13} /> Tạo đơn</button>
+        <button className="btn btn-ghost btn-icon btn-sm" onClick={e => { e.stopPropagation(); openEdit(c); }}><Edit size={13} /></button>
       </div>
     </div>
   );
