@@ -100,7 +100,7 @@ export default function Products() {
       </div>
 
       <div className="card card-no-pad desktop-only">
-        <div className="table-wrap">
+        <div className="table-wrap desktop-only">
           <table className="data-table">
             <thead>
               <tr>

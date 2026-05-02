@@ -220,7 +220,7 @@ export default function Customers() {
         </div>
       ) : (
         <>
-          <div className="table-wrap">
+          <div className="table-wrap desktop-only">
             <table className="data-table">
               <thead>
                 <tr>
