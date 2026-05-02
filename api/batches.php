@@ -1,0 +1,80 @@
+<?php
+require_once 'db.php';
+
+header("Content-Type: application/json; charset=UTF-8");
+$method = $_SERVER['REQUEST_METHOD'];
+
+if ($method === 'GET') {
+    try {
+        $stmt = $pdo->query("
+            SELECT b.*, p.name as product_name, p.ml_per_unit 
+            FROM batches b
+            JOIN products p ON b.product_id = p.id
+            ORDER BY b.import_date DESC
+        ");
+        echo json_encode($stmt->fetchAll());
+    } catch (\PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+} elseif ($method === 'POST') {
+    $data = json_decode(file_get_contents("php://input"));
+    if (!$data || !isset($data->product_id) || !isset($data->initial_qty)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Thiếu thông tin lô hàng"]);
+        exit();
+    }
+    
+    try {
+        // Lấy dung tích
+        $stmtProd = $pdo->prepare("SELECT ml_per_unit FROM products WHERE id = ?");
+        $stmtProd->execute([$data->product_id]);
+        $product = $stmtProd->fetch();
+        
+        $initial_ml = ($product && $product['ml_per_unit']) ? ($data->initial_qty * $product['ml_per_unit']) : 0;
+        
+        $stmt = $pdo->prepare("
+            INSERT INTO batches (product_id, batch_code, import_date, import_price, initial_qty, current_qty, initial_ml, current_ml) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $data->product_id,
+            $data->batch_code ?? 'MINTH-'.rand(10000, 99999),
+            $data->import_date,
+            $data->import_price,
+            $data->initial_qty,
+            $data->initial_qty, // current = initial
+            $initial_ml,
+            $initial_ml
+        ]);
+        
+        echo json_encode([
+            "message" => "Thêm lô hàng thành công",
+            "id" => $pdo->lastInsertId()
+        ]);
+    } catch (\PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
+} elseif ($method === 'DELETE') {
+    $data = json_decode(file_get_contents("php://input"));
+    if (!$data || empty($data->id)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Thiếu ID lô hàng"]);
+        exit();
+    }
+    try {
+        $pdo->prepare("DELETE FROM batches WHERE id = ?")->execute([$data->id]);
+        echo json_encode(["message" => "Đã xóa lô hàng"]);
+    } catch (\PDOException $e) {
+        http_response_code(400);
+        if ($e->getCode() == 23000) {
+            echo json_encode(["error" => "Lô hàng này đã phát sinh giao dịch bán hàng (nằm trong đơn hàng). Không thể xóa để bảo toàn dữ liệu kế toán."]);
+        } else {
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+    }
+} else {
+    http_response_code(405);
+}
+?>
