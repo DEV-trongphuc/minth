@@ -50,6 +50,29 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
       {/* Navigation */}
       <nav className="sidebar-nav">
+        <div style={{ padding: '0 1rem', marginBottom: '1.5rem' }}>
+          <button 
+            onClick={() => { window.dispatchEvent(new Event('open-pos')); if (window.innerWidth < 1024) setIsOpen(false); }}
+            style={{ 
+              width: '100%', 
+              background: 'var(--primary)', 
+              color: '#fff', 
+              border: 'none', 
+              padding: '0.75rem', 
+              borderRadius: 'var(--r-sm)', 
+              fontWeight: 600, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '0.5rem', 
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            <ShoppingCart size={18} /> Tạo Đơn Nhanh
+          </button>
+        </div>
+
         <div className="nav-section-label">Chức năng chính</div>
         {navItems.map(item => {
           const Icon = item.icon;

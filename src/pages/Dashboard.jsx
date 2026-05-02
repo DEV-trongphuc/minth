@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { TrendingUp, Package, Users, DollarSign, Calendar, ArrowUpRight, AlertTriangle, ShoppingBag, Percent, Settings, CheckCircle } from 'lucide-react';
+import { TrendingUp, Package, Users, DollarSign, Calendar, ArrowUpRight, AlertTriangle, ShoppingBag, Percent, Settings, CheckCircle, Clock, Truck } from 'lucide-react';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement,
   LineElement, BarElement, Title, Tooltip, Filler, Legend, ArcElement,
@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [filter, setFilter] = useState('7days');
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
-  const [report, setReport] = useState({ revenue: 0, profit: 0, orders: 0, customers: 0, chart_data: [], donut_data: [], top_products: [], low_stock: [] });
+  const [report, setReport] = useState({ revenue: 0, profit: 0, orders: 0, customers: 0, chart_data: [], donut_data: [], top_products: [], low_stock: [], expiring_soon: [], shipping_fee: 0, operational_cost: 0 });
   const [showSetupModal, setShowSetupModal] = useState(false);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function Dashboard() {
       const res = await fetch(url);
       if (res.ok) setReport(await res.json());
     } catch (e) {
-      setReport({ revenue: 0, profit: 0, orders: 0, customers: 0, chart_data: [], donut_data: [], top_products: [], low_stock: [] });
+      setReport({ revenue: 0, profit: 0, orders: 0, customers: 0, chart_data: [], donut_data: [], top_products: [], low_stock: [], expiring_soon: [], shipping_fee: 0, operational_cost: 0 });
     }
   };
 
@@ -231,45 +231,103 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Bottom Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-
-        {/* Top Products */}
+      {/* Products & Costs Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '1.25rem' }}>
+        {/* Top Products (70%) */}
         <div className="card">
           <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Sản phẩm bán chạy</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
             {topProducts.length === 0 && <div className="text-muted text-sm" style={{ padding: '1rem', textAlign: 'center' }}>Chưa có dữ liệu</div>}
             {topProducts.map((p, i) => (
-              <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: ['var(--primary-light)', 'var(--success-bg)', 'var(--warning-bg)'][i % 3], color: ['var(--primary)', 'var(--success)', 'var(--warning)'][i % 3], display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '.8rem', flexShrink: 0 }}>
+              <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingBottom: '.75rem', borderBottom: i < topProducts.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: ['var(--primary-light)', 'var(--success-bg)', 'var(--warning-bg)'][i % 3] || 'var(--surface2)', color: ['var(--primary)', 'var(--success)', 'var(--warning)'][i % 3] || 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '.8rem', flexShrink: 0 }}>
                   {i + 1}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
                   <div className="text-xs text-muted">{p.sales} lần bán</div>
                 </div>
-                <div style={{ fontWeight: 700, fontSize: '.875rem', color: 'var(--primary)', textAlign: 'right', flexShrink: 0 }}>
-                  {(Number(p.revenue)).toLocaleString('vi-VN')} đ
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: 700, fontSize: '.875rem', color: 'var(--text)' }}>
+                    {(Number(p.revenue)).toLocaleString('vi-VN')} đ
+                  </div>
+                  <div className="text-xs" style={{ color: 'var(--success)', fontWeight: 600 }}>
+                    +{(Number(p.profit)).toLocaleString('vi-VN')} đ lãi
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
+        {/* Operational Costs (30%) */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Chi phí & Dòng tiền khác</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'var(--info-bg, #eff6ff)', borderRadius: 'var(--r-sm)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', color: 'var(--info, #3b82f6)' }}>
+                <Truck size={18} />
+                <span style={{ fontWeight: 600, fontSize: '.875rem' }}>Thu hộ Phí Ship</span>
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--info, #3b82f6)' }}>{(report.shipping_fee || 0).toLocaleString('vi-VN')} đ</span>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'var(--danger-bg)', borderRadius: 'var(--r-sm)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', color: 'var(--danger)' }}>
+                <AlertTriangle size={18} />
+                <span style={{ fontWeight: 600, fontSize: '.875rem' }}>Phát sinh / Hao hụt</span>
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--danger)' }}>-{(report.operational_cost || 0).toLocaleString('vi-VN')} đ</span>
+            </div>
+            <div className="text-xs text-muted" style={{ textAlign: 'center', marginTop: 'auto' }}>*Hao hụt tính dựa trên giá vốn của hàng xuất nội bộ (hỏng, tester, v.v.)</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Alerts Row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
         {/* Low Stock Alert */}
-        <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+        <div className="card" style={{ borderLeft: '4px solid var(--warning)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '.625rem', marginBottom: '1rem' }}>
-            <AlertTriangle size={20} color="var(--danger)" />
-            <h3 style={{ fontWeight: 700, color: 'var(--danger)' }}>Cảnh báo sắp hết hàng</h3>
+            <Package size={20} color="var(--warning)" />
+            <h3 style={{ fontWeight: 700, color: 'var(--warning-dark)' }}>Sắp hết hàng ({report.low_stock?.length || 0})</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
-            {lowStockItems.length === 0 && <div className="text-muted text-sm" style={{ padding: '1rem', textAlign: 'center' }}>Hàng hóa đang ổn định</div>}
-            {lowStockItems.map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '.75rem', background: 'var(--danger-bg)', borderRadius: 'var(--r-sm)' }}>
+            {(report.low_stock || []).length === 0 && <div className="text-muted text-sm" style={{ padding: '1rem', textAlign: 'center' }}>Hàng hóa đang ổn định</div>}
+            {(report.low_stock || []).map((item, idx) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '.75rem', background: 'var(--warning-bg)', borderRadius: 'var(--r-sm)' }}>
                 <span style={{ fontWeight: 600, fontSize: '.875rem' }}>{item.name} <span className="text-xs text-muted">({item.unit})</span></span>
-                <span className="badge badge-danger">Còn {item.qty} chai</span>
+                <span className="badge badge-warning">Còn {item.qty} chai</span>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Expiring Soon Alert */}
+        <div className="card" style={{ borderLeft: '4px solid var(--danger)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '.625rem', marginBottom: '1rem' }}>
+            <Clock size={20} color="var(--danger)" />
+            <h3 style={{ fontWeight: 700, color: 'var(--danger)' }}>Sắp hết hạn ({report.expiring_soon?.length || 0})</h3>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
+            {(report.expiring_soon || []).length === 0 && <div className="text-muted text-sm" style={{ padding: '1rem', textAlign: 'center' }}>Không có lô hàng sắp hết hạn</div>}
+            {(report.expiring_soon || []).map((item, idx) => {
+              const daysLeft = Math.ceil((new Date(item.expiry_date) - new Date()) / (1000 * 60 * 60 * 24));
+              const isExpired = daysLeft < 0;
+              return (
+                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '.75rem', background: 'var(--danger-bg)', borderRadius: 'var(--r-sm)' }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: '.875rem' }}>{item.name} <span className="text-xs text-muted">({item.batch_code})</span></div>
+                    <div className="text-xs" style={{ color: 'var(--danger)', marginTop: '0.15rem' }}>
+                      HSD: {new Date(item.expiry_date).toLocaleDateString('vi-VN')}
+                    </div>
+                  </div>
+                  <span className="badge badge-danger">
+                    {isExpired ? 'Đã hết hạn' : `Còn ${daysLeft} ngày`}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

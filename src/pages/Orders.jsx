@@ -101,12 +101,7 @@ export default function Orders() {
           </h1>
           <p className="page-sub" style={{ marginTop: '.25rem' }}>Theo dõi hành trình đơn hàng và cập nhật trạng thái giao hàng.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowPOS(true)} style={{ padding: '.65rem 1.25rem', fontSize: '.95rem', boxShadow: 'var(--shadow-md)' }}>
-          <ShoppingCart size={18} /> Tạo Đơn Hàng (POS)
-        </button>
       </div>
-
-      {showPOS && <POS onClose={() => setShowPOS(false)} onSuccess={() => fetchOrders()} />}
 
       <div style={{ display: 'flex', gap: '.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <div className="search-wrap" style={{ flex: 1, minWidth: 200 }}>

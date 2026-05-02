@@ -14,6 +14,7 @@ const POS = ({ onClose, onSuccess }) => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [orderConfig, setOrderConfig] = useState({ status: 'pending', payment_status: 'paid' });
   const [shippingFee, setShippingFee] = useState(0);
+  const [showGuide, setShowGuide] = useState(false);
   const { showAlert } = useDialog();
 
   useEffect(() => {
@@ -309,13 +310,20 @@ const POS = ({ onClose, onSuccess }) => {
                   </div>
 
                   {/* Hướng dẫn sử dụng */}
-                  <div style={{ background: 'var(--info-bg, #eff6ff)', color: 'var(--info, #3b82f6)', padding: '0.75rem 1rem', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', marginBottom: '1rem', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                    <strong>💡 Hướng dẫn tạo đơn:</strong>
-                    <ul style={{ margin: '0.25rem 0 0 1.25rem', padding: 0 }}>
-                      <li><strong>Giao tại quầy:</strong> Khách mua trực tiếp, đơn sẽ được tính là Hoàn thành ngay lập tức.</li>
-                      <li><strong>Cần ship:</strong> Khách đặt giao hàng, đơn sẽ vào danh sách "Chờ xử lý" trong Quản lý đơn hàng.</li>
-                      <li><strong>Thanh toán:</strong> Nếu khách chưa trả tiền (COD), hãy chọn "Chưa thu". Doanh thu sẽ chỉ được tính khi đơn đã thu tiền.</li>
-                    </ul>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer', color: 'var(--primary)', padding: '0.25rem 0' }} onClick={() => setShowGuide(!showGuide)}>
+                      <strong style={{ fontSize: '0.875rem' }}>💡 Hướng dẫn tạo đơn</strong>
+                      <ChevronDown size={16} style={{ transform: showGuide ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', marginLeft: '0.25rem' }} />
+                    </div>
+                    {showGuide && (
+                      <div className="anim-slide-in" style={{ background: 'var(--info-bg, #eff6ff)', color: 'var(--info, #3b82f6)', padding: '0.75rem 1rem', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', marginTop: '0.5rem', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                        <ul style={{ margin: '0', paddingLeft: '1.25rem' }}>
+                          <li style={{ marginBottom: '0.25rem' }}><strong>Giao tại quầy:</strong> Khách mua trực tiếp, đơn sẽ được tính là Hoàn thành ngay lập tức.</li>
+                          <li style={{ marginBottom: '0.25rem' }}><strong>Cần ship:</strong> Khách đặt giao hàng, đơn sẽ vào danh sách "Chờ xử lý" trong Quản lý đơn hàng.</li>
+                          <li><strong>Thanh toán:</strong> Nếu khách chưa trả tiền (COD), hãy chọn "Chưa thu". Doanh thu sẽ chỉ được tính khi đơn đã thu tiền.</li>
+                        </ul>
+                      </div>
+                    )}
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: 'auto', marginBottom: '0.75rem' }}>
