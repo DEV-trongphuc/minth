@@ -364,7 +364,7 @@ body {
 
 /* ── TABLE ── */
 .table-wrap { width: 100%; overflow-x: auto; }
-.data-table { width: 100%; border-collapse: collapse; }
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .data-table th {
   padding: .875rem 1.25rem;
   background: var(--surface2);
@@ -373,6 +373,8 @@ body {
   text-align: left; border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
+.data-table th:first-child { border-top-left-radius: var(--r-lg); }
+.data-table th:last-child { border-top-right-radius: var(--r-lg); }
 .data-table td {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--border-light);
