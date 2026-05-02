@@ -320,14 +320,16 @@ export default function Dashboard() {
                 <span style={{ fontWeight: 600 }}>Hàng hóa đang khỏe mạnh</span>
               </div>
             ) : (report.expiring_soon || []).map((item, idx) => {
-              const daysLeft = Math.ceil((new Date(item.expiry_date) - new Date()) / (1000 * 60 * 60 * 24));
+              const expDate = new Date(item.expiry_date);
+              if (isNaN(expDate.getTime())) return null;
+              const daysLeft = Math.ceil((expDate - new Date()) / (1000 * 60 * 60 * 24));
               const isExpired = daysLeft < 0;
               return (
                 <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '.75rem', background: 'var(--danger-bg)', borderRadius: 'var(--r-sm)' }}>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '.875rem' }}>{item.name} <span className="text-xs text-muted">({item.batch_code})</span></div>
                     <div className="text-xs" style={{ color: 'var(--danger)', marginTop: '0.15rem' }}>
-                      HSD: {new Date(item.expiry_date).toLocaleDateString('vi-VN')}
+                      HSD: {expDate.toLocaleDateString('vi-VN')}
                     </div>
                   </div>
                   <span className="badge badge-danger">

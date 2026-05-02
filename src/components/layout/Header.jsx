@@ -25,19 +25,21 @@ const Header = ({ toggleSidebar, pageName }) => {
               icon: <PackageX size={16} />
             });
           }
-          if (b.expiry_date) {
+          if (b.expiry_date && b.expiry_date !== '0000-00-00') {
             const exp = new Date(b.expiry_date);
-            const now = new Date();
-            const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
-            if (diffDays <= 90) {
-              alerts.push({
-                id: `exp_${b.id}`,
-                type: 'expiry',
-                title: diffDays < 0 ? 'Đã hết hạn' : 'Sắp hết hạn',
-                message: `${b.product_name} (Lô: ${b.batch_code}) - Còn ${diffDays} ngày`,
-                color: diffDays < 0 ? 'var(--danger)' : 'var(--warning)',
-                icon: <AlertTriangle size={16} />
-              });
+            if (!isNaN(exp.getTime())) {
+              const now = new Date();
+              const diffDays = Math.ceil((exp - now) / (1000 * 60 * 60 * 24));
+              if (diffDays <= 90) {
+                alerts.push({
+                  id: `exp_${b.id}`,
+                  type: 'expiry',
+                  title: diffDays < 0 ? 'Đã hết hạn' : 'Sắp hết hạn',
+                  message: `${b.product_name} (Lô: ${b.batch_code}) - Còn ${diffDays} ngày`,
+                  color: diffDays < 0 ? 'var(--danger)' : 'var(--warning)',
+                  icon: <AlertTriangle size={16} />
+                });
+              }
             }
           }
         });
