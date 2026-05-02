@@ -178,29 +178,33 @@ const POS = ({ onClose, onSuccess }) => {
               </button>
             </div>
           ) : filteredBatches.map(batch => (
-            <div key={batch.id} style={{ padding: '1rem', border: `1px solid ${batch.current_qty <= 5 ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', gap: '0.75rem', transition: 'var(--transition)' }} className="hover-shadow">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <h4 style={{ margin: 0, fontSize: '1rem' }}>{batch.product_name}</h4>
-                  <div className="text-muted text-sm" style={{ marginTop: '0.2rem' }}>
-                    Mã lô: <strong>{batch.batch_code}</strong>
+            <div key={batch.id} style={{ padding: '0.875rem', border: `1px solid ${batch.current_qty <= 5 ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', gap: '0.75rem', transition: 'var(--transition)' }} className="hover-shadow">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ paddingRight: '0.5rem' }}>
+                    <h4 style={{ margin: 0, fontSize: '1rem', lineHeight: 1.3 }}>{batch.product_name}</h4>
+                    <div className="text-muted text-xs" style={{ marginTop: '0.25rem' }}>
+                      Mã lô: <strong style={{ color: 'var(--text)' }}>{batch.batch_code}</strong>
+                    </div>
                   </div>
-                  <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.2rem', display: 'flex', gap: '0.75rem' }}>
-                    <span>Nhập: {batch.import_date ? new Date(batch.import_date).toLocaleDateString('vi-VN') : 'N/A'}</span>
-                    <span>Giá vốn: <strong style={{ color: 'var(--warning-dark, #b45309)' }}>{batch.import_price ? Number(batch.import_price).toLocaleString('vi-VN') : 0} đ</strong></span>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <span className={`badge ${batch.current_qty <= 5 ? 'badge-danger' : 'badge-success'}`} style={{ background: batch.current_qty <= 5 ? 'var(--danger-bg)' : '', color: batch.current_qty <= 5 ? 'var(--danger)' : '' }}>
+                      {batch.current_qty > 0 ? `Tồn: ${batch.current_qty} chai` : 'Hết hàng (Chai)'}
+                    </span>
+                    {batch.ml_per_unit > 0 && <div className="text-xs text-muted" style={{ marginTop: '0.2rem', fontWeight: 600 }}>Còn {batch.current_ml} ml</div>}
                   </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span className={`badge ${batch.current_qty <= 5 ? 'badge-danger' : 'badge-success'}`} style={{ background: batch.current_qty <= 5 ? 'var(--danger-bg)' : '', color: batch.current_qty <= 5 ? 'var(--danger)' : '' }}>
-                    {batch.current_qty > 0 ? `Tồn: ${batch.current_qty} chai` : 'Hết hàng (Chai)'}
-                  </span>
-                  {batch.ml_per_unit > 0 && <div className="text-xs text-muted mt-1">Còn {batch.current_ml} ml</div>}
+                
+                <div className="text-muted" style={{ fontSize: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', background: 'var(--surface2)', padding: '0.4rem 0.6rem', borderRadius: 'var(--r-sm)', alignItems: 'center' }}>
+                  <span style={{ whiteSpace: 'nowrap' }}>Nhập: <strong style={{ color: 'var(--text)' }}>{batch.import_date ? new Date(batch.import_date).toLocaleDateString('vi-VN') : 'N/A'}</strong></span>
+                  <span style={{ color: 'var(--border-dark)' }}>|</span>
+                  <span style={{ whiteSpace: 'nowrap' }}>Vốn: <strong style={{ color: 'var(--warning-dark, #b45309)' }}>{batch.import_price ? Number(batch.import_price).toLocaleString('vi-VN') : 0} đ</strong></span>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button disabled={batch.current_qty <= 0} className="btn btn-primary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.875rem', opacity: batch.current_qty <= 0 ? 0.5 : 1 }} onClick={() => addToCart(batch, 'chai')}>Bán Nguyên Chai</button>
+                <button disabled={batch.current_qty <= 0} className="btn btn-primary" style={{ flex: 1, padding: '0.6rem 0.25rem', fontSize: '0.8rem', opacity: batch.current_qty <= 0 ? 0.5 : 1 }} onClick={() => addToCart(batch, 'chai')}>Bán Nguyên Chai</button>
                 {batch.ml_per_unit > 0 && (
-                  <button disabled={batch.current_ml <= 0} className="btn btn-secondary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.875rem', opacity: batch.current_ml <= 0 ? 0.5 : 1 }} onClick={() => addToCart(batch, 'ml')}>Bán Chiết (ml)</button>
+                  <button disabled={batch.current_ml <= 0} className="btn btn-secondary" style={{ flex: 1, padding: '0.6rem 0.25rem', fontSize: '0.8rem', opacity: batch.current_ml <= 0 ? 0.5 : 1 }} onClick={() => addToCart(batch, 'ml')}>Bán Chiết (ml)</button>
                 )}
               </div>
             </div>
@@ -220,21 +224,21 @@ const POS = ({ onClose, onSuccess }) => {
                 <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}><Trash2 size={16} /></button>
                 <h4 style={{ fontSize: '0.95rem', margin: '0 0 0.25rem 0', paddingRight: '1.5rem' }}>{item.product_name}</h4>
                 <span className="text-muted text-xs">Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên chai' : 'Chiết ml'})</span>
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem', alignItems: 'flex-end' }}>
-                  <div>
-                    <label className="text-xs text-muted" style={{display: 'block', marginBottom: '0.2rem'}}>Số lượng</label>
-                    <input type="number" className="form-control" style={{ width: '80px', padding: '0.4rem' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                  <div style={{ width: '70px', flexShrink: 0 }}>
+                    <label className="text-xs text-muted" style={{display: 'block', marginBottom: '0.2rem'}}>SL</label>
+                    <input type="number" className="form-control" style={{ width: '100%', padding: '0.4rem' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
                   </div>
                   <div style={{ paddingBottom: '0.4rem', color: 'var(--text-muted)' }}>x</div>
-                  <div style={{ flex: 1 }}>
-                    <label className="text-xs text-muted" style={{display: 'block', marginBottom: '0.2rem'}}>Đơn giá (đ)</label>
+                  <div style={{ flex: '1 1 120px', minWidth: '100px' }}>
+                    <label className="text-xs text-muted" style={{display: 'block', marginBottom: '0.2rem', whiteSpace: 'nowrap'}}>Đơn giá (đ)</label>
                     <input type="text" className="form-control" style={{ width: '100%', padding: '0.4rem' }} value={item.price ? item.price.toLocaleString('vi-VN') : ''} onChange={e => {
                       const val = e.target.value.replace(/\D/g, '');
                       updateCartItem(idx, 'price', val);
                     }} />
                   </div>
-                  <div style={{ paddingBottom: '0.4rem', fontWeight: 600, width: '100px', textAlign: 'right', color: 'var(--primary)' }}>
-                    {(item.price * item.quantity).toLocaleString()} đ
+                  <div style={{ fontWeight: 700, flex: '1 1 100%', textAlign: 'right', color: 'var(--primary)', fontSize: '1.05rem', paddingTop: '0.25rem' }}>
+                    = {(item.price * item.quantity).toLocaleString()} đ
                   </div>
                 </div>
                 {item.price < item.base_cost && (
@@ -409,6 +413,7 @@ const POS = ({ onClose, onSuccess }) => {
           }
           .pos-card {
             min-height: 50vh;
+            padding: 1rem 0.5rem !important;
           }
         }
         .hover-shadow:hover { border-color: var(--primary) !important; box-shadow: var(--shadow-sm); }
