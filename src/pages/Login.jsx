@@ -46,8 +46,8 @@ const Login = () => {
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <div className="card animate-pop" style={{ width: '100%', maxWidth: '420px', padding: '2.5rem 2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--primary), var(--pink))', color: '#fff', fontSize: '2rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', boxShadow: 'var(--shadow-glow)' }}>L</div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Hệ thống quản lý Luccy</h1>
+          <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'linear-gradient(135deg, var(--primary), var(--pink))', color: '#fff', fontSize: '2rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', boxShadow: 'var(--shadow-glow)' }}>M</div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Hệ thống quản lý Minth</h1>
           <p className="text-muted text-sm" style={{ marginTop: '0.25rem' }}>Đăng nhập để tiếp tục</p>
         </div>
 

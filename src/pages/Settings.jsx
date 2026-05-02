@@ -49,7 +49,7 @@ export default function Settings() {
           <form onSubmit={(e) => e.preventDefault()}>
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label className="form-label">Tên hiển thị</label>
-              <input type="text" className="form-control" defaultValue="Admin Hamien Luccy" autoComplete="username" />
+              <input type="text" className="form-control" defaultValue="Admin Minth" autoComplete="username" />
             </div>
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label className="form-label">Đổi Mật khẩu</label>
