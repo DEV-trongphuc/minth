@@ -64,10 +64,12 @@ const POS = ({ onClose, onSuccess }) => {
     if (existing) {
       setCart(cart.map(c => c === existing ? { ...c, quantity: c.quantity + 1 } : c));
     } else {
-      const suggestedPrice = sellType === 'chai' ? batch.import_price * 1.5 : (batch.import_price / batch.ml_per_unit) * 2;
+      const baseCost = sellType === 'chai' ? batch.import_price : (batch.import_price / batch.ml_per_unit);
+      const suggestedPrice = sellType === 'chai' ? batch.import_price * 1.5 : baseCost * 2;
       setCart([...cart, {
         batch_id: batch.id, product_name: batch.product_name, batch_code: batch.batch_code,
-        sell_type: sellType, quantity: 1, price: Math.round(suggestedPrice / 1000) * 1000
+        sell_type: sellType, quantity: 1, price: Math.round(suggestedPrice / 1000) * 1000,
+        base_cost: baseCost
       }]);
     }
   };
@@ -216,6 +218,11 @@ const POS = ({ onClose, onSuccess }) => {
                     {(item.price * item.quantity).toLocaleString()} đ
                   </div>
                 </div>
+                {item.price < item.base_cost && (
+                  <div style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    ⚠️ Giá bán đang thấp hơn giá vốn ({Math.round(item.base_cost).toLocaleString('vi-VN')} đ)
+                  </div>
+                )}
                 {item.sell_type === 'ml' && (
                   <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                     <span className="text-xs text-muted" style={{ display: 'flex', alignItems: 'center', marginRight: '0.25rem' }}>Chọn nhanh:</span>
