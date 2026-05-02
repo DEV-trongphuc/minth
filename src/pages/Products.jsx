@@ -35,6 +35,16 @@ export default function Products() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    const nameTrimmed = form.name.trim();
+    const isDuplicate = products.some(p => 
+      p.name.toLowerCase() === nameTrimmed.toLowerCase() && 
+      (!editItem || p.id !== editItem.id)
+    );
+    
+    if (isDuplicate) {
+      return showAlert('Trùng lặp', 'Tên sản phẩm này đã tồn tại trong danh mục!', 'warning');
+    }
+
     try {
       const method = editItem ? 'PUT' : 'POST';
       const bodyToSave = { ...form, ml_per_unit: ['cai', 'hop'].includes(form.unit) ? 0 : form.ml_per_unit };

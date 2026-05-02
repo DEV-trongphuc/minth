@@ -31,6 +31,14 @@ if ($method === 'GET') {
         echo json_encode(["error" => "Dữ liệu không hợp lệ"]);
         exit();
     }
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM products WHERE LOWER(name) = LOWER(:name) AND (status != 'archived' OR status IS NULL)");
+    $stmt->execute([':name' => trim($data->name)]);
+    if ($stmt->fetchColumn() > 0) {
+        http_response_code(409);
+        echo json_encode(["error" => "Tên sản phẩm này đã tồn tại"]);
+        exit();
+    }
     
     try {
         $stmt = $pdo->prepare("INSERT INTO products (name, category, unit, ml_per_unit, image, status) VALUES (:name, :category, :unit, :ml, :img, 'active')");
@@ -55,6 +63,14 @@ if ($method === 'GET') {
     if (!$data || empty($data->id) || !isset($data->name)) {
         http_response_code(400);
         echo json_encode(["error" => "Dữ liệu không hợp lệ"]);
+        exit();
+    }
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM products WHERE LOWER(name) = LOWER(:name) AND id != :id AND (status != 'archived' OR status IS NULL)");
+    $stmt->execute([':name' => trim($data->name), ':id' => $data->id]);
+    if ($stmt->fetchColumn() > 0) {
+        http_response_code(409);
+        echo json_encode(["error" => "Tên sản phẩm này đã tồn tại"]);
         exit();
     }
     
