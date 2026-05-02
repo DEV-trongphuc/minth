@@ -100,9 +100,31 @@ export default function Dashboard() {
 
   const chartOpts = {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: { 
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return context.dataset.label + ': ' + Number(context.raw).toLocaleString('vi-VN') + ' đ';
+          }
+        }
+      }
+    },
     scales: {
-      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Outfit' } } },
+      y: { 
+        beginAtZero: true, 
+        suggestedMax: 100000,
+        grid: { color: 'rgba(0,0,0,0.04)' }, 
+        ticks: { 
+          font: { family: 'Outfit' },
+          precision: 0,
+          callback: function(value) {
+            if (value >= 1000000) return (value / 1000000).toLocaleString('vi-VN') + ' Tr';
+            if (value >= 1000) return (value / 1000).toLocaleString('vi-VN') + ' K';
+            return value.toLocaleString('vi-VN') + ' đ';
+          }
+        } 
+      },
       x: { grid: { display: false }, ticks: { font: { family: 'Outfit' } } },
     },
   };
