@@ -27,11 +27,7 @@ export default function Inventory() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const mockBatches = [
-    { id: 1, product_name: 'Nước hoa Chanel No.5', batch_code: 'LO-2026-001', import_date: '2026-05-01', import_price: 2500000, initial_qty: 50, current_qty: 45, current_ml: 4500, ml_per_unit: 100, status: 'active' },
-    { id: 2, product_name: 'Sữa rửa mặt Cetaphil', batch_code: 'LO-2026-002', import_date: '2026-04-25', import_price: 250000, initial_qty: 100, current_qty: 80, current_ml: 0, ml_per_unit: 0, status: 'active' },
-    { id: 3, product_name: 'Dior Sauvage 100ml', batch_code: 'LO-2026-003', import_date: '2026-04-20', import_price: 3200000, initial_qty: 20, current_qty: 3, current_ml: 300, ml_per_unit: 100, status: 'active' },
-  ];
+
 
   const [lowStockThreshold, setLowStockThreshold] = useState(5);
 
@@ -52,8 +48,7 @@ export default function Inventory() {
         if (settings.low_stock_threshold) setLowStockThreshold(Number(settings.low_stock_threshold));
       }
     } catch {
-      setProducts([{ id: 1, name: 'Nước hoa Chanel No.5', unit: 'chai', ml_per_unit: 100 }, { id: 2, name: 'Sữa rửa mặt Cetaphil', unit: 'chai', ml_per_unit: 0 }]);
-      setBatches(mockBatches);
+      showAlert('Lỗi kết nối', 'Không thể tải dữ liệu từ máy chủ', 'danger');
     } finally { setLoading(false); }
   };
 

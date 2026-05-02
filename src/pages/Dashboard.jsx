@@ -116,7 +116,7 @@ export default function Dashboard() {
         suggestedMax: 100000,
         grid: { color: 'rgba(0,0,0,0.04)' }, 
         ticks: { 
-          font: { family: 'Outfit' },
+          font: { family: 'Roboto' },
           precision: 0,
           callback: function(value) {
             if (value >= 1000000) return (value / 1000000).toLocaleString('vi-VN') + ' Tr';
@@ -125,7 +125,7 @@ export default function Dashboard() {
           }
         } 
       },
-      x: { grid: { display: false }, ticks: { font: { family: 'Outfit' } } },
+      x: { grid: { display: false }, ticks: { font: { family: 'Roboto' } } },
     },
   };
 

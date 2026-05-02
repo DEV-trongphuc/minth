@@ -36,14 +36,8 @@ const POS = ({ onClose, onSuccess }) => {
 
   const fetchBatches = async () => {
     try {
-      const mockBatches = [
-        { id: 1, product_name: 'Nước hoa Chanel No.5', batch_code: 'AUTO-1', current_qty: 45, current_ml: 4500, ml_per_unit: 100, import_price: 2500000 },
-      ];
-      try {
-        const res = await fetch(`${API_BASE_URL}/batches.php`);
-        if (res.ok) setBatches(await res.json());
-        else setBatches(mockBatches);
-      } catch(e) { setBatches(mockBatches); }
+      const res = await fetch(`${API_BASE_URL}/batches.php`);
+      if (res.ok) setBatches(await res.json());
     } catch (err) {}
   };
 
