@@ -254,7 +254,7 @@ const POS = ({ onClose, onSuccess }) => {
       </div>
 
       {showCheckout && createPortal(
-        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowCheckout(false); }}>
+        <div className="modal-overlay" style={{ zIndex: 1050 }} onClick={e => { if (e.target === e.currentTarget) setShowCheckout(false); }}>
           <div className="modal" style={{ maxWidth: '900px', width: '95vw', background: 'var(--surface2)' }}>
             <div className="modal-header" style={{ background: 'var(--surface)', paddingBottom: '1.25rem', borderBottom: '1px solid var(--border-light)' }}>
               <h2 className="modal-title" style={{ fontSize: '1.35rem' }}>Tạo Đơn hàng mới</h2>
