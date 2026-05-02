@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Search, Filter, Edit, Eye, Clock, CheckCircle, Truck, DollarSign, XCircle, ShoppingCart } from 'lucide-react';
+import { Package, Search, Filter, Edit, Eye, Clock, CheckCircle, Truck, DollarSign, XCircle, ShoppingCart, ChevronDown } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
 import POS from './POS';
@@ -22,6 +22,7 @@ export default function Orders() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showPOS, setShowPOS] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
   const { showConfirm, showAlert } = useDialog();
 
   useEffect(() => {
@@ -139,14 +140,14 @@ export default function Orders() {
         </div>
       </div>
 
-      <div className="card card-no-pad">
+      <div className="card card-no-pad" style={{ overflow: 'visible' }}>
         {loading ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Đang tải dữ liệu...</div>
         ) : filteredOrders.length === 0 ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Không tìm thấy đơn hàng nào.</div>
         ) : (
           <>
-          <div className="table-wrap desktop-only">
+          <div className="table-wrap desktop-only" style={{ overflow: 'visible' }}>
             <table className="data-table">
               <thead>
                 <tr>
@@ -205,25 +206,37 @@ export default function Orders() {
                           </div>
                         )}
                         {o.status === 'completed' && (
-                          <div style={{ display: 'flex', gap: '.25rem', flexDirection: 'column' }}>
-                            <span className="text-xs text-muted" style={{ display: 'flex', alignItems: 'center', gap: '.25rem', justifyContent: 'center' }}><CheckCircle size={14} color="var(--success)" /> Đã xong</span>
-                            <select className="form-control" style={{ fontSize: '0.75rem', padding: '0.2rem', marginTop: '0.25rem' }} value={o.status} onChange={e => updateOrderStatus(o.id, e.target.value, o.payment_status)}>
-                              <option value="completed" disabled>Sửa trạng thái</option>
-                              <option value="pending">Về Chờ xử lý</option>
-                              <option value="shipping">Về Đang giao</option>
-                              <option value="cancelled">Hủy đơn</option>
-                            </select>
+                          <div style={{ position: 'relative' }}>
+                            <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', fontSize: '0.75rem', padding: '0.35rem 0.6rem', color: 'var(--text-muted)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
+                              Sửa trạng thái <ChevronDown size={14} style={{ marginLeft: 4 }} />
+                            </button>
+                            {activeDropdown === o.id && (
+                              <>
+                                <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
+                                <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '130px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
+                                  <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Chờ xử lý</button>
+                                  <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Đang giao</button>
+                                  <button onClick={() => { updateOrderStatus(o.id, 'cancelled', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--danger)' }} className="hover-bg">Hủy đơn</button>
+                                </div>
+                              </>
+                            )}
                           </div>
                         )}
                         {o.status === 'cancelled' && (
-                          <div style={{ display: 'flex', gap: '.25rem', flexDirection: 'column' }}>
-                            <span className="text-xs text-muted" style={{ display: 'flex', alignItems: 'center', gap: '.25rem', justifyContent: 'center', color: 'var(--danger)' }}><XCircle size={14} color="var(--danger)" /> Đã hủy</span>
-                            <select className="form-control" style={{ fontSize: '0.75rem', padding: '0.2rem', marginTop: '0.25rem' }} value={o.status} onChange={e => updateOrderStatus(o.id, e.target.value, o.payment_status)}>
-                              <option value="cancelled" disabled>Phục hồi đơn</option>
-                              <option value="pending">Về Chờ xử lý</option>
-                              <option value="shipping">Về Đang giao</option>
-                              <option value="completed">Về Hoàn thành</option>
-                            </select>
+                          <div style={{ position: 'relative' }}>
+                            <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', fontSize: '0.75rem', padding: '0.35rem 0.6rem', color: 'var(--danger)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
+                              Phục hồi đơn <ChevronDown size={14} style={{ marginLeft: 4 }} />
+                            </button>
+                            {activeDropdown === o.id && (
+                              <>
+                                <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
+                                <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '130px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
+                                  <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Chờ xử lý</button>
+                                  <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Đang giao</button>
+                                  <button onClick={() => { updateOrderStatus(o.id, 'completed', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--success)' }} className="hover-bg">Về Hoàn thành</button>
+                                </div>
+                              </>
+                            )}
                           </div>
                         )}
                       </td>
@@ -288,13 +301,37 @@ export default function Orders() {
                         </>
                       )}
                       {o.status === 'completed' && (
-                        <div style={{ flex: 1, textAlign: 'center', color: 'var(--success)', fontSize: '0.875rem', fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
-                          <CheckCircle size={16} /> Đơn hàng đã hoàn thành
+                        <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
+                          <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', width: '100%', fontSize: '0.8rem', padding: '0.6rem', color: 'var(--text-muted)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
+                            Sửa trạng thái <ChevronDown size={14} style={{ marginLeft: 4 }} />
+                          </button>
+                          {activeDropdown === o.id && (
+                            <>
+                              <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
+                              <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '150px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
+                                <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Chờ xử lý</button>
+                                <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Đang giao</button>
+                                <button onClick={() => { updateOrderStatus(o.id, 'cancelled', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--danger)' }} className="hover-bg">Hủy đơn</button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
                       {o.status === 'cancelled' && (
-                        <div style={{ flex: 1, textAlign: 'center', color: 'var(--danger)', fontSize: '0.875rem', fontWeight: 600, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}>
-                          <XCircle size={16} /> Đơn hàng đã bị hủy
+                        <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
+                          <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', width: '100%', fontSize: '0.8rem', padding: '0.6rem', color: 'var(--danger)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
+                            Phục hồi đơn <ChevronDown size={14} style={{ marginLeft: 4 }} />
+                          </button>
+                          {activeDropdown === o.id && (
+                            <>
+                              <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
+                              <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '150px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
+                                <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Chờ xử lý</button>
+                                <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Đang giao</button>
+                                <button onClick={() => { updateOrderStatus(o.id, 'completed', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--success)' }} className="hover-bg">Về Hoàn thành</button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
