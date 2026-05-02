@@ -14,6 +14,7 @@ const routeNames = {
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [posOpen, setPosOpen] = useState(false);
   const location = useLocation();
   const pageName = routeNames[location.pathname] || 'Trang';
@@ -25,8 +26,8 @@ const Layout = () => {
   }, []);
 
   return (
-    <div className="app-shell">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} onOpenPos={() => setPosOpen(true)} />
+    <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} isCollapsed={sidebarCollapsed} setIsCollapsed={setSidebarCollapsed} onOpenPos={() => setPosOpen(true)} />
       <div className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)} />
 
       <div className="main-wrapper">

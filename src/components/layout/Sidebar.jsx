@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Users, BarChart2, Settings, LogOut, Store, PlusCircle } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, BarChart2, Settings, LogOut, Store, PlusCircle, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 
 const navItems = [
   { path: '/dashboard', label: 'Tổng quan', icon: LayoutDashboard },
-  { path: '/products', label: 'Danh mục Sản phẩm', icon: Package },
+  { path: '/products', label: 'Danh mục Sản phẩm', icon: ClipboardList },
   { path: '/inventory', label: 'Quản lý Kho', icon: Package },
   { path: '/orders', label: 'Quản lý đơn hàng', icon: ShoppingCart, badge: 'orders' },
   { path: '/customers', label: 'Khách hàng', icon: Users },
 ];
 
-const Sidebar = ({ isOpen, setIsOpen }) => {
+const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
   const [pendingOrders, setPendingOrders] = useState(0);
   const navigate = useNavigate();
 
@@ -46,30 +46,23 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <div className="sidebar-brand-name">MINTH</div>
           <div className="sidebar-brand-sub">Quản lý bán hàng</div>
         </div>
+        <button 
+          className="desktop-only"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          style={{ position: 'absolute', right: '-12px', top: '24px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, color: 'var(--text-muted)' }}
+        >
+          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
       </div>
 
       {/* Navigation */}
       <nav className="sidebar-nav">
         <div style={{ padding: '0 1rem', marginBottom: '1.5rem' }}>
           <button 
+            className="sidebar-create-btn"
             onClick={() => { window.dispatchEvent(new Event('open-pos')); if (window.innerWidth < 1024) setIsOpen(false); }}
-            style={{ 
-              width: '100%', 
-              background: 'var(--primary)', 
-              color: '#fff', 
-              border: 'none', 
-              padding: '0.75rem', 
-              borderRadius: 'var(--r-sm)', 
-              fontWeight: 600, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: '0.5rem', 
-              cursor: 'pointer',
-              boxShadow: 'var(--shadow-sm)'
-            }}
           >
-            <PlusCircle size={18} /> Tạo Đơn Nhanh
+            <PlusCircle size={18} /> <span>Tạo Đơn Nhanh</span>
           </button>
         </div>
 

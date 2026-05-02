@@ -206,7 +206,7 @@ export default function Dashboard() {
                   <Icon size={16} />
                 </div>
               </div>
-              <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.85rem)', fontWeight: 800, color: 'var(--text)', marginBottom: '0.5rem', fontFamily: 'Outfit', wordBreak: 'break-word', lineHeight: 1.2 }}>
+              <div style={{ fontSize: 'clamp(1.1rem, 4vw, 1.85rem)', fontWeight: 800, color: 'var(--text)', marginBottom: '0.5rem', wordBreak: 'break-word', lineHeight: 1.2 }}>
                 {formatVal(stat)}
               </div>
               {stat.trend && (
