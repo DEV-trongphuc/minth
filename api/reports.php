@@ -166,8 +166,9 @@ if ($method === 'GET') {
 
         // 9. Recent Orders
         $stmtRecent = $pdo->prepare("
-            SELECT o.id, o.customer_name, o.final_amount, o.status, o.created_at, o.payment_status
+            SELECT o.id, c.name as customer_name, o.final_amount, o.status, o.created_at, o.payment_status
             FROM orders o
+            LEFT JOIN customers c ON o.customer_id = c.id
             WHERE o.created_at BETWEEN :start AND :end
             ORDER BY o.created_at DESC
             LIMIT 5
