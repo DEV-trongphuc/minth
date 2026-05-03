@@ -196,7 +196,7 @@ const POS = ({ onClose, onSuccess }) => {
                   Bán Chai
                 </button>
                 {batch.ml_per_unit > 0 && (
-                  <button disabled={batch.current_ml <= 0} onClick={() => addToCart(batch, 'ml')} style={{ flex: 1, padding: '0.55rem', borderRadius: '8px', border: '1px solid transparent', background: 'var(--primary-bg)', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600, cursor: batch.current_ml <= 0 ? 'not-allowed' : 'pointer', opacity: batch.current_ml <= 0 ? 0.5 : 1, transition: '0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <button disabled={batch.current_ml <= 0} onClick={() => addToCart(batch, 'ml')} style={{ flex: 1, padding: '0.55rem', borderRadius: '8px', border: '1px solid var(--primary)', background: 'var(--primary-bg)', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600, cursor: batch.current_ml <= 0 ? 'not-allowed' : 'pointer', opacity: batch.current_ml <= 0 ? 0.5 : 1, transition: '0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     Bán Chiết
                   </button>
                 )}
