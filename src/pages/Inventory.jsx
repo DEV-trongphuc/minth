@@ -351,101 +351,14 @@ export default function Inventory() {
         {/* MOBILE CARD VIEW FOR INVENTORY (FALLBACK FOR LIST MODE) */}
         <div className="mobile-only">
           <div className="grid-auto">
-            {filtered.map(b => {
-              const s = stockStatus(b);
-              const isOutOfStock = b.current_qty <= 0 && b.current_ml <= 0;
-              const pct = Math.round((b.current_qty / b.initial_qty) * 100);
-              return (
-                <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: `3px solid ${b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--primary)'}`, opacity: isOutOfStock ? 0.5 : 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <div style={{ fontWeight: 700 }}>{b.product_name}</div>
-                      <div className="text-xs text-muted" style={{ marginTop: '.2rem' }}>{b.batch_code}</div>
-                    </div>
-                    <span className={`badge ${s.cls}`}>{s.label}</span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
-                    <div style={{ background: 'var(--surface2)', padding: '.625rem .75rem', borderRadius: 'var(--r-sm)' }}>
-                      <div className="text-xs text-muted">Giá vốn</div>
-                      <div style={{ fontWeight: 700, color: 'var(--primary)', marginTop: '.2rem' }}>{Number(b.import_price).toLocaleString('vi-VN')} đ</div>
-                    </div>
-                    <div style={{ background: 'var(--surface2)', padding: '.625rem .75rem', borderRadius: 'var(--r-sm)' }}>
-                      <div className="text-xs text-muted">Ngày nhập</div>
-                      <div style={{ fontWeight: 600, marginTop: '.2rem' }}>{b.import_date}</div>
-                    </div>
-                  </div>
-
-                  {/* Progress bar tồn kho */}
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.35rem' }}>
-                      <span className="text-xs text-muted">Tồn kho</span>
-                      <span className="text-xs" style={{ fontWeight: 600 }}>{b.current_qty}/{b.initial_qty} chai</span>
-                    </div>
-                    <div style={{ height: 6, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--primary)', transition: 'width .5s' }} />
-                    </div>
-                  </div>
-
-                  {b.ml_per_unit > 0 && <div className="text-sm text-muted">{b.current_ml.toLocaleString()} ml còn lại để chiết</div>}
-
-                  <div style={{ display: 'flex', gap: '.5rem', marginTop: 'auto' }}>
-                    <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={() => openEditModal(b)}><Edit size={14} /> Sửa</button>
-                    <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => handleDelete([b.id])}><Trash2 size={14} /></button>
-                  </div>
-                </div>
-              );
-            })}
+            {filtered.map(b => renderCard(b))}
           </div>
         </div>
         </>
       ) : (
         /* ─── CARD VIEW ─── */
         <div className="grid-auto">
-          {filtered.map(b => {
-            const s = stockStatus(b);
-            const pct = Math.round((b.current_qty / b.initial_qty) * 100);
-            return (
-              <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: `3px solid ${b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--primary)'}` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <div style={{ fontWeight: 700 }}>{b.product_name}</div>
-                    <div className="text-xs text-muted" style={{ marginTop: '.2rem' }}>{b.batch_code}</div>
-                  </div>
-                  <span className={`badge ${s.cls}`}>{s.label}</span>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
-                  <div style={{ background: 'var(--surface2)', padding: '.625rem .75rem', borderRadius: 'var(--r-sm)' }}>
-                    <div className="text-xs text-muted">Giá vốn</div>
-                    <div style={{ fontWeight: 700, color: 'var(--primary)', marginTop: '.2rem' }}>{Number(b.import_price).toLocaleString('vi-VN')} đ</div>
-                  </div>
-                  <div style={{ background: 'var(--surface2)', padding: '.625rem .75rem', borderRadius: 'var(--r-sm)' }}>
-                    <div className="text-xs text-muted">Ngày nhập</div>
-                    <div style={{ fontWeight: 600, marginTop: '.2rem' }}>{b.import_date}</div>
-                  </div>
-                </div>
-
-                {/* Progress bar tồn kho */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.35rem' }}>
-                    <span className="text-xs text-muted">Tồn kho</span>
-                    <span className="text-xs" style={{ fontWeight: 600 }}>{b.current_qty}/{b.initial_qty} chai</span>
-                  </div>
-                  <div style={{ height: 6, borderRadius: 99, background: 'var(--border)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--primary)', transition: 'width .5s' }} />
-                  </div>
-                </div>
-
-                {b.ml_per_unit > 0 && <div className="text-sm text-muted">{b.current_ml.toLocaleString()} ml còn lại để chiết</div>}
-
-                <div style={{ display: 'flex', gap: '.5rem', marginTop: 'auto' }}>
-                  <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={() => openEditModal(b)}><Edit size={14} /> Sửa</button>
-                  <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => handleDelete([b.id])}><Trash2 size={14} /></button>
-                </div>
-              </div>
-            );
-          })}
+          {filtered.map(b => renderCard(b))}
         </div>
       )}
 

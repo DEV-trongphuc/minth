@@ -171,33 +171,34 @@ const POS = ({ onClose, onSuccess }) => {
               </button>
             </div>
           ) : filteredBatches.map(batch => (
-            <div key={batch.id} style={{ padding: '0.875rem', border: `1px solid ${batch.current_qty <= 5 ? 'var(--danger)' : 'var(--border)'}`, borderRadius: 'var(--r-md)', display: 'flex', flexDirection: 'column', gap: '0.75rem', transition: 'var(--transition)' }} className="hover-shadow">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ paddingRight: '0.5rem' }}>
-                    <h4 style={{ margin: 0, fontSize: '1rem', lineHeight: 1.3 }}>{batch.product_name}</h4>
-                    <div className="text-muted text-xs" style={{ marginTop: '0.25rem' }}>
-                      Mã lô: <strong style={{ color: 'var(--text)' }}>{batch.batch_code}</strong>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <span className={`badge ${batch.current_qty <= 5 ? 'badge-danger' : 'badge-success'}`} style={{ background: batch.current_qty <= 5 ? 'var(--danger-bg)' : '', color: batch.current_qty <= 5 ? 'var(--danger)' : '' }}>
-                      {batch.current_qty > 0 ? `Tồn: ${batch.current_qty} chai` : 'Hết hàng (Chai)'}
-                    </span>
-                    {batch.ml_per_unit > 0 && <div className="text-xs text-muted" style={{ marginTop: '0.2rem', fontWeight: 600 }}>Còn {batch.current_ml} ml</div>}
+            <div key={batch.id} style={{ padding: '0.85rem', background: 'var(--surface)', border: `1px solid var(--border-light)`, borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.85rem', transition: 'all 0.2s', boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }} className="hover-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2 }}>{batch.product_name}</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', background: 'var(--surface2)', padding: '0.15rem 0.4rem', borderRadius: '4px', color: 'var(--text-muted)' }}>{batch.batch_code}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>{batch.import_date ? new Date(batch.import_date).toLocaleDateString('vi-VN') : ''}</span>
+                    <span style={{ color: 'var(--border-dark)', fontSize: '0.75rem' }}>•</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Vốn: <span style={{ fontWeight: 600, color: 'var(--text)' }}>{batch.import_price ? Number(batch.import_price).toLocaleString('vi-VN') : 0}đ</span></span>
                   </div>
                 </div>
                 
-                <div className="text-muted" style={{ fontSize: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', background: 'var(--surface2)', padding: '0.4rem 0.6rem', borderRadius: 'var(--r-sm)', alignItems: 'center' }}>
-                  <span style={{ whiteSpace: 'nowrap' }}>Nhập: <strong style={{ color: 'var(--text)' }}>{batch.import_date ? new Date(batch.import_date).toLocaleDateString('vi-VN') : 'N/A'}</strong></span>
-                  <span style={{ color: 'var(--border-dark)' }}>|</span>
-                  <span style={{ whiteSpace: 'nowrap' }}>Vốn: <strong style={{ color: 'var(--warning-dark, #b45309)' }}>{batch.import_price ? Number(batch.import_price).toLocaleString('vi-VN') : 0} đ</strong></span>
+                <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+                  <span style={{ padding: '0.25rem 0.5rem', background: batch.current_qty <= 5 ? 'var(--danger-bg)' : 'var(--primary-bg)', color: batch.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
+                    {batch.current_qty > 0 ? `Tồn: ${batch.current_qty}` : 'Hết hàng'}
+                  </span>
+                  {batch.ml_per_unit > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{batch.current_ml} ml</span>}
                 </div>
               </div>
+              
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button disabled={batch.current_qty <= 0} className="btn btn-primary" style={{ flex: 1, padding: '0.6rem 0.25rem', fontSize: '0.8rem', opacity: batch.current_qty <= 0 ? 0.5 : 1 }} onClick={() => addToCart(batch, 'chai')}>Bán Nguyên Chai</button>
+                <button disabled={batch.current_qty <= 0} onClick={() => addToCart(batch, 'chai')} style={{ flex: 1, padding: '0.55rem', borderRadius: '8px', border: '1px solid var(--primary)', background: 'var(--primary)', color: '#fff', fontSize: '0.85rem', fontWeight: 600, cursor: batch.current_qty <= 0 ? 'not-allowed' : 'pointer', opacity: batch.current_qty <= 0 ? 0.5 : 1, transition: '0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  Bán Chai
+                </button>
                 {batch.ml_per_unit > 0 && (
-                  <button disabled={batch.current_ml <= 0} className="btn btn-secondary" style={{ flex: 1, padding: '0.6rem 0.25rem', fontSize: '0.8rem', opacity: batch.current_ml <= 0 ? 0.5 : 1 }} onClick={() => addToCart(batch, 'ml')}>Bán Chiết (ml)</button>
+                  <button disabled={batch.current_ml <= 0} onClick={() => addToCart(batch, 'ml')} style={{ flex: 1, padding: '0.55rem', borderRadius: '8px', border: '1px solid transparent', background: 'var(--primary-bg)', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600, cursor: batch.current_ml <= 0 ? 'not-allowed' : 'pointer', opacity: batch.current_ml <= 0 ? 0.5 : 1, transition: '0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    Bán Chiết
+                  </button>
                 )}
               </div>
             </div>

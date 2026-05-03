@@ -153,19 +153,22 @@ export default function Dashboard() {
         padding: '2.5rem',
         color: '#fff',
         position: 'relative',
-        overflow: 'hidden',
         boxShadow: '0 10px 25px -5px rgba(124, 58, 237, 0.4)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '1.25rem'
+        gap: '1.25rem',
+        zIndex: 20
       }}>
-        {/* Decorative elements */}
-        <div style={{ position: 'absolute', right: '-5%', top: '-20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)', borderRadius: '50%' }} />
-        <div style={{ position: 'absolute', left: '15%', bottom: '-50%', width: '250px', height: '250px', background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
-
-        {/* Decorative stars/shapes */}
-        <svg style={{ position: 'absolute', right: '15%', top: '20%', opacity: 0.2 }} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        <svg style={{ position: 'absolute', left: '5%', top: '15%', opacity: 0.1 }} width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
+        {/* Background Layer with Overflow Hidden */}
+        <div style={{ position: 'absolute', inset: 0, borderRadius: '16px', overflow: 'hidden', pointerEvents: 'none' }}>
+          {/* Decorative elements */}
+          <div style={{ position: 'absolute', right: '-5%', top: '-20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)', borderRadius: '50%' }} />
+          <div style={{ position: 'absolute', left: '15%', bottom: '-50%', width: '250px', height: '250px', background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
+          
+          {/* Decorative stars/shapes */}
+          <svg style={{ position: 'absolute', right: '15%', top: '20%', opacity: 0.2 }} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          <svg style={{ position: 'absolute', left: '5%', top: '15%', opacity: 0.1 }} width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
+        </div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
