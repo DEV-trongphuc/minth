@@ -20,12 +20,13 @@ const FILTERS = [
 
 export default function Dashboard() {
   const [filter, setFilter] = useState('7days');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
-  const [report, setReport] = useState({ 
-    total_revenue: 0, gross_profit: 0, total_orders: 0, aov: 0, profit_margin: 0, 
-    chart_data: [], donut_data: [], top_products: [], low_stock: [], expiring_soon: [], 
-    total_shipping: 0, op_cost: 0, top_customers: [], recent_orders: [], geo_sales: [] 
+  const [report, setReport] = useState({
+    total_revenue: 0, gross_profit: 0, total_orders: 0, aov: 0, profit_margin: 0,
+    chart_data: [], donut_data: [], top_products: [], low_stock: [], expiring_soon: [],
+    total_shipping: 0, op_cost: 0, top_customers: [], recent_orders: [], geo_sales: []
   });
   const [showSetupModal, setShowSetupModal] = useState(false);
 
@@ -104,30 +105,30 @@ export default function Dashboard() {
 
   const chartOpts = {
     responsive: true, maintainAspectRatio: false,
-    plugins: { 
+    plugins: {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             return context.dataset.label + ': ' + Number(context.raw).toLocaleString('vi-VN') + ' đ';
           }
         }
       }
     },
     scales: {
-      y: { 
-        beginAtZero: true, 
+      y: {
+        beginAtZero: true,
         suggestedMax: 100000,
-        grid: { color: 'rgba(0,0,0,0.04)' }, 
-        ticks: { 
+        grid: { color: 'rgba(0,0,0,0.04)' },
+        ticks: {
           font: { family: 'Roboto' },
           precision: 0,
-          callback: function(value) {
+          callback: function (value) {
             if (value >= 1000000) return (value / 1000000).toLocaleString('vi-VN') + ' Tr';
             if (value >= 1000) return (value / 1000).toLocaleString('vi-VN') + ' K';
             return value.toLocaleString('vi-VN') + ' đ';
           }
-        } 
+        }
       },
       x: { grid: { display: false }, ticks: { font: { family: 'Roboto' } } },
     },
@@ -161,7 +162,7 @@ export default function Dashboard() {
         {/* Decorative elements */}
         <div style={{ position: 'absolute', right: '-5%', top: '-20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)', borderRadius: '50%' }} />
         <div style={{ position: 'absolute', left: '15%', bottom: '-50%', width: '250px', height: '250px', background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)', borderRadius: '50%' }} />
-        
+
         {/* Decorative stars/shapes */}
         <svg style={{ position: 'absolute', right: '15%', top: '20%', opacity: 0.2 }} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
         <svg style={{ position: 'absolute', left: '5%', top: '15%', opacity: 0.1 }} width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle></svg>
@@ -170,36 +171,99 @@ export default function Dashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
             <div>
               <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', fontWeight: 800, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', letterSpacing: '-0.02em' }}>
-                Chúc một ngày bùng nổ doanh số! 🚀
+                Hệ thống quản lý MINTH STORE
               </h1>
               <p style={{ fontSize: '1.05rem', opacity: 0.9, maxWidth: '650px', lineHeight: 1.6, fontWeight: 400 }}>
-                Hệ thống quản lý thông minh <b>MINTH</b> đã sẵn sàng. Bạn hiện có <b style={{ color: '#fcd34d', fontSize: '1.15rem' }}>{(report.pending_orders || 0)}</b> đơn hàng chờ xử lý và <b style={{ color: '#fcd34d', fontSize: '1.15rem' }}>{(report.low_stock || []).length}</b> lô sắp hết hàng cần nhập.
+                Quản lý kho thông minh <b>MINTH</b> đã sẵn sàng. <br /> Bạn hiện có <b style={{ color: '#fcd34d', fontSize: '1.15rem' }}>{(report.pending_orders || 0)}</b> đơn hàng chờ xử lý và <b style={{ color: '#fcd34d', fontSize: '1.15rem' }}>{(report.low_stock || []).length}</b> lô sắp hết hàng cần nhập.
               </p>
             </div>
-            
+
             {/* Filter Dropdown */}
-            <div style={{ position: 'relative', minWidth: '180px' }}>
-              <select value={filter} onChange={e => setFilter(e.target.value)} style={{ 
-                width: '100%',
-                background: 'rgba(255, 255, 255, 0.15)', 
-                border: '1px solid rgba(255, 255, 255, 0.3)', 
-                color: '#fff', 
-                fontWeight: 600, 
-                fontSize: '0.9rem',
-                padding: '0.65rem 1.25rem', 
-                borderRadius: '8px',
-                cursor: 'pointer',
-                backdropFilter: 'blur(12px)',
-                appearance: 'none',
-                outline: 'none',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                fontFamily: 'Outfit'
-              }}>
-                {FILTERS.map(f => <option key={f.value} value={f.value} style={{ color: '#1f2937' }}>Hiển thị: {f.label}</option>)}
-              </select>
-              <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
-                <ChevronDown size={18} color="#fff" />
+            <div 
+              style={{ position: 'relative', minWidth: '180px' }} 
+              tabIndex={0} 
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                  setIsFilterOpen(false);
+                }
+              }}
+            >
+              <div 
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                style={{
+                  width: '100%',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  padding: '0.65rem 1.25rem',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(12px)',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  fontFamily: 'Outfit',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span>Hiển thị: {FILTERS.find(f => f.value === filter)?.label}</span>
+                <ChevronDown size={18} color="#fff" style={{ transition: 'transform 0.2s', transform: isFilterOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
               </div>
+
+              {/* Custom Dropdown Menu */}
+              {isFilterOpen && (
+                <div 
+                  className="anim-fade-up"
+                  style={{ 
+                    position: 'absolute', 
+                    top: 'calc(100% + 8px)', 
+                    right: 0, 
+                    width: 'max-content',
+                    minWidth: '100%',
+                    background: 'var(--surface)', 
+                    borderRadius: '12px', 
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                    border: '1px solid var(--border)',
+                    overflow: 'hidden',
+                    zIndex: 50,
+                    padding: '0.5rem'
+                  }}
+                >
+                  {FILTERS.map(f => (
+                    <button
+                      key={f.value}
+                      onClick={() => {
+                        setFilter(f.value);
+                        setIsFilterOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '0.6rem 1rem',
+                        background: filter === f.value ? 'var(--primary-bg)' : 'transparent',
+                        color: filter === f.value ? 'var(--primary-dark)' : 'var(--text)',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: filter === f.value ? 700 : 500,
+                        fontSize: '0.9rem',
+                        transition: 'all 0.15s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (filter !== f.value) e.target.style.background = 'var(--surface2)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (filter !== f.value) e.target.style.background = 'transparent';
+                      }}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -303,18 +367,18 @@ export default function Dashboard() {
               const mlSales = Number(p.ml_sales) || 0;
               const otherSales = Number(p.other_sales) || 0;
               const unit = p.unit || 'chai';
-              
+
               if (chaiSales > 0) salesText.push(`${chaiSales} ${unit}`);
               if (otherSales > 0) salesText.push(`${otherSales} ${unit}`);
               if (mlSales > 0) salesText.push(`${mlSales} ml`);
-              
+
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '.85rem', borderBottom: i < topProducts.length - 1 ? '1px dashed var(--border-light)' : 'none' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '.85rem' }}>
-                    <div style={{ 
-                      width: 32, height: 32, borderRadius: '8px', 
-                      background: i === 0 ? 'linear-gradient(135deg, #f59e0b, #fbbf24)' : (i === 1 ? 'linear-gradient(135deg, #9ca3af, #d1d5db)' : (i === 2 ? 'linear-gradient(135deg, #d97706, #fcd34d)' : 'var(--surface2)')), 
-                      color: i < 3 ? '#fff' : 'var(--text-muted)', 
+                    <div style={{
+                      width: 32, height: 32, borderRadius: '8px',
+                      background: i === 0 ? 'linear-gradient(135deg, #f59e0b, #fbbf24)' : (i === 1 ? 'linear-gradient(135deg, #9ca3af, #d1d5db)' : (i === 2 ? 'linear-gradient(135deg, #d97706, #fcd34d)' : 'var(--surface2)')),
+                      color: i < 3 ? '#fff' : 'var(--text-muted)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: 800,
                       boxShadow: i < 3 ? '0 2px 4px rgba(0,0,0,0.1)' : 'none'
                     }}>{i + 1}</div>
@@ -395,7 +459,7 @@ export default function Dashboard() {
               </div>
               <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>{(report.total_shipping || 0).toLocaleString('vi-VN')} đ</span>
             </div>
-            
+
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
                 <div style={{ width: 36, height: 36, borderRadius: '10px', background: 'var(--danger-bg)', color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -445,7 +509,7 @@ export default function Dashboard() {
             </div>
             <h3 style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>Sắp hết hàng <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>({report.low_stock?.length || 0})</span></h3>
           </div>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {(report.low_stock || []).length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', background: 'var(--surface2)', borderRadius: '12px' }}>
@@ -453,16 +517,16 @@ export default function Dashboard() {
                 <span style={{ fontWeight: 600, color: 'var(--success)' }}>Tồn kho ổn định</span>
               </div>
             ) : (report.low_stock || []).map((item, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.85rem', borderBottom: i < (report.low_stock || []).length - 1 ? '1px dashed var(--border-light)' : 'none' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--warning)' }} />
-                    <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text)' }}>
-                      {item.name} <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 400, marginLeft: 4 }}>({item.unit})</span>
-                    </span>
-                  </div>
-                  <span style={{ fontWeight: 700, color: 'var(--warning-dark)', background: 'var(--warning-bg)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.85rem' }}>Còn {item.qty}</span>
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.85rem', borderBottom: i < (report.low_stock || []).length - 1 ? '1px dashed var(--border-light)' : 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--warning)' }} />
+                  <span style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text)' }}>
+                    {item.name} <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 400, marginLeft: 4 }}>({item.unit})</span>
+                  </span>
                 </div>
-              )
+                <span style={{ fontWeight: 700, color: 'var(--warning-dark)', background: 'var(--warning-bg)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.85rem' }}>Còn {item.qty}</span>
+              </div>
+            )
             )}
           </div>
         </div>
