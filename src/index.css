@@ -182,14 +182,14 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   transition: margin-left var(--transition-slow);
 }
 
 .page-content {
   flex: 1;
   padding: 1.75rem;
-  overflow-y: auto;
 }
 
 /* ── MOBILE UTILS ── */
