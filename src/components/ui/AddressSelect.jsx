@@ -1,48 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, ChevronRight, Check, Loader2, Search } from 'lucide-react';
+import { MapPin, ChevronRight, Check, Search } from 'lucide-react';
+import cityData from '../../assets/ctiy.json';
 
 export default function AddressSelect({ value, onChange, placeholder = "Chọn địa chỉ giao hàng..." }) {
   const [showModal, setShowModal] = useState(false);
-  const [step, setStep] = useState(1); // 1: City, 2: District, 3: Ward, 4: Specific
-  const [selections, setSelections] = useState({ city: null, district: null, ward: null, specific: '' });
+  const [step, setStep] = useState(1); // 1: City, 2: Ward, 3: Specific
+  const [selections, setSelections] = useState({ city: null, ward: null, specific: '' });
   const [searchQuery, setSearchQuery] = useState('');
   
-  const [cities, setCities] = useState([]);
-  const [districts, setDistricts] = useState([]);
+  const cities = cityData.cities || [];
+  const wardsData = cityData.wards || [];
   const [wards, setWards] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (showModal && cities.length === 0) {
-      setLoading(true);
-      fetch('https://provinces.open-api.vn/api/p/')
-        .then(r => r.json())
-        .then(d => { setCities(d); setLoading(false); })
-        .catch(() => setLoading(false));
-    }
-  }, [showModal]);
-
-  const selectCity = (city) => {
-    setSelections({ ...selections, city, district: null, ward: null });
-    setStep(2);
-    setSearchQuery('');
-    setLoading(true);
-    fetch(`https://provinces.open-api.vn/api/p/${city.code}?depth=2`)
-      .then(r => r.json())
-      .then(d => { setDistricts(d.districts || []); setLoading(false); })
-      .catch(() => setLoading(false));
+  const getCleanCityName = (name) => {
+    const match = name.match(/\[(.*?)\]/);
+    return match ? match[1] : name;
   };
 
-  const selectDistrict = (district) => {
-    setSelections({ ...selections, district, ward: null });
+  const selectCity = (city) => {
+    setSelections({ ...selections, city, ward: null });
+    setStep(2);
+    setSearchQuery('');
+    const cleanName = getCleanCityName(city.name);
+    const filteredWards = wardsData.filter(w => w.city === cleanName);
+    setWards(filteredWards);
+  };
+
+  const selectWard = (ward) => {
+    setSelections({ ...selections, ward });
     setStep(3);
     setSearchQuery('');
-    setLoading(true);
-    fetch(`https://provinces.open-api.vn/api/d/${district.code}?depth=2`)
-      .then(r => r.json())
-      .then(d => { setWards(d.wards || []); setLoading(false); })
-      .catch(() => setLoading(false));
   };
 
   const handleOpen = () => {
@@ -52,7 +40,7 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
   };
 
   const handleComplete = () => {
-    const fullAddress = `${selections.specific ? selections.specific + ', ' : ''}${selections.ward?.name || ''}, ${selections.district?.name || ''}, ${selections.city?.name || ''}`.replace(/^, | ,/g, '');
+    const fullAddress = `${selections.specific ? selections.specific + ', ' : ''}${selections.ward?.wnew ? selections.ward.wnew + ', ' : ''}${getCleanCityName(selections.city?.name || '')}`.replace(/^, | ,/g, '');
     onChange(fullAddress);
     setShowModal(false);
   };
@@ -79,16 +67,14 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
                 <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                   <span style={{ fontWeight: step >= 1 ? 700 : 400, color: step >= 1 ? 'var(--primary)' : '', cursor: 'pointer' }} onClick={() => { setStep(1); setSearchQuery(''); }}>Tỉnh/Thành</span>
                   <ChevronRight size={12} />
-                  <span style={{ fontWeight: step >= 2 ? 700 : 400, color: step >= 2 ? 'var(--primary)' : '', cursor: step >= 2 ? 'pointer' : 'default' }} onClick={() => { if (step >= 2) { setStep(2); setSearchQuery(''); } }}>Quận/Huyện</span>
-                  <ChevronRight size={12} />
-                  <span style={{ fontWeight: step >= 3 ? 700 : 400, color: step >= 3 ? 'var(--primary)' : '', cursor: step >= 3 ? 'pointer' : 'default' }} onClick={() => { if (step >= 3) { setStep(3); setSearchQuery(''); } }}>Phường/Xã</span>
+                  <span style={{ fontWeight: step >= 2 ? 700 : 400, color: step >= 2 ? 'var(--primary)' : '', cursor: step >= 2 ? 'pointer' : 'default' }} onClick={() => { if (step >= 2) { setStep(2); setSearchQuery(''); } }}>Huyện/Xã</span>
                 </div>
               </div>
               <button className="btn btn-ghost btn-icon" onClick={() => setShowModal(false)}>✕</button>
             </div>
             
             <div className="modal-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '0', position: 'relative' }}>
-              {step < 4 && (
+              {step < 3 && (
                 <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-light)', flexShrink: 0, position: 'sticky', top: 0, background: 'var(--surface)', zIndex: 5 }}>
                   <div style={{ position: 'relative' }}>
                     <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
@@ -104,11 +90,6 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
                 </div>
               )}
               <div style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-              {loading && (
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
-                  <Loader2 className="animate-spin" color="var(--primary)" size={24} />
-                </div>
-              )}
               {step === 1 && (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {cities.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map(c => (
@@ -122,39 +103,30 @@ export default function AddressSelect({ value, onChange, placeholder = "Chọn �
               )}
               {step === 2 && (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {districts.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase())).map(d => (
-                    <div key={d.code} style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-light)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
-                         className="hover-bg" onClick={() => selectDistrict(d)}>
-                      <span>{d.name}</span>
-                      {selections.district?.code === d.code && <Check size={16} color="var(--primary)" />}
+                  {wards.filter(w => w.wnew.toLowerCase().includes(searchQuery.toLowerCase()) || w.wold.toLowerCase().includes(searchQuery.toLowerCase())).map((w, idx) => (
+                    <div key={idx} style={{ padding: '0.75rem 1.5rem', borderBottom: '1px solid var(--border-light)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}
+                         className="hover-bg" onClick={() => selectWard(w)}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600 }}>{w.wnew}</span>
+                        {selections.ward?.wnew === w.wnew && <Check size={16} color="var(--primary)" />}
+                      </div>
+                      <div className="text-xs text-muted">Gồm: {w.wold}</div>
                     </div>
                   ))}
-                  {!loading && districts.length === 0 && <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Không có dữ liệu quận/huyện</div>}
-                </div>
-              )}
-              {step === 3 && (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  {wards.filter(w => w.name.toLowerCase().includes(searchQuery.toLowerCase())).map(w => (
-                    <div key={w.code} style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-light)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
-                         className="hover-bg" onClick={() => { setSelections({ ...selections, ward: w }); setStep(4); setSearchQuery(''); }}>
-                      <span>{w.name}</span>
-                      {selections.ward?.code === w.code && <Check size={16} color="var(--primary)" />}
-                    </div>
-                  ))}
-                  {!loading && wards.length === 0 && (
+                  {wards.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center' }}>
-                      <p className="text-muted mb-3">Không có dữ liệu phường/xã.</p>
-                      <button className="btn btn-primary" onClick={() => {setStep(4); setSearchQuery('');}}>Nhập địa chỉ cụ thể ngay</button>
+                      <p className="text-muted mb-3">Không có dữ liệu.</p>
+                      <button className="btn btn-primary" onClick={() => {setStep(3); setSearchQuery('');}}>Nhập địa chỉ cụ thể ngay</button>
                     </div>
                   )}
                 </div>
               )}
               </div>
-              {step === 4 && (
+              {step === 3 && (
                 <div style={{ padding: '1.5rem' }}>
                   <div style={{ background: 'var(--surface2)', padding: '1rem', borderRadius: 'var(--r-sm)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
                     <strong>Đã chọn: </strong> 
-                    {[selections.ward?.name, selections.district?.name, selections.city?.name].filter(Boolean).join(', ')}
+                    {[selections.ward?.wnew, getCleanCityName(selections.city?.name || '')].filter(Boolean).join(', ')}
                   </div>
                   <div className="form-group">
                     <label className="form-label">Số nhà, Tên đường</label>

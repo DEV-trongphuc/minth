@@ -19,6 +19,8 @@ export default function Inventory() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'card'
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date_desc');
   const { showConfirm, showAlert } = useDialog();
 
   const [form, setForm] = useState({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '' });
@@ -143,13 +145,31 @@ export default function Inventory() {
     }, 'danger');
   };
 
-  const filtered = batches.filter(b => b.product_name?.toLowerCase().includes(search.toLowerCase()) || b.batch_code?.toLowerCase().includes(search.toLowerCase()));
-
   const stockStatus = (b) => {
-    if (b.current_qty === 0 && b.current_ml === 0) return { label: 'Hết hàng', cls: 'badge-danger' };
-    if (b.current_qty <= lowStockThreshold) return { label: 'Sắp hết', cls: 'badge-warning' };
-    return { label: 'Còn hàng', cls: 'badge-success' };
+    if (b.current_qty === 0 && b.current_ml === 0) return { id: 'out_of_stock', label: 'Hết hàng', cls: 'badge-danger' };
+    if (b.current_qty <= lowStockThreshold) return { id: 'low_stock', label: 'Sắp hết', cls: 'badge-warning' };
+    return { id: 'in_stock', label: 'Còn hàng', cls: 'badge-success' };
   };
+
+  const filtered = batches
+    .filter(b => b.product_name?.toLowerCase().includes(search.toLowerCase()) || b.batch_code?.toLowerCase().includes(search.toLowerCase()))
+    .filter(b => {
+      if (statusFilter === 'all') return true;
+      return stockStatus(b).id === statusFilter;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date_desc') return new Date(b.import_date) - new Date(a.import_date);
+      if (sortBy === 'date_asc') return new Date(a.import_date) - new Date(b.import_date);
+      if (sortBy === 'status_asc') {
+        const order = { 'out_of_stock': 1, 'low_stock': 2, 'in_stock': 3 };
+        return order[stockStatus(a).id] - order[stockStatus(b).id];
+      }
+      if (sortBy === 'status_desc') {
+        const order = { 'in_stock': 1, 'low_stock': 2, 'out_of_stock': 3 };
+        return order[stockStatus(a).id] - order[stockStatus(b).id];
+      }
+      return 0;
+    });
 
   const getExpiryWarning = (dateStr) => {
     if (!dateStr || dateStr === '0000-00-00') return null;
@@ -223,7 +243,18 @@ export default function Inventory() {
           <Search size={16} color="var(--text-light)" />
           <input className="form-control" placeholder="Tìm sản phẩm hoặc mã lô..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <button className="btn btn-secondary btn-sm"><Filter size={15} /> Lọc</button>
+        <select className="form-control" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ width: 'auto', minWidth: '150px' }}>
+          <option value="all">Tất cả trạng thái</option>
+          <option value="in_stock">Còn hàng</option>
+          <option value="low_stock">Sắp hết</option>
+          <option value="out_of_stock">Hết hàng</option>
+        </select>
+        <select className="form-control" value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: 'auto', minWidth: '150px' }}>
+          <option value="date_desc">Mới nhất trước</option>
+          <option value="date_asc">Cũ nhất trước</option>
+          <option value="status_asc">Ưu tiên Hết/Sắp hết</option>
+          <option value="status_desc">Ưu tiên Còn hàng</option>
+        </select>
       </div>
 
       {/* Content */}

@@ -3,13 +3,38 @@ require_once 'db.php';
 header("Content-Type: application/json; charset=UTF-8");
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (isset($_GET['action']) && $_GET['action'] === 'get_items') {
+        try {
+            $stmt = $pdo->prepare("
+                SELECT oi.*, p.name as product_name, p.image as product_image, b.batch_code, b.current_qty, b.current_ml, p.ml_per_unit 
+                FROM order_items oi 
+                JOIN batches b ON oi.batch_id = b.id 
+                JOIN products p ON b.product_id = p.id 
+                WHERE oi.order_id = ?
+            ");
+            $stmt->execute([$_GET['order_id']]);
+            echo json_encode($stmt->fetchAll());
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => $e->getMessage()]);
+        }
+        exit();
+    }
+
     try {
-        $stmt = $pdo->query("
-            SELECT o.*, c.name as customer_name, c.phone as customer_phone
+        $query = "
+            SELECT o.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address
             FROM orders o
             LEFT JOIN customers c ON o.customer_id = c.id
-            ORDER BY o.created_at DESC
-        ");
+        ";
+        $params = [];
+        if (!empty($_GET['customer_id'])) {
+            $query .= " WHERE o.customer_id = ?";
+            $params[] = $_GET['customer_id'];
+        }
+        $query .= " ORDER BY o.created_at DESC";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
         echo json_encode($stmt->fetchAll());
     } catch (Exception $e) {
         http_response_code(500);
@@ -30,6 +55,131 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             $order = $stmt->fetch();
             
             if (!$order) throw new Exception("Không tìm thấy đơn hàng");
+            
+            if (isset($data['action']) && $data['action'] === 'update_info') {
+                if ($order['customer_id']) {
+                    $pdo->prepare("UPDATE customers SET name = ?, phone = ?, address = ? WHERE id = ?")
+                        ->execute([$data['customer_name'] ?? '', $data['customer_phone'] ?? '', $data['customer_address'] ?? '', $order['customer_id']]);
+                }
+                
+                $shippingFee = $data['shipping_fee'] ?? $order['shipping_fee'];
+                $totalAmount = $data['total_amount'] ?? $order['total_amount'];
+                $finalAmount = $data['final_amount'] ?? ($totalAmount + $shippingFee);
+
+                if (isset($data['cart'])) {
+                    // Cập nhật chi tiết đơn hàng
+                    
+                    // 1. Phục hồi tồn kho của đơn hàng cũ (nếu đơn chưa hủy)
+                    if ($order['status'] !== 'cancelled') {
+                        $oldItems = $pdo->prepare("SELECT oi.*, p.ml_per_unit FROM order_items oi JOIN batches b ON oi.batch_id = b.id JOIN products p ON b.product_id = p.id WHERE oi.order_id = ?");
+                        $oldItems->execute([$data['id']]);
+                        
+                        $stmtUpdateBatch = $pdo->prepare("UPDATE batches SET current_qty = ?, current_ml = ? WHERE id = ?");
+                        $stmtLog = $pdo->prepare("INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason) VALUES (?, 'ADJUST', ?, ?, ?)");
+                        
+                        foreach ($oldItems->fetchAll() as $item) {
+                            $stmtBatch = $pdo->prepare("SELECT current_qty, current_ml FROM batches WHERE id = ? FOR UPDATE");
+                            $stmtBatch->execute([$item['batch_id']]);
+                            $batch = $stmtBatch->fetch();
+                            if (!$batch) continue;
+                            
+                            $newQty = $batch['current_qty'];
+                            $newMl = $batch['current_ml'];
+                            
+                            if ($item['sell_type'] === 'ml' && $item['ml_per_unit'] > 0) {
+                                $newMl += $item['quantity'];
+                                $newQty = floor($newMl / $item['ml_per_unit']);
+                                $stmtUpdateBatch->execute([$newQty, $newMl, $item['batch_id']]);
+                                $stmtLog->execute([$item['batch_id'], 0, $item['quantity'], "Sửa đơn hàng #{$data['id']} (Hoàn trả cũ)"]);
+                            } else {
+                                $newQty += $item['quantity'];
+                                $mlDeduct = 0;
+                                if ($item['ml_per_unit'] > 0) {
+                                    $mlDeduct = $item['quantity'] * $item['ml_per_unit'];
+                                    $newMl += $mlDeduct;
+                                }
+                                $stmtUpdateBatch->execute([$newQty, $newMl, $item['batch_id']]);
+                                $stmtLog->execute([$item['batch_id'], $item['quantity'], $mlDeduct, "Sửa đơn hàng #{$data['id']} (Hoàn trả cũ)"]);
+                            }
+                        }
+                    }
+                    
+                    // 2. Xóa items cũ
+                    $pdo->prepare("DELETE FROM order_items WHERE order_id = ?")->execute([$data['id']]);
+                    
+                    // 3. Trừ tồn kho mới (nếu đơn không phải trạng thái cancelled)
+                    $stmtItem = $pdo->prepare("INSERT INTO order_items (order_id, batch_id, sell_type, quantity, price_per_unit, subtotal, cost_per_unit) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                    $stmtUpdateBatch = $pdo->prepare("UPDATE batches SET current_qty = ?, current_ml = ? WHERE id = ?");
+                    
+                    foreach ($data['cart'] as $item) {
+                        $stmtBatch = $pdo->prepare("SELECT b.current_qty, b.current_ml, b.import_price, p.ml_per_unit FROM batches b JOIN products p ON b.product_id = p.id WHERE b.id = ? FOR UPDATE");
+                        $stmtBatch->execute([$item['batch_id']]);
+                        $batch = $stmtBatch->fetch();
+                        
+                        if (!$batch) throw new Exception("Không tìm thấy lô hàng ID " . $item['batch_id']);
+
+                        $costPerUnit = $batch['import_price'];
+                        $newQty = $batch['current_qty'];
+                        $newMl = $batch['current_ml'];
+
+                        if ($order['status'] !== 'cancelled') {
+                            if ($item['sell_type'] === 'ml' && $batch['ml_per_unit'] > 0) {
+                                $costPerUnit = $batch['import_price'] / $batch['ml_per_unit'];
+                                
+                                if ($newMl < $item['quantity']) throw new Exception("Lô hàng ID " . $item['batch_id'] . " không đủ dung tích chiết (ml).");
+                                $newMl -= $item['quantity'];
+                                $newQty = floor($newMl / $batch['ml_per_unit']);
+                            } else {
+                                if ($newQty < $item['quantity']) throw new Exception("Lô hàng ID " . $item['batch_id'] . " không đủ số chai nguyên.");
+                                $newQty -= $item['quantity'];
+                                
+                                if ($batch['ml_per_unit'] > 0) {
+                                    $mlDeduct = $item['quantity'] * $batch['ml_per_unit'];
+                                    if ($newMl < $mlDeduct) throw new Exception("Lô hàng ID " . $item['batch_id'] . " bị bất đồng bộ dung tích (không đủ ml tương ứng).");
+                                    $newMl -= $mlDeduct;
+                                }
+                            }
+                            
+                            $stmtUpdateBatch->execute([$newQty, $newMl, $item['batch_id']]);
+                            
+                            $logQtyChange = ($item['sell_type'] === 'chai') ? -$item['quantity'] : 0;
+                            $logMlChange = ($item['sell_type'] === 'ml') ? -$item['quantity'] : (isset($mlDeduct) ? -$mlDeduct : 0);
+                            $pdo->prepare("INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason) VALUES (?, 'SALE', ?, ?, ?)")
+                                ->execute([$item['batch_id'], $logQtyChange, $logMlChange, "Sửa đơn hàng #{$data['id']} (Trừ kho mới)"]);
+                        }
+
+                        $subtotal = $item['price'] * $item['quantity'];
+                        $stmtItem->execute([
+                            $data['id'], $item['batch_id'], $item['sell_type'], $item['quantity'], $item['price'], $subtotal, $costPerUnit
+                        ]);
+                    }
+                }
+
+                $pdo->prepare("UPDATE orders SET total_amount = ?, shipping_fee = ?, final_amount = ? WHERE id = ?")
+                    ->execute([$totalAmount, $shippingFee, $finalAmount, $data['id']]);
+
+                // Recalculate customer tier if paid
+                if ($order['customer_id']) {
+                    $pdo->exec("
+                        UPDATE customers 
+                        SET total_spent = COALESCE((
+                            SELECT SUM(total_amount) FROM orders 
+                            WHERE customer_id = {$order['customer_id']} 
+                            AND status != 'cancelled' 
+                            AND payment_status = 'paid'
+                        ), 0)
+                        WHERE id = {$order['customer_id']}
+                    ");
+                    $settings = $pdo->query("SELECT setting_key, setting_value FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+                    $tierLoyal = (int)($settings['tier_loyal'] ?? 5000000);
+                    $tierVip = (int)($settings['tier_vip'] ?? 20000000);
+                    $pdo->exec("UPDATE customers SET customer_tier = CASE WHEN total_spent >= $tierVip THEN 'VIP' WHEN total_spent >= $tierLoyal THEN 'Loyal' ELSE 'New' END WHERE id = {$order['customer_id']}");
+                }
+
+                $pdo->commit();
+                echo json_encode(["message" => "Cập nhật thông tin thành công"]);
+                exit();
+            }
             
             // Cập nhật trạng thái
             $pdo->prepare("UPDATE orders SET status = ?, payment_status = ? WHERE id = ?")

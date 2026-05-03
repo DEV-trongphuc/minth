@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Package, Search, Filter, Edit, Eye, Clock, CheckCircle, Truck, DollarSign, XCircle, ShoppingCart, ChevronDown } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
+import AddressSelect from '../components/ui/AddressSelect';
 import POS from './POS';
 
 const STATUS_CONFIG = {
@@ -23,10 +25,17 @@ export default function Orders() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showPOS, setShowPOS] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [editForm, setEditForm] = useState({ customer_name: '', customer_phone: '', customer_address: '', total_amount: 0, shipping_fee: 0, final_amount: 0 });
+  const [cart, setCart] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(false);
+  const [batches, setBatches] = useState([]);
+  const [searchBatch, setSearchBatch] = useState('');
   const { showConfirm, showAlert } = useDialog();
 
   useEffect(() => {
     fetchOrders();
+    fetchBatches();
     
     // Check for draft customer passed from Customers page
     try {
@@ -45,6 +54,129 @@ export default function Orders() {
     } catch {}
     setLoading(false);
   };
+
+  const fetchBatches = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/batches.php`);
+      if (res.ok) setBatches(await res.json());
+    } catch {}
+  };
+
+  const openEditModal = async (order) => {
+    setEditingOrder(order);
+    setEditForm({
+      customer_name: order.customer_name || '',
+      customer_phone: order.customer_phone || '',
+      customer_address: order.customer_address || '',
+      shipping_fee: Number(order.shipping_fee) || 0,
+      total_amount: Number(order.total_amount) || 0,
+      final_amount: Number(order.final_amount) || Number(order.total_amount) || 0
+    });
+    setCart([]);
+    setLoadingItems(true);
+    setSearchBatch('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/orders.php?action=get_items&order_id=${order.id}`);
+      if (res.ok) {
+        const items = await res.json();
+        setCart(items.map(i => ({
+          id: Math.random(),
+          batch_id: i.batch_id,
+          product_name: i.product_name,
+          batch_code: i.batch_code,
+          sell_type: i.sell_type,
+          quantity: Number(i.quantity),
+          price: Number(i.price_per_unit),
+          ml_per_unit: Number(i.ml_per_unit)
+        })));
+      } else {
+        showAlert('Lỗi', 'Không thể tải danh sách sản phẩm', 'danger');
+      }
+    } catch {
+      showAlert('Lỗi', 'Lỗi kết nối khi tải sản phẩm', 'danger');
+    }
+    setLoadingItems(false);
+  };
+
+  const handleUpdateInfo = async () => {
+    if (!editForm.customer_name || !editForm.customer_phone) {
+      return showAlert('Lỗi', 'Vui lòng nhập tên và số điện thoại khách hàng', 'danger');
+    }
+    if (cart.length === 0) {
+      return showAlert('Lỗi', 'Đơn hàng phải có ít nhất 1 sản phẩm', 'warning');
+    }
+    
+    const total_amount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping_fee = Number(editForm.shipping_fee) || 0;
+    const final_amount = total_amount + shipping_fee;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/orders.php`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingOrder.id,
+          action: 'update_info',
+          customer_name: editForm.customer_name,
+          customer_phone: editForm.customer_phone,
+          customer_address: editForm.customer_address,
+          total_amount,
+          shipping_fee,
+          final_amount,
+          cart
+        })
+      });
+      if (res.ok) {
+        showAlert('Thành công', 'Cập nhật thông tin đơn hàng thành công!', 'success');
+        setEditingOrder(null);
+        fetchOrders();
+      } else {
+        showAlert('Lỗi', 'Không thể cập nhật thông tin', 'danger');
+      }
+    } catch {
+      showAlert('Lỗi kết nối', 'Không thể kết nối đến máy chủ', 'danger');
+    }
+  };
+
+  const updateCartItem = (idx, field, value) => {
+    const newCart = [...cart];
+    let parsedValue = Number(value);
+    if (field === 'quantity') {
+      parsedValue = Math.max(1, parsedValue || 1); // Prevent 0 or negative
+    }
+    newCart[idx][field] = parsedValue;
+    setCart(newCart);
+  };
+
+  const removeFromCart = (idx) => {
+    setCart(cart.filter((_, i) => i !== idx));
+  };
+
+  const addToCart = (batch, sellType) => {
+    if (sellType === 'chai' && batch.current_qty <= 0 && editingOrder.status !== 'cancelled') return showAlert('Hết hàng', 'Lô này đã hết chai nguyên!', 'warning');
+    if (sellType === 'ml' && batch.current_ml <= 0 && editingOrder.status !== 'cancelled') return showAlert('Hết hàng', 'Lô này đã hết dung tích chiết!', 'warning');
+
+    const existing = cart.find(c => c.batch_id === batch.id && c.sell_type === sellType);
+    if (existing) {
+      setCart(cart.map(c => c === existing ? { ...c, quantity: c.quantity + 1 } : c));
+    } else {
+      const baseCost = sellType === 'chai' ? batch.import_price : (batch.import_price / batch.ml_per_unit);
+      const suggestedPrice = sellType === 'chai' ? batch.import_price * 1.5 : baseCost * 2;
+      setCart([...cart, {
+        id: Math.random(),
+        batch_id: batch.id, 
+        product_name: batch.product_name, 
+        batch_code: batch.batch_code,
+        sell_type: sellType, 
+        quantity: 1, 
+        price: Math.round(suggestedPrice / 1000) * 1000,
+        ml_per_unit: batch.ml_per_unit
+      }]);
+    }
+    setSearchBatch('');
+  };
+
+  const filteredBatchesForCart = batches.filter(b => b.product_name.toLowerCase().includes(searchBatch.toLowerCase()) || b.batch_code.toLowerCase().includes(searchBatch.toLowerCase()));
 
   const updateOrderStatus = async (id, newStatus, currentPaymentStatus) => {
     const isCompleted = newStatus === 'completed';
@@ -171,9 +303,22 @@ export default function Orders() {
                   
                   return (
                     <tr key={o.id}>
-                      <td style={{ fontWeight: 700, color: 'var(--primary)' }}>#{o.id}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--primary)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          #{o.id}
+                          <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditModal(o)} title="Sửa thông tin">
+                            <Edit size={14} />
+                          </button>
+                        </div>
+                      </td>
                       <td>
-                        <div style={{ fontWeight: 600 }}>{o.customer_name}</div>
+                        <div 
+                          style={{ fontWeight: 600, cursor: 'pointer', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                          onClick={() => openEditModal(o)}
+                          title="Sửa thông tin"
+                        >
+                          {o.customer_name} <Edit size={12} style={{ opacity: 0.5 }} />
+                        </div>
                         <div className="text-xs text-muted">{o.customer_phone}</div>
                       </td>
                       <td style={{ fontWeight: 700 }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</td>
@@ -260,12 +405,23 @@ export default function Orders() {
                 return (
                   <div key={o.id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem' }}>#{o.id}</span>
+                      <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        #{o.id}
+                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditModal(o)} title="Sửa thông tin">
+                          <Edit size={16} />
+                        </button>
+                      </span>
                       <span className="text-xs text-muted">{new Date(o.created_at).toLocaleString('vi-VN')}</span>
                     </div>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <div style={{ fontWeight: 700 }}>{o.customer_name}</div>
+                      <div 
+                        style={{ fontWeight: 700, cursor: 'pointer', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        onClick={() => openEditModal(o)}
+                        title="Sửa thông tin"
+                      >
+                        {o.customer_name} <Edit size={14} style={{ opacity: 0.5 }} />
+                      </div>
                       <div className="text-sm text-muted">{o.customer_phone}</div>
                     </div>
 
@@ -347,6 +503,119 @@ export default function Orders() {
           </>
         )}
       </div>
+
+      {/* Edit Order Modal */}
+      {editingOrder && createPortal(
+        <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setEditingOrder(null); }}>
+          <div className="modal anim-scale-in" style={{ width: '900px', maxWidth: '95vw', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
+            <div className="modal-header" style={{ flexShrink: 0 }}>
+              <h2 className="modal-title">Chi tiết Đơn hàng #{editingOrder.id}</h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setEditingOrder(null)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ flex: 1, overflowY: 'auto', display: 'flex', gap: '1.5rem', flexWrap: 'wrap', padding: '1.5rem' }}>
+              {/* Cột trái: Khách hàng */}
+              <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3 style={{ fontSize: '1.05rem', borderBottom: '2px solid var(--primary-light)', paddingBottom: '0.5rem', color: 'var(--primary)', margin: 0 }}>Thông tin Khách hàng</h3>
+                <div className="form-group">
+                  <label className="form-label">Tên khách hàng <span className="text-danger">*</span></label>
+                  <input className="form-control" value={editForm.customer_name} onChange={e => setEditForm({...editForm, customer_name: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Số điện thoại <span className="text-danger">*</span></label>
+                  <input 
+                    type="tel"
+                    className="form-control" 
+                    value={editForm.customer_phone} 
+                    onChange={e => setEditForm({...editForm, customer_phone: e.target.value})} 
+                    style={{ borderColor: !editForm.customer_phone ? 'var(--danger)' : undefined }}
+                    placeholder="Bắt buộc nhập số điện thoại..."
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Địa chỉ giao hàng</label>
+                  <AddressSelect 
+                    value={editForm.customer_address} 
+                    onChange={addr => setEditForm({...editForm, customer_address: addr})} 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Phí giao hàng (VNĐ)</label>
+                  <input className="form-control" type="number" value={editForm.shipping_fee} onChange={e => setEditForm({...editForm, shipping_fee: e.target.value})} />
+                </div>
+              </div>
+
+              {/* Cột phải: Sản phẩm */}
+              <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3 style={{ fontSize: '1.05rem', borderBottom: '2px solid var(--primary-light)', paddingBottom: '0.5rem', color: 'var(--primary)', margin: 0 }}>Chi tiết Sản phẩm</h3>
+                
+                {loadingItems ? (
+                  <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Đang tải sản phẩm...</div>
+                ) : (
+                  <>
+                    {/* Thêm sản phẩm */}
+                    <div style={{ position: 'relative' }}>
+                      <input type="text" className="form-control" placeholder="Gõ tên hoặc lô để thêm sản phẩm..." value={searchBatch} onChange={e => setSearchBatch(e.target.value)} />
+                      {searchBatch && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: 'var(--shadow-md)' }}>
+                          {filteredBatchesForCart.slice(0, 5).map(b => (
+                            <div key={b.id} style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="hover-bg">
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{b.product_name}</div>
+                                <div className="text-xs text-muted">Lô: {b.batch_code} (Tồn: {b.current_qty} chai)</div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                <button className="btn btn-primary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => addToCart(b, 'chai')}>Chai</button>
+                                {b.ml_per_unit > 0 && <button className="btn btn-secondary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => addToCart(b, 'ml')}>ML</button>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Danh sách giỏ hàng */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem' }}>
+                      {cart.length === 0 ? <div className="text-muted text-center" style={{ padding: '1rem' }}>Đơn hàng trống</div> : cart.map((item, idx) => (
+                        <div key={item.id} style={{ background: 'var(--surface2)', padding: '0.75rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-light)', position: 'relative' }}>
+                          <button className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', color: 'var(--danger)', padding: '0.25rem' }} onClick={() => removeFromCart(idx)}>✕</button>
+                          <div style={{ fontWeight: 600, fontSize: '0.9rem', paddingRight: '1.5rem', marginBottom: '0.25rem' }}>{item.product_name}</div>
+                          <div className="text-xs text-muted" style={{ marginBottom: '0.5rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên chai' : 'Chiết ml'})</div>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+                            <div style={{ width: '60px' }}>
+                              <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem' }}>SL</label>
+                              <input type="number" className="form-control" style={{ padding: '0.35rem' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem' }}>Đơn giá (đ)</label>
+                              <input type="text" className="form-control" style={{ padding: '0.35rem' }} value={item.price ? item.price.toLocaleString('vi-VN') : ''} onChange={e => updateCartItem(idx, 'price', e.target.value.replace(/\D/g, ''))} />
+                            </div>
+                            <div style={{ fontWeight: 700, color: 'var(--primary)', flexShrink: 0, paddingBottom: '0.35rem' }}>
+                              = {(item.price * item.quantity).toLocaleString()} đ
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ marginTop: 'auto', background: 'var(--primary-light)', padding: '1rem', borderRadius: 'var(--r-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>Tổng thanh toán:</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>
+                        {(cart.reduce((s, c) => s + (c.price * c.quantity), 0) + (Number(editForm.shipping_fee) || 0)).toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer" style={{ flexShrink: 0 }}>
+              <button className="btn btn-secondary" onClick={() => setEditingOrder(null)}>Hủy</button>
+              <button className="btn btn-primary" onClick={handleUpdateInfo} disabled={loadingItems}>Lưu thay đổi</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

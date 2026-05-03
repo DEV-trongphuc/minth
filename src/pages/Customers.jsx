@@ -28,6 +28,11 @@ export default function Customers() {
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [detailItem, setDetailItem] = useState(null);
+  const [customerOrders, setCustomerOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderItems, setOrderItems] = useState([]);
+  const [loadingItems, setLoadingItems] = useState(false);
   const [form, setForm] = useState({ name: '', phone: '', address: '', note: '' });
   const { showConfirm, showAlert } = useDialog();
   const navigate = useNavigate();
@@ -49,6 +54,31 @@ export default function Customers() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (detailItem) {
+      setLoadingOrders(true);
+      fetch(`${API_BASE_URL}/orders.php?customer_id=${detailItem.id}`)
+        .then(res => res.json())
+        .then(data => setCustomerOrders(data))
+        .catch(() => {})
+        .finally(() => setLoadingOrders(false));
+    } else {
+      setCustomerOrders([]);
+    }
+  }, [detailItem]);
+
+  const viewOrderDetails = async (order) => {
+    setSelectedOrder(order);
+    setLoadingItems(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/orders.php?action=get_items&order_id=${order.id}`);
+      if (res.ok) {
+        setOrderItems(await res.json());
+      }
+    } catch {}
+    setLoadingItems(false);
+  };
 
   const filtered = customers.filter(c => {
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search);
@@ -333,7 +363,7 @@ export default function Customers() {
               </div>
               <button className="btn btn-ghost btn-icon" onClick={() => setDetailItem(null)}>✕</button>
             </div>
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '70vh', overflowY: 'auto' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '.75rem' }}>
                 {[
                   { label: 'Tổng chi tiêu', val: `${Number(detailItem.total_spent || 0).toLocaleString('vi-VN')} đ`, icon: <TrendingUp size={16} color="var(--primary)" /> },
@@ -355,10 +385,86 @@ export default function Customers() {
                   </div>
                 ))}
               </div>
+              
+              <h3 style={{ fontSize: '1rem', marginTop: '1rem', borderBottom: '2px solid var(--primary-light)', paddingBottom: '0.5rem', color: 'var(--primary)' }}>Lịch sử Đơn hàng</h3>
+              {loadingOrders ? (
+                <div className="text-center text-muted" style={{ padding: '1rem' }}>Đang tải...</div>
+              ) : customerOrders.length === 0 ? (
+                <div className="text-center text-muted" style={{ padding: '1rem' }}>Khách hàng chưa có đơn hàng nào</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {customerOrders.map(o => (
+                    <div key={o.id} onClick={() => viewOrderDetails(o)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: 'var(--r-sm)', cursor: 'pointer' }} className="hover-shadow">
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.2rem' }}>Đơn #{o.id}</div>
+                        <div className="text-xs text-muted">{o.created_at}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: '0.2rem' }}>{Number(o.final_amount).toLocaleString('vi-VN')} đ</div>
+                        <span className={`badge ${o.status === 'completed' ? 'badge-success' : o.status === 'cancelled' ? 'badge-danger' : 'badge-warning'}`} style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem' }}>
+                          {o.status === 'completed' ? 'Hoàn thành' : o.status === 'cancelled' ? 'Đã hủy' : 'Đang xử lý'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ borderTop: '1px solid var(--border-light)' }}>
               <button className="btn btn-secondary" onClick={() => { setDetailItem(null); openEdit(detailItem); }}><Edit size={15} /> Chỉnh sửa</button>
               <button className="btn btn-primary" onClick={() => handleCreateOrder(detailItem)}><ShoppingBag size={15} /> Bán đơn tiếp</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Chi tiết đơn hàng con */}
+      {selectedOrder && createPortal(
+        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setSelectedOrder(null)}>
+          <div className="modal anim-scale-in" style={{ maxWidth: 460 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Chi tiết Đơn #{selectedOrder.id}</h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setSelectedOrder(null)}>✕</button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto', padding: '1rem' }}>
+              {loadingItems ? (
+                <div className="text-center text-muted" style={{ padding: '2rem' }}>Đang tải chi tiết...</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {orderItems.map(item => (
+                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--surface2)', borderRadius: 'var(--r-sm)' }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.quantity}x {item.product_name}</div>
+                        <div className="text-xs text-muted" style={{ marginTop: '0.2rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên chai' : 'Chiết ml'})</div>
+                      </div>
+                      <div style={{ fontWeight: 700 }}>
+                        {(item.price_per_unit * item.quantity).toLocaleString('vi-VN')} đ
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div style={{ marginTop: '1rem', borderTop: '1px dashed var(--border)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                      <span className="text-muted">Tổng tiền hàng:</span>
+                      <span style={{ fontWeight: 600 }}>{Number(selectedOrder.total_amount).toLocaleString('vi-VN')} đ</span>
+                    </div>
+                    {Number(selectedOrder.shipping_fee) > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                        <span className="text-muted">Phí ship:</span>
+                        <span style={{ fontWeight: 600 }}>{Number(selectedOrder.shipping_fee).toLocaleString('vi-VN')} đ</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', marginTop: '0.5rem', background: 'var(--primary-light)', padding: '0.75rem', borderRadius: 'var(--r-sm)' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>Tổng cộng:</span>
+                      <span style={{ fontWeight: 800, color: 'var(--primary)' }}>{Number(selectedOrder.final_amount).toLocaleString('vi-VN')} đ</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" style={{ width: '100%' }} onClick={() => setSelectedOrder(null)}>Đóng</button>
             </div>
           </div>
         </div>,
