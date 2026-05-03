@@ -36,14 +36,14 @@ export default function Orders() {
   useEffect(() => {
     fetchOrders();
     fetchBatches();
-    
+
     // Check for draft customer passed from Customers page
     try {
       const draft = localStorage.getItem('luccy_pos_customer_draft');
       if (draft) {
         setShowPOS(true);
       }
-    } catch(e) {}
+    } catch (e) { }
   }, []);
 
   const fetchOrders = async () => {
@@ -51,7 +51,7 @@ export default function Orders() {
     try {
       const res = await fetch(`${API_BASE_URL}/orders.php`);
       if (res.ok) setOrders(await res.json());
-    } catch {}
+    } catch { }
     setLoading(false);
   };
 
@@ -59,7 +59,7 @@ export default function Orders() {
     try {
       const res = await fetch(`${API_BASE_URL}/batches.php`);
       if (res.ok) setBatches(await res.json());
-    } catch {}
+    } catch { }
   };
 
   const openEditModal = async (order) => {
@@ -105,7 +105,7 @@ export default function Orders() {
     if (cart.length === 0) {
       return showAlert('Lỗi', 'Đơn hàng phải có ít nhất 1 sản phẩm', 'warning');
     }
-    
+
     const total_amount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const shipping_fee = Number(editForm.shipping_fee) || 0;
     const final_amount = total_amount + shipping_fee;
@@ -164,11 +164,11 @@ export default function Orders() {
       const suggestedPrice = sellType === 'chai' ? batch.import_price * 1.5 : baseCost * 2;
       setCart([...cart, {
         id: Math.random(),
-        batch_id: batch.id, 
-        product_name: batch.product_name, 
+        batch_id: batch.id,
+        product_name: batch.product_name,
         batch_code: batch.batch_code,
-        sell_type: sellType, 
-        quantity: 1, 
+        sell_type: sellType,
+        quantity: 1,
         price: Math.round(suggestedPrice / 1000) * 1000,
         ml_per_unit: batch.ml_per_unit
       }]);
@@ -185,7 +185,7 @@ export default function Orders() {
 
     let title = '';
     let message = '';
-    
+
     if (isCompleted) {
       title = 'Xác nhận Giao Thành công';
       message = 'Đơn hàng này sẽ được chuyển sang Hoàn thành. Hệ thống sẽ tự động cập nhật Trạng thái thanh toán thành Đã thu tiền (nếu trước đó là COD).';
@@ -217,9 +217,9 @@ export default function Orders() {
   };
 
   const filteredOrders = orders.filter(o => {
-    const matchSearch = (o.customer_name || '').toLowerCase().includes(search.toLowerCase()) || 
-                        (o.customer_phone || '').includes(search) || 
-                        o.id.toString() === search;
+    const matchSearch = (o.customer_name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (o.customer_phone || '').includes(search) ||
+      o.id.toString() === search;
     const matchStatus = statusFilter === 'all' || o.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -253,7 +253,7 @@ export default function Orders() {
             </button>
           ))}
         </div>
-        
+
         {/* Mobile Filter Dropdown */}
         <div className="mobile-only" style={{ width: '100%' }}>
           <select className="form-control" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ width: '100%', padding: '0.65rem 1rem', fontWeight: 600, background: 'var(--surface)', border: '1.5px solid var(--border)' }}>
@@ -283,223 +283,223 @@ export default function Orders() {
           </div>
         ) : (
           <>
-          <div className="table-wrap desktop-only" style={{ overflow: 'visible' }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Mã Đơn</th>
-                  <th>Khách hàng</th>
-                  <th>Tổng tiền</th>
-                  <th>Thanh toán</th>
-                  <th>Trạng thái</th>
-                  <th>Ngày tạo</th>
-                  <th style={{ width: 140 }}>Cập nhật</th>
-                </tr>
-              </thead>
-              <tbody>
+            <div className="table-wrap desktop-only" style={{ overflow: 'visible' }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Mã Đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Tổng tiền</th>
+                    <th>Thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th style={{ width: 140 }}>Cập nhật</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredOrders.map(o => {
+                    const statusInfo = STATUS_CONFIG[o.status] || STATUS_CONFIG.pending;
+                    const payInfo = PAYMENT_CONFIG[o.payment_status] || PAYMENT_CONFIG.unpaid;
+
+                    return (
+                      <tr key={o.id}>
+                        <td style={{ fontWeight: 700, color: 'var(--primary)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            #{o.id}
+                            <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditModal(o)} title="Sửa thông tin">
+                              <Edit size={14} />
+                            </button>
+                          </div>
+                        </td>
+                        <td>
+                          <div
+                            style={{ fontWeight: 600, cursor: 'pointer', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                            onClick={() => openEditModal(o)}
+                            title="Sửa thông tin"
+                          >
+                            {o.customer_name} <Edit size={12} style={{ opacity: 0.5 }} />
+                          </div>
+                          <div className="text-xs text-muted">{o.customer_phone}</div>
+                        </td>
+                        <td style={{ fontWeight: 700 }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</td>
+                        <td>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '.25rem', fontSize: '.8rem', color: payInfo.color, fontWeight: 500 }}>
+                            {payInfo.icon} {payInfo.label}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="badge" style={{ background: statusInfo.bg, color: statusInfo.color, display: 'flex', alignItems: 'center', gap: '.25rem', width: 'fit-content' }}>
+                            {statusInfo.icon} {statusInfo.label}
+                          </span>
+                        </td>
+                        <td className="text-sm text-muted">{new Date(o.created_at).toLocaleString('vi-VN')}</td>
+                        <td>
+                          {o.status === 'pending' && (
+                            <div style={{ display: 'flex', gap: '.25rem' }}>
+                              <button className="btn btn-primary btn-sm" onClick={() => updateOrderStatus(o.id, 'shipping', o.payment_status)} style={{ flex: 1, fontSize: '.75rem', padding: '.4rem' }}>
+                                <Truck size={12} /> Giao Shiper
+                              </button>
+                              <button className="btn btn-ghost btn-icon btn-sm" style={{ color: 'var(--danger)' }} onClick={() => updateOrderStatus(o.id, 'cancelled', o.payment_status)} title="Hủy đơn">
+                                <XCircle size={14} />
+                              </button>
+                            </div>
+                          )}
+                          {o.status === 'shipping' && (
+                            <div style={{ display: 'flex', gap: '.25rem' }}>
+                              <button className="btn btn-success btn-sm" onClick={() => updateOrderStatus(o.id, 'completed', o.payment_status)} style={{ flex: 1, fontSize: '.75rem', padding: '.4rem', background: 'var(--success)', borderColor: 'var(--success)' }}>
+                                <CheckCircle size={12} /> Hoàn Thành
+                              </button>
+                              <button className="btn btn-ghost btn-icon btn-sm" style={{ color: 'var(--danger)' }} onClick={() => updateOrderStatus(o.id, 'cancelled', o.payment_status)} title="Hủy đơn">
+                                <XCircle size={14} />
+                              </button>
+                            </div>
+                          )}
+                          {o.status === 'completed' && (
+                            <div style={{ position: 'relative' }}>
+                              <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', fontSize: '0.75rem', padding: '0.35rem 0.6rem', color: 'var(--text-muted)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
+                                Sửa trạng thái <ChevronDown size={14} style={{ marginLeft: 4 }} />
+                              </button>
+                              {activeDropdown === o.id && (
+                                <>
+                                  <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
+                                  <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '130px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
+                                    <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Chờ xử lý</button>
+                                    <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Đang giao</button>
+                                    <button onClick={() => { updateOrderStatus(o.id, 'cancelled', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--danger)' }} className="hover-bg">Hủy đơn</button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+                          {o.status === 'cancelled' && (
+                            <div style={{ position: 'relative' }}>
+                              <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', fontSize: '0.75rem', padding: '0.35rem 0.6rem', color: 'var(--danger)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
+                                Phục hồi đơn <ChevronDown size={14} style={{ marginLeft: 4 }} />
+                              </button>
+                              {activeDropdown === o.id && (
+                                <>
+                                  <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
+                                  <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '130px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
+                                    <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Chờ xử lý</button>
+                                    <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Đang giao</button>
+                                    <button onClick={() => { updateOrderStatus(o.id, 'completed', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--success)' }} className="hover-bg">Hoàn thành</button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* MOBILE CARD VIEW */}
+            <div className="mobile-only">
+              <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {filteredOrders.map(o => {
                   const statusInfo = STATUS_CONFIG[o.status] || STATUS_CONFIG.pending;
                   const payInfo = PAYMENT_CONFIG[o.payment_status] || PAYMENT_CONFIG.unpaid;
-                  
                   return (
-                    <tr key={o.id}>
-                      <td style={{ fontWeight: 700, color: 'var(--primary)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <div key={o.id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           #{o.id}
                           <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditModal(o)} title="Sửa thông tin">
-                            <Edit size={14} />
+                            <Edit size={16} />
                           </button>
-                        </div>
-                      </td>
-                      <td>
-                        <div 
-                          style={{ fontWeight: 600, cursor: 'pointer', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                        </span>
+                        <span className="text-xs text-muted">{new Date(o.created_at).toLocaleString('vi-VN')}</span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <div
+                          style={{ fontWeight: 700, cursor: 'pointer', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                           onClick={() => openEditModal(o)}
                           title="Sửa thông tin"
                         >
-                          {o.customer_name} <Edit size={12} style={{ opacity: 0.5 }} />
+                          {o.customer_name} <Edit size={14} style={{ opacity: 0.5 }} />
                         </div>
-                        <div className="text-xs text-muted">{o.customer_phone}</div>
-                      </td>
-                      <td style={{ fontWeight: 700 }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</td>
-                      <td>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '.25rem', fontSize: '.8rem', color: payInfo.color, fontWeight: 500 }}>
-                          {payInfo.icon} {payInfo.label}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="badge" style={{ background: statusInfo.bg, color: statusInfo.color, display: 'flex', alignItems: 'center', gap: '.25rem', width: 'fit-content' }}>
+                        <div className="text-sm text-muted">{o.customer_phone}</div>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface2)', padding: '0.5rem 0.75rem', borderRadius: 'var(--r-sm)' }}>
+                        <span className="text-sm font-semibold">Tổng tiền:</span>
+                        <span style={{ fontWeight: 800, color: 'var(--text)' }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</span>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <span className="badge" style={{ background: statusInfo.bg, color: statusInfo.color, display: 'flex', alignItems: 'center', gap: '.25rem' }}>
                           {statusInfo.icon} {statusInfo.label}
                         </span>
-                      </td>
-                      <td className="text-sm text-muted">{new Date(o.created_at).toLocaleString('vi-VN')}</td>
-                      <td>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '.25rem', fontSize: '.75rem', color: payInfo.color, fontWeight: 600, background: 'var(--surface2)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-full)' }}>
+                          {payInfo.icon} {payInfo.label}
+                        </span>
+                      </div>
+
+                      <div style={{ marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px dashed var(--border-light)', display: 'flex', gap: '0.5rem' }}>
                         {o.status === 'pending' && (
-                          <div style={{ display: 'flex', gap: '.25rem' }}>
-                            <button className="btn btn-primary btn-sm" onClick={() => updateOrderStatus(o.id, 'shipping', o.payment_status)} style={{ flex: 1, fontSize: '.75rem', padding: '.4rem' }}>
-                              <Truck size={12} /> Giao Shiper
+                          <>
+                            <button className="btn btn-primary btn-sm" onClick={() => updateOrderStatus(o.id, 'shipping', o.payment_status)} style={{ flex: 1, padding: '.6rem' }}>
+                              <Truck size={14} /> Giao Shiper
                             </button>
-                            <button className="btn btn-ghost btn-icon btn-sm" style={{ color: 'var(--danger)' }} onClick={() => updateOrderStatus(o.id, 'cancelled', o.payment_status)} title="Hủy đơn">
-                              <XCircle size={14} />
+                            <button className="btn btn-ghost btn-icon" style={{ color: 'var(--danger)', background: 'var(--danger-bg)' }} onClick={() => updateOrderStatus(o.id, 'cancelled', o.payment_status)}>
+                              <XCircle size={16} />
                             </button>
-                          </div>
+                          </>
                         )}
                         {o.status === 'shipping' && (
-                          <div style={{ display: 'flex', gap: '.25rem' }}>
-                            <button className="btn btn-success btn-sm" onClick={() => updateOrderStatus(o.id, 'completed', o.payment_status)} style={{ flex: 1, fontSize: '.75rem', padding: '.4rem', background: 'var(--success)', borderColor: 'var(--success)' }}>
-                              <CheckCircle size={12} /> Hoàn Thành
+                          <>
+                            <button className="btn btn-success btn-sm" onClick={() => updateOrderStatus(o.id, 'completed', o.payment_status)} style={{ flex: 1, padding: '.6rem', background: 'var(--success)', borderColor: 'var(--success)' }}>
+                              <CheckCircle size={14} /> Hoàn Thành
                             </button>
-                            <button className="btn btn-ghost btn-icon btn-sm" style={{ color: 'var(--danger)' }} onClick={() => updateOrderStatus(o.id, 'cancelled', o.payment_status)} title="Hủy đơn">
-                              <XCircle size={14} />
+                            <button className="btn btn-ghost btn-icon" style={{ color: 'var(--danger)', background: 'var(--danger-bg)' }} onClick={() => updateOrderStatus(o.id, 'cancelled', o.payment_status)}>
+                              <XCircle size={16} />
                             </button>
-                          </div>
+                          </>
                         )}
                         {o.status === 'completed' && (
-                          <div style={{ position: 'relative' }}>
-                            <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', fontSize: '0.75rem', padding: '0.35rem 0.6rem', color: 'var(--text-muted)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
+                          <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
+                            <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', width: '100%', fontSize: '0.8rem', padding: '0.6rem', color: 'var(--text-muted)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
                               Sửa trạng thái <ChevronDown size={14} style={{ marginLeft: 4 }} />
                             </button>
                             {activeDropdown === o.id && (
                               <>
                                 <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
-                                <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '130px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
-                                  <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Chờ xử lý</button>
-                                  <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Đang giao</button>
-                                  <button onClick={() => { updateOrderStatus(o.id, 'cancelled', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--danger)' }} className="hover-bg">Hủy đơn</button>
+                                <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '150px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
+                                  <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Chờ xử lý</button>
+                                  <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Đang giao</button>
+                                  <button onClick={() => { updateOrderStatus(o.id, 'cancelled', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--danger)' }} className="hover-bg">Hủy đơn</button>
                                 </div>
                               </>
                             )}
                           </div>
                         )}
                         {o.status === 'cancelled' && (
-                          <div style={{ position: 'relative' }}>
-                            <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', fontSize: '0.75rem', padding: '0.35rem 0.6rem', color: 'var(--danger)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
+                          <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
+                            <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', width: '100%', fontSize: '0.8rem', padding: '0.6rem', color: 'var(--danger)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
                               Phục hồi đơn <ChevronDown size={14} style={{ marginLeft: 4 }} />
                             </button>
                             {activeDropdown === o.id && (
                               <>
                                 <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
-                                <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '130px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
-                                  <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Chờ xử lý</button>
-                                  <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Đang giao</button>
-                                  <button onClick={() => { updateOrderStatus(o.id, 'completed', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.5rem 1rem', background: 'none', border: 'none', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--success)' }} className="hover-bg">Về Hoàn thành</button>
+                                <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '150px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
+                                  <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Chờ xử lý</button>
+                                  <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Đang giao</button>
+                                  <button onClick={() => { updateOrderStatus(o.id, 'completed', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--success)' }} className="hover-bg">Hoàn thành</button>
                                 </div>
                               </>
                             )}
                           </div>
                         )}
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   );
                 })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* MOBILE CARD VIEW */}
-          <div className="mobile-only">
-            <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {filteredOrders.map(o => {
-                const statusInfo = STATUS_CONFIG[o.status] || STATUS_CONFIG.pending;
-                const payInfo = PAYMENT_CONFIG[o.payment_status] || PAYMENT_CONFIG.unpaid;
-                return (
-                  <div key={o.id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 800, color: 'var(--primary)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        #{o.id}
-                        <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditModal(o)} title="Sửa thông tin">
-                          <Edit size={16} />
-                        </button>
-                      </span>
-                      <span className="text-xs text-muted">{new Date(o.created_at).toLocaleString('vi-VN')}</span>
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <div 
-                        style={{ fontWeight: 700, cursor: 'pointer', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
-                        onClick={() => openEditModal(o)}
-                        title="Sửa thông tin"
-                      >
-                        {o.customer_name} <Edit size={14} style={{ opacity: 0.5 }} />
-                      </div>
-                      <div className="text-sm text-muted">{o.customer_phone}</div>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface2)', padding: '0.5rem 0.75rem', borderRadius: 'var(--r-sm)' }}>
-                      <span className="text-sm font-semibold">Tổng tiền:</span>
-                      <span style={{ fontWeight: 800, color: 'var(--text)' }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</span>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <span className="badge" style={{ background: statusInfo.bg, color: statusInfo.color, display: 'flex', alignItems: 'center', gap: '.25rem' }}>
-                        {statusInfo.icon} {statusInfo.label}
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '.25rem', fontSize: '.75rem', color: payInfo.color, fontWeight: 600, background: 'var(--surface2)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-full)' }}>
-                        {payInfo.icon} {payInfo.label}
-                      </span>
-                    </div>
-
-                    <div style={{ marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px dashed var(--border-light)', display: 'flex', gap: '0.5rem' }}>
-                      {o.status === 'pending' && (
-                        <>
-                          <button className="btn btn-primary btn-sm" onClick={() => updateOrderStatus(o.id, 'shipping', o.payment_status)} style={{ flex: 1, padding: '.6rem' }}>
-                            <Truck size={14} /> Giao Shiper
-                          </button>
-                          <button className="btn btn-ghost btn-icon" style={{ color: 'var(--danger)', background: 'var(--danger-bg)' }} onClick={() => updateOrderStatus(o.id, 'cancelled', o.payment_status)}>
-                            <XCircle size={16} />
-                          </button>
-                        </>
-                      )}
-                      {o.status === 'shipping' && (
-                        <>
-                          <button className="btn btn-success btn-sm" onClick={() => updateOrderStatus(o.id, 'completed', o.payment_status)} style={{ flex: 1, padding: '.6rem', background: 'var(--success)', borderColor: 'var(--success)' }}>
-                            <CheckCircle size={14} /> Hoàn Thành
-                          </button>
-                          <button className="btn btn-ghost btn-icon" style={{ color: 'var(--danger)', background: 'var(--danger-bg)' }} onClick={() => updateOrderStatus(o.id, 'cancelled', o.payment_status)}>
-                            <XCircle size={16} />
-                          </button>
-                        </>
-                      )}
-                      {o.status === 'completed' && (
-                        <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
-                          <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', width: '100%', fontSize: '0.8rem', padding: '0.6rem', color: 'var(--text-muted)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
-                            Sửa trạng thái <ChevronDown size={14} style={{ marginLeft: 4 }} />
-                          </button>
-                          {activeDropdown === o.id && (
-                            <>
-                              <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
-                              <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '150px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
-                                <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Chờ xử lý</button>
-                                <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Đang giao</button>
-                                <button onClick={() => { updateOrderStatus(o.id, 'cancelled', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--danger)' }} className="hover-bg">Hủy đơn</button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      {o.status === 'cancelled' && (
-                        <div style={{ position: 'relative', flex: 1, display: 'flex', justifyContent: 'center' }}>
-                          <button className="btn btn-ghost btn-sm" style={{ border: '1px solid var(--border)', width: '100%', fontSize: '0.8rem', padding: '0.6rem', color: 'var(--danger)' }} onClick={() => setActiveDropdown(activeDropdown === o.id ? null : o.id)}>
-                            Phục hồi đơn <ChevronDown size={14} style={{ marginLeft: 4 }} />
-                          </button>
-                          {activeDropdown === o.id && (
-                            <>
-                              <div style={{ position: 'fixed', inset: 0, zIndex: 9 }} onClick={() => setActiveDropdown(null)}></div>
-                              <div style={{ position: 'absolute', right: 0, top: '110%', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', boxShadow: 'var(--shadow-md)', zIndex: 10, minWidth: '150px', overflow: 'hidden', padding: '0.25rem 0' }} className="anim-scale-in">
-                                <button onClick={() => { updateOrderStatus(o.id, 'pending', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Chờ xử lý</button>
-                                <button onClick={() => { updateOrderStatus(o.id, 'shipping', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--text)' }} className="hover-bg">Về Đang giao</button>
-                                <button onClick={() => { updateOrderStatus(o.id, 'completed', o.payment_status); setActiveDropdown(null); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem 1rem', background: 'none', border: 'none', fontSize: '0.85rem', cursor: 'pointer', color: 'var(--success)' }} className="hover-bg">Về Hoàn thành</button>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+              </div>
             </div>
-          </div>
           </>
         )}
       </div>
@@ -518,15 +518,15 @@ export default function Orders() {
                 <h3 style={{ fontSize: '1.05rem', borderBottom: '2px solid var(--primary-light)', paddingBottom: '0.5rem', color: 'var(--primary)', margin: 0 }}>Thông tin Khách hàng</h3>
                 <div className="form-group">
                   <label className="form-label">Tên khách hàng <span className="text-danger">*</span></label>
-                  <input className="form-control" value={editForm.customer_name} onChange={e => setEditForm({...editForm, customer_name: e.target.value})} />
+                  <input className="form-control" value={editForm.customer_name} onChange={e => setEditForm({ ...editForm, customer_name: e.target.value })} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Số điện thoại <span className="text-danger">*</span></label>
-                  <input 
+                  <input
                     type="tel"
-                    className="form-control" 
-                    value={editForm.customer_phone} 
-                    onChange={e => setEditForm({...editForm, customer_phone: e.target.value})} 
+                    className="form-control"
+                    value={editForm.customer_phone}
+                    onChange={e => setEditForm({ ...editForm, customer_phone: e.target.value })}
                     style={{ borderColor: !editForm.customer_phone ? 'var(--danger)' : undefined }}
                     placeholder="Bắt buộc nhập số điện thoại..."
                     required
@@ -534,21 +534,21 @@ export default function Orders() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Địa chỉ giao hàng</label>
-                  <AddressSelect 
-                    value={editForm.customer_address} 
-                    onChange={addr => setEditForm({...editForm, customer_address: addr})} 
+                  <AddressSelect
+                    value={editForm.customer_address}
+                    onChange={addr => setEditForm({ ...editForm, customer_address: addr })}
                   />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Phí giao hàng (VNĐ)</label>
-                  <input className="form-control" type="number" value={editForm.shipping_fee} onChange={e => setEditForm({...editForm, shipping_fee: e.target.value})} />
+                  <input className="form-control" type="number" value={editForm.shipping_fee} onChange={e => setEditForm({ ...editForm, shipping_fee: e.target.value })} />
                 </div>
               </div>
 
               {/* Cột phải: Sản phẩm */}
               <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <h3 style={{ fontSize: '1.05rem', borderBottom: '2px solid var(--primary-light)', paddingBottom: '0.5rem', color: 'var(--primary)', margin: 0 }}>Chi tiết Sản phẩm</h3>
-                
+
                 {loadingItems ? (
                   <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Đang tải sản phẩm...</div>
                 ) : (

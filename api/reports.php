@@ -82,7 +82,10 @@ if ($method === 'GET') {
         $stmtTop = $pdo->prepare("
             SELECT 
                 p.name, 
-                SUM(oi.quantity) as sales, 
+                p.unit,
+                SUM(CASE WHEN oi.sell_type = 'chai' THEN oi.quantity ELSE 0 END) as chai_sales,
+                SUM(CASE WHEN oi.sell_type = 'ml' THEN oi.quantity ELSE 0 END) as ml_sales,
+                SUM(CASE WHEN oi.sell_type NOT IN ('chai', 'ml') THEN oi.quantity ELSE 0 END) as other_sales,
                 SUM(oi.subtotal) as revenue,
                 SUM(oi.subtotal - (oi.cost_per_unit * oi.quantity)) as profit
             FROM order_items oi
@@ -90,7 +93,7 @@ if ($method === 'GET') {
             JOIN products p ON b.product_id = p.id
             JOIN orders o ON oi.order_id = o.id
             WHERE o.created_at BETWEEN :start AND :end AND o.status != 'cancelled' AND o.payment_status = 'paid'
-            GROUP BY p.id
+            GROUP BY p.id, p.name, p.unit
             ORDER BY revenue DESC
             LIMIT 5
         ");

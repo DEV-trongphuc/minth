@@ -260,14 +260,27 @@ export default function Dashboard() {
           <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Sản phẩm bán chạy</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
             {topProducts.length === 0 && <div className="text-muted text-sm" style={{ padding: '1rem', textAlign: 'center' }}>Chưa có dữ liệu</div>}
-            {topProducts.map((p, i) => (
+            {topProducts.map((p, i) => {
+              let salesText = [];
+              const chaiSales = Number(p.chai_sales) || 0;
+              const mlSales = Number(p.ml_sales) || 0;
+              const otherSales = Number(p.other_sales) || 0;
+              const unit = p.unit || 'chai';
+              
+              if (chaiSales > 0) salesText.push(`${chaiSales} ${unit}`);
+              if (otherSales > 0) salesText.push(`${otherSales} ${unit}`);
+              if (mlSales > 0) salesText.push(`${mlSales} ml`);
+              
+              const displaySales = salesText.length > 0 ? salesText.join(' + ') : '0';
+
+              return (
               <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: '1rem', paddingBottom: '.75rem', borderBottom: i < topProducts.length - 1 ? '1px solid var(--border)' : 'none' }}>
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: ['var(--primary-light)', 'var(--success-bg)', 'var(--warning-bg)'][i % 3] || 'var(--surface2)', color: ['var(--primary)', 'var(--success)', 'var(--warning)'][i % 3] || 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '.8rem', flexShrink: 0 }}>
                   {i + 1}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                  <div className="text-xs text-muted">{p.sales} lần bán</div>
+                  <div className="text-xs text-muted">{displaySales} đã bán</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontWeight: 700, fontSize: '.875rem', color: 'var(--text)' }}>
@@ -278,7 +291,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
 
