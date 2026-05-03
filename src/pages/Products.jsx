@@ -100,7 +100,6 @@ export default function Products() {
         <div className="page-actions">
           <button className="btn btn-primary" onClick={openAdd}><Plus size={17} /> Thêm Sản phẩm</button>
         </div>
-        </div>
       </div>
 
       {/* Summary Stats */}

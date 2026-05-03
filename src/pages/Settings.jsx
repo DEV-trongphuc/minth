@@ -180,7 +180,7 @@ export default function Settings() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
                   <div style={{ width: '120px', height: '120px', borderRadius: '50%', background: 'var(--surface2)', border: '4px solid var(--surface)', boxShadow: 'var(--shadow-md)', overflow: 'hidden', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = ''; setAvatarUrl(''); }} />
+                      <img src={avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; setAvatarUrl(''); }} />
                     ) : (
                       <User size={48} color="var(--border-dark)" />
                     )}

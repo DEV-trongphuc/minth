@@ -108,7 +108,7 @@ const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
       {/* Footer */}
       <div className="sidebar-footer">
         {currentUser.avatar ? (
-          <img src={currentUser.avatar} alt="Avatar" className="sidebar-footer-avatar" style={{ objectFit: 'cover' }} onError={(e) => { e.target.src = ''; e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+          <img src={currentUser.avatar} alt="Avatar" className="sidebar-footer-avatar" style={{ objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
         ) : null}
         <div className="sidebar-footer-avatar" style={{ display: currentUser.avatar ? 'none' : 'flex' }}>
           AD
