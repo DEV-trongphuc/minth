@@ -287,15 +287,15 @@ export default function Orders() {
           <Search size={16} color="var(--text-light)" />
           <input className="form-control" placeholder="Tìm theo mã đơn, SĐT hoặc Tên khách..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        {/* Unified Filter Tabs for all screens */}
-        <div className="mobile-scroll-x hide-scrollbar" style={{ display: 'flex', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', overflowX: 'auto', flexShrink: 0, maxWidth: '100%' }}>
+        {/* Premium Segmented Control Tabs */}
+        <div className="mobile-scroll-x hide-scrollbar" style={{ display: 'flex', background: 'var(--surface2)', padding: '0.35rem', borderRadius: '10px', overflowX: 'auto', flexShrink: 0, maxWidth: '100%', gap: '0.25rem', border: '1px solid var(--border-light)' }}>
           {[
             { id: 'all', label: 'Tất cả' },
             { id: 'pending', label: 'Chờ xử lý' },
             { id: 'shipping', label: 'Đang giao' },
             { id: 'completed', label: 'Hoàn thành' }
           ].map(t => (
-            <button key={t.id} onClick={() => setStatusFilter(t.id)} style={{ padding: '.45rem .875rem', border: 'none', cursor: 'pointer', fontFamily: 'Outfit', fontSize: '.825rem', fontWeight: 600, transition: 'all .2s', background: statusFilter === t.id ? 'var(--primary)' : 'transparent', color: statusFilter === t.id ? '#fff' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+            <button key={t.id} onClick={() => setStatusFilter(t.id)} style={{ padding: '.45rem 1rem', border: 'none', borderRadius: '6px', cursor: 'pointer', fontFamily: 'Outfit', fontSize: '.85rem', fontWeight: 600, transition: 'all .2s', background: statusFilter === t.id ? 'var(--surface)' : 'transparent', color: statusFilter === t.id ? 'var(--primary)' : 'var(--text-muted)', boxShadow: statusFilter === t.id ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: 0 }}>
               {t.label}
             </button>
           ))}
