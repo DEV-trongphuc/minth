@@ -147,17 +147,85 @@ if ($method === 'GET') {
         $stmtCost->execute([':start' => $startDate, ':end' => $endDate]);
         $opCost = $stmtCost->fetchColumn() ?: 0;
 
+        // 8. Top Customers
+        $stmtTopCustomers = $pdo->prepare("
+            SELECT 
+                c.name, 
+                c.customer_tier,
+                SUM(o.total_amount) as total_spent,
+                COUNT(o.id) as total_orders
+            FROM orders o
+            JOIN customers c ON o.customer_id = c.id
+            WHERE o.created_at BETWEEN :start AND :end AND o.status != 'cancelled' AND o.payment_status = 'paid'
+            GROUP BY c.id
+            ORDER BY total_spent DESC
+            LIMIT 5
+        ");
+        $stmtTopCustomers->execute([':start' => $startDate, ':end' => $endDate]);
+        $topCustomers = $stmtTopCustomers->fetchAll();
+
+        // 9. Recent Orders
+        $stmtRecent = $pdo->prepare("
+            SELECT o.id, o.customer_name, o.final_amount, o.status, o.created_at, o.payment_status
+            FROM orders o
+            WHERE o.created_at BETWEEN :start AND :end
+            ORDER BY o.created_at DESC
+            LIMIT 5
+        ");
+        $stmtRecent->execute([':start' => $startDate, ':end' => $endDate]);
+        $recentOrders = $stmtRecent->fetchAll();
+
+        // 10. Geographic Sales
+        $stmtGeo = $pdo->prepare("
+            SELECT 
+                CASE 
+                    WHEN LOWER(c.address) LIKE '%hồ chí minh%' OR LOWER(c.address) LIKE '%hcm%' THEN 'Hồ Chí Minh'
+                    WHEN LOWER(c.address) LIKE '%hà nội%' OR LOWER(c.address) LIKE '%hn%' THEN 'Hà Nội'
+                    WHEN LOWER(c.address) LIKE '%đà nẵng%' THEN 'Đà Nẵng'
+                    WHEN c.address IS NULL OR c.address = '' THEN 'Chưa cập nhật'
+                    ELSE 'Tỉnh/Thành khác'
+                END as region,
+                SUM(o.total_amount) as revenue,
+                COUNT(o.id) as order_count
+            FROM orders o
+            LEFT JOIN customers c ON o.customer_id = c.id
+            WHERE o.created_at BETWEEN :start AND :end AND o.status != 'cancelled' AND o.payment_status = 'paid'
+            GROUP BY region
+            ORDER BY revenue DESC
+        ");
+        $stmtGeo->execute([':start' => $startDate, ':end' => $endDate]);
+        $geoSales = $stmtGeo->fetchAll();
+
+        // 11. Pending Orders Count
+        $stmtPending = $pdo->prepare("SELECT COUNT(id) FROM orders WHERE status = 'pending'");
+        $stmtPending->execute();
+        $pendingOrders = (int)$stmtPending->fetchColumn();
+
+        // Calculations
+        $totalRev = (float)$stats['total_revenue'];
+        $totalOrd = (int)$stats['total_orders'];
+        $grossProfit = (float)$stats['gross_profit'];
+        
+        $aov = $totalOrd > 0 ? ($totalRev / $totalOrd) : 0;
+        $profitMargin = $totalRev > 0 ? ($grossProfit / $totalRev) * 100 : 0;
+
         echo json_encode([
-            "revenue" => (float)($stats['total_revenue'] ?? 0),
-            "profit" => (float)($stats['gross_profit'] ?? 0),
-            "orders" => (int)($stats['total_orders'] ?? 0),
+            "total_revenue" => $totalRev,
+            "gross_profit" => $grossProfit,
+            "total_orders" => $totalOrd,
+            "pending_orders" => $pendingOrders,
+            "total_shipping" => (float)$totalShipping,
+            "op_cost" => (float)$opCost,
+            "aov" => $aov,
+            "profit_margin" => $profitMargin,
             "chart_data" => $chartData,
             "donut_data" => $donutData,
             "top_products" => $topProducts,
             "low_stock" => $lowStock,
             "expiring_soon" => $expiringSoon,
-            "shipping_fee" => (float)$totalShipping,
-            "operational_cost" => (float)$opCost,
+            "top_customers" => $topCustomers,
+            "recent_orders" => $recentOrders,
+            "geo_sales" => $geoSales,
             "filter" => $filter,
             "period" => "$startDate to $endDate"
         ]);
