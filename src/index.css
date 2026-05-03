@@ -212,6 +212,7 @@ body {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -262,7 +263,7 @@ body {
 .topbar {
   background: var(--surface);
   border-bottom: 1px solid var(--border-light);
-  padding: 0 1.75rem;
+  padding: 10px 1.75rem;
   height: 64px;
   display: flex;
   align-items: center;
