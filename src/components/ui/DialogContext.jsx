@@ -34,7 +34,7 @@ export const DialogProvider = ({ children }) => {
               {dialog.uiType === 'info' && 'ℹ️'}
             </div>
             <h3 className="dialog-title">{dialog.title}</h3>
-            <p className="dialog-message">{dialog.message}</p>
+            <div className="dialog-message">{dialog.message}</div>
             <div className="dialog-actions">
               {dialog.type === 'confirm' && (
                 <button className="btn btn-secondary" onClick={() => closeDialog(dialog.id)}>Hủy</button>

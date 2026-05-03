@@ -28,6 +28,7 @@ export default function Orders() {
   const [editingOrder, setEditingOrder] = useState(null);
   const [editForm, setEditForm] = useState({ customer_name: '', customer_phone: '', customer_address: '', total_amount: 0, shipping_fee: 0, final_amount: 0 });
   const [cart, setCart] = useState([]);
+  const [originalCart, setOriginalCart] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
   const [batches, setBatches] = useState([]);
   const [searchBatch, setSearchBatch] = useState('');
@@ -79,7 +80,7 @@ export default function Orders() {
       const res = await fetch(`${API_BASE_URL}/orders.php?action=get_items&order_id=${order.id}`);
       if (res.ok) {
         const items = await res.json();
-        setCart(items.map(i => ({
+        const parsedItems = items.map(i => ({
           id: Math.random(),
           batch_id: i.batch_id,
           product_name: i.product_name,
@@ -88,7 +89,9 @@ export default function Orders() {
           quantity: Number(i.quantity),
           price: Number(i.price_per_unit),
           ml_per_unit: Number(i.ml_per_unit)
-        })));
+        }));
+        setCart(parsedItems);
+        setOriginalCart(parsedItems.map(item => ({...item})));
       } else {
         showAlert('Lỗi', 'Không thể tải danh sách sản phẩm', 'danger');
       }
@@ -110,31 +113,75 @@ export default function Orders() {
     const shipping_fee = Number(editForm.shipping_fee) || 0;
     const final_amount = total_amount + shipping_fee;
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/orders.php`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: editingOrder.id,
-          action: 'update_info',
-          customer_name: editForm.customer_name,
-          customer_phone: editForm.customer_phone,
-          customer_address: editForm.customer_address,
-          total_amount,
-          shipping_fee,
-          final_amount,
-          cart
-        })
-      });
-      if (res.ok) {
-        showAlert('Thành công', 'Cập nhật thông tin đơn hàng thành công!', 'success');
-        setEditingOrder(null);
-        fetchOrders();
-      } else {
-        showAlert('Lỗi', 'Không thể cập nhật thông tin', 'danger');
+    // Calculate diffs
+    const diffs = [];
+    originalCart.forEach(orig => {
+      const current = cart.find(c => c.batch_id === orig.batch_id && c.sell_type === orig.sell_type);
+      if (!current) {
+        diffs.push({ name: orig.product_name, type: orig.sell_type, diff: -orig.quantity });
+      } else if (current.quantity !== orig.quantity) {
+        diffs.push({ name: orig.product_name, type: orig.sell_type, diff: current.quantity - orig.quantity });
       }
-    } catch {
-      showAlert('Lỗi kết nối', 'Không thể kết nối đến máy chủ', 'danger');
+    });
+    cart.forEach(curr => {
+      const existed = originalCart.find(o => o.batch_id === curr.batch_id && o.sell_type === curr.sell_type);
+      if (!existed) {
+        diffs.push({ name: curr.product_name, type: curr.sell_type, diff: curr.quantity });
+      }
+    });
+
+    const execSave = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/orders.php`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingOrder.id,
+            action: 'update_info',
+            customer_name: editForm.customer_name,
+            customer_phone: editForm.customer_phone,
+            customer_address: editForm.customer_address,
+            total_amount,
+            shipping_fee,
+            final_amount,
+            cart
+          })
+        });
+        if (res.ok) {
+          showAlert('Thành công', 'Cập nhật thông tin đơn hàng thành công!', 'success');
+          setEditingOrder(null);
+          fetchOrders();
+        } else {
+          showAlert('Lỗi', 'Không thể cập nhật thông tin', 'danger');
+        }
+      } catch {
+        showAlert('Lỗi kết nối', 'Không thể kết nối đến máy chủ', 'danger');
+      }
+    };
+
+    if (diffs.length === 0) {
+      execSave();
+    } else {
+      const summaryMsg = (
+        <div style={{ textAlign: 'left', marginTop: '1rem' }}>
+          <p style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text)' }}>Tóm tắt thay đổi số lượng:</p>
+          <ul style={{ paddingLeft: '1.25rem', listStyleType: 'disc' }}>
+            {diffs.map((d, i) => (
+              <li key={i} style={{ color: d.diff > 0 ? 'var(--danger)' : 'var(--success)', marginBottom: '0.4rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                <span style={{ color: 'var(--text)' }}>{d.name} ({d.type}):</span> 
+                <span style={{ marginLeft: '0.5rem', display: 'inline-block', minWidth: '40px' }}>
+                  {d.diff > 0 ? '+' : ''}{d.diff}
+                </span>
+                <span style={{ fontSize: '0.75rem', opacity: 0.8, marginLeft: '0.2rem', color: 'var(--text-muted)' }}>
+                  {d.diff > 0 ? '(Sẽ trừ vào kho)' : '(Sẽ hoàn lại kho)'}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Tiếp tục lưu và tự động xử lý tồn kho?</p>
+        </div>
+      );
+      showConfirm('Xác nhận thay đổi', summaryMsg, execSave, 'primary');
     }
   };
 

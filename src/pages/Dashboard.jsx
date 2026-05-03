@@ -216,9 +216,9 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
         {/* Line chart */}
-        <div className="card" style={{ gridColumn: 'span 2' }}>
+        <div className="card" style={{ flex: '2 1 500px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '.5rem' }}>
             <div>
               <h3 style={{ fontWeight: 700 }}>Doanh thu & Lợi nhuận</h3>
@@ -237,7 +237,7 @@ export default function Dashboard() {
         </div>
 
         {/* Donut */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="card" style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ fontWeight: 700, marginBottom: '.25rem' }}>Cơ cấu bán hàng</h3>
           <p className="text-sm text-muted" style={{ marginBottom: '1rem' }}>Phân bổ theo hình thức bán</p>
           <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -247,9 +247,9 @@ export default function Dashboard() {
       </div>
 
       {/* Products & Costs Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
-        {/* Top Products (70%) */}
-        <div className="card">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
+        {/* Top Products */}
+        <div className="card" style={{ flex: '1 1 350px' }}>
           <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Sản phẩm bán chạy</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
             {topProducts.length === 0 && <div className="text-muted text-sm" style={{ padding: '1rem', textAlign: 'center' }}>Chưa có dữ liệu</div>}
@@ -288,8 +288,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Operational Costs (30%) */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* Operational Costs */}
+        <div className="card" style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Chi phí & Dòng tiền khác</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1, justifyContent: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'var(--info-bg, #eff6ff)', borderRadius: 'var(--r-sm)' }}>
@@ -312,10 +312,10 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Alerts Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-        {/* Low Stock Alert */}
-        <div className="card" style={{ borderLeft: `4px solid ${(report.low_stock || []).length === 0 ? 'var(--success)' : 'var(--warning)'}` }}>
+      {/* Low Stock & Expiring Row */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
+        {/* Low Stock */}
+        <div className="card" style={{ flex: '1 1 350px', borderLeft: `4px solid ${(report.low_stock || []).length === 0 ? 'var(--success)' : 'var(--warning)'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '.625rem', marginBottom: '1rem' }}>
             <Package size={20} color={(report.low_stock || []).length === 0 ? 'var(--success)' : 'var(--warning-dark)'} />
             <h3 style={{ fontWeight: 700, color: (report.low_stock || []).length === 0 ? 'var(--success)' : 'var(--warning-dark)' }}>Sắp hết hàng ({report.low_stock?.length || 0})</h3>
@@ -335,8 +335,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Expiring Soon Alert */}
-        <div className="card" style={{ borderLeft: `4px solid ${(report.expiring_soon || []).length === 0 ? 'var(--success)' : 'var(--danger)'}` }}>
+        {/* Expiring Soon */}
+        <div className="card" style={{ flex: '1 1 350px', borderLeft: `4px solid ${(report.expiring_soon || []).length === 0 ? 'var(--success)' : 'var(--danger)'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '.625rem', marginBottom: '1rem' }}>
             <Clock size={20} color={(report.expiring_soon || []).length === 0 ? 'var(--success)' : 'var(--danger)'} />
             <h3 style={{ fontWeight: 700, color: (report.expiring_soon || []).length === 0 ? 'var(--success)' : 'var(--danger)' }}>Sắp hết hạn ({report.expiring_soon?.length || 0})</h3>
