@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Package, Plus, Edit, Trash2, Search, Droplets, Box, Layers } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Search, Droplets, Box, Layers, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
 
@@ -99,6 +99,32 @@ export default function Products() {
         </div>
         <div className="page-actions">
           <button className="btn btn-primary" onClick={openAdd}><Plus size={17} /> Thêm Sản phẩm</button>
+        </div>
+        </div>
+      </div>
+
+      {/* Summary Stats */}
+      <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+        <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--border)', flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ width: 48, height: 48, borderRadius: '12px', background: 'var(--primary-bg)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Package size={24} />
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.2rem' }}>Tổng sản phẩm</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{products.length}</div>
+          </div>
+        </div>
+        
+        <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--border)', flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: '1rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ width: 48, height: 48, borderRadius: '12px', background: 'var(--danger-bg)', color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.2rem' }}>Hết sạch hàng</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--danger)' }}>
+              {products.filter(p => !(Number(p.total_qty || 0) > 0 || Number(p.total_ml || 0) > 0)).length} <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>/ {products.length}</span>
+            </div>
+          </div>
         </div>
       </div>
 

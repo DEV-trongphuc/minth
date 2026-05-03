@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Package, Plus, Edit, Trash2, LayoutGrid, List, Search, Filter, History, Share, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, LayoutGrid, List, Search, Filter, History, Share, Clock, CheckCircle, AlertTriangle, ChevronDown } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +20,9 @@ export default function Inventory() {
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'card'
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState('date_desc');
+  const [isSortByOpen, setIsSortByOpen] = useState(false);
   const { showConfirm, showAlert } = useDialog();
 
   const [form, setForm] = useState({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '' });
@@ -243,18 +245,41 @@ export default function Inventory() {
           <Search size={16} color="var(--text-light)" />
           <input className="form-control" placeholder="Tìm sản phẩm hoặc mã lô..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <select className="form-control" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ width: 'auto', minWidth: '150px' }}>
-          <option value="all">Tất cả trạng thái</option>
-          <option value="in_stock">Còn hàng</option>
-          <option value="low_stock">Sắp hết</option>
-          <option value="out_of_stock">Hết hàng</option>
-        </select>
-        <select className="form-control" value={sortBy} onChange={e => setSortBy(e.target.value)} style={{ width: 'auto', minWidth: '150px' }}>
-          <option value="date_desc">Mới nhất trước</option>
-          <option value="date_asc">Cũ nhất trước</option>
-          <option value="status_asc">Ưu tiên Hết/Sắp hết</option>
-          <option value="status_desc">Ưu tiên Còn hàng</option>
-        </select>
+        <div style={{ position: 'relative', minWidth: '180px', flex: '0 1 auto' }} tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsStatusFilterOpen(false); }}>
+          <div onClick={() => setIsStatusFilterOpen(!isStatusFilterOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', fontWeight: 600 }}>
+            <span>{
+              statusFilter === 'all' ? 'Tất cả trạng thái' :
+              statusFilter === 'in_stock' ? 'Còn hàng' :
+              statusFilter === 'low_stock' ? 'Sắp hết' : 'Hết hàng'
+            }</span>
+            <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: isStatusFilterOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+          </div>
+          {isStatusFilterOpen && (
+            <div className="anim-fade-up" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, minWidth: '100%', background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 50, padding: '0.4rem', width: 'max-content' }}>
+              {[{v:'all', l:'Tất cả trạng thái'}, {v:'in_stock', l:'Còn hàng'}, {v:'low_stock', l:'Sắp hết'}, {v:'out_of_stock', l:'Hết hàng'}].map(o => (
+                <button key={o.v} onClick={() => { setStatusFilter(o.v); setIsStatusFilterOpen(false); }} style={{ width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: statusFilter === o.v ? 'var(--primary-bg)' : 'transparent', color: statusFilter === o.v ? 'var(--primary-dark)' : 'var(--text)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: statusFilter === o.v ? 600 : 500, fontSize: '0.9rem' }} onMouseEnter={e => { if (statusFilter !== o.v) e.target.style.background = 'var(--surface2)' }} onMouseLeave={e => { if (statusFilter !== o.v) e.target.style.background = 'transparent' }}>{o.l}</button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ position: 'relative', minWidth: '200px', flex: '0 1 auto' }} tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsSortByOpen(false); }}>
+          <div onClick={() => setIsSortByOpen(!isSortByOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', fontWeight: 600 }}>
+            <span>{
+              sortBy === 'date_desc' ? 'Mới nhất trước' :
+              sortBy === 'date_asc' ? 'Cũ nhất trước' :
+              sortBy === 'status_asc' ? 'Ưu tiên Hết/Sắp hết' : 'Ưu tiên Còn hàng'
+            }</span>
+            <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: isSortByOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+          </div>
+          {isSortByOpen && (
+            <div className="anim-fade-up" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, minWidth: '100%', background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 50, padding: '0.4rem', width: 'max-content' }}>
+              {[{v:'date_desc', l:'Mới nhất trước'}, {v:'date_asc', l:'Cũ nhất trước'}, {v:'status_asc', l:'Ưu tiên Hết/Sắp hết'}, {v:'status_desc', l:'Ưu tiên Còn hàng'}].map(o => (
+                <button key={o.v} onClick={() => { setSortBy(o.v); setIsSortByOpen(false); }} style={{ width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: sortBy === o.v ? 'var(--primary-bg)' : 'transparent', color: sortBy === o.v ? 'var(--primary-dark)' : 'var(--text)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: sortBy === o.v ? 600 : 500, fontSize: '0.9rem' }} onMouseEnter={e => { if (sortBy !== o.v) e.target.style.background = 'var(--surface2)' }} onMouseLeave={e => { if (sortBy !== o.v) e.target.style.background = 'transparent' }}>{o.l}</button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Content */}
