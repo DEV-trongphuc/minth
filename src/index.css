@@ -209,6 +209,14 @@ body {
   display: none;
 }
 
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Chrome */
 
 .mobile-only,
@@ -216,7 +224,7 @@ body {
   display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .desktop-only {
     display: none !important;
   }
@@ -228,9 +236,7 @@ body {
   .mobile-only-flex {
     display: flex;
   }
-}
 
-@media (max-width: 1023px) {
   .sidebar {
     transform: translateX(-100%);
   }

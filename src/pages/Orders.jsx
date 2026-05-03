@@ -240,8 +240,8 @@ export default function Orders() {
           <Search size={16} color="var(--text-light)" />
           <input className="form-control" placeholder="Tìm theo mã đơn, SĐT hoặc Tên khách..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        {/* Desktop Filter */}
-        <div className="desktop-only" style={{ display: 'flex', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', overflow: 'hidden', flexShrink: 0 }}>
+        {/* Unified Filter Tabs for all screens */}
+        <div className="mobile-scroll-x hide-scrollbar" style={{ display: 'flex', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', overflowX: 'auto', flexShrink: 0, maxWidth: '100%' }}>
           {[
             { id: 'all', label: 'Tất cả' },
             { id: 'pending', label: 'Chờ xử lý' },
@@ -252,18 +252,6 @@ export default function Orders() {
               {t.label}
             </button>
           ))}
-        </div>
-
-        {/* Mobile Filter Dropdown */}
-        <div className="mobile-only" style={{ width: '100%' }}>
-          <select className="form-control" value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ width: '100%', padding: '0.65rem 1rem', fontWeight: 600, background: 'var(--surface)', border: '1.5px solid var(--border)' }}>
-            {[
-              { id: 'all', label: 'Tất cả' },
-              { id: 'pending', label: 'Chờ xử lý' },
-              { id: 'shipping', label: 'Đang giao' },
-              { id: 'completed', label: 'Hoàn thành' }
-            ].map(t => <option key={t.id} value={t.id}>Trạng thái: {t.label}</option>)}
-          </select>
         </div>
       </div>
 

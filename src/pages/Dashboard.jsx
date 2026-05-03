@@ -150,21 +150,14 @@ export default function Dashboard() {
 
         {/* Filter bar */}
         <div style={{ display: 'flex', gap: '.5rem', alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
-          {/* Desktop Filter */}
-          <div className="desktop-only" style={{ display: 'flex', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', overflow: 'hidden', flexShrink: 0 }}>
+          {/* Unified Filter Tabs */}
+          <div className="mobile-scroll-x hide-scrollbar" style={{ display: 'flex', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', overflowX: 'auto', flexShrink: 0, maxWidth: '100%' }}>
             {FILTERS.map(f => (
               <button key={f.value} onClick={() => { setFilter(f.value); }}
                 style={{ padding: '.5rem .875rem', border: 'none', cursor: 'pointer', fontFamily: 'Outfit', fontSize: '.825rem', fontWeight: 600, transition: 'all .2s', background: filter === f.value ? 'var(--primary)' : 'transparent', color: filter === f.value ? '#fff' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                 {f.label}
               </button>
             ))}
-          </div>
-
-          {/* Mobile Filter Dropdown */}
-          <div className="mobile-only" style={{ width: '100%' }}>
-            <select className="form-control" value={filter} onChange={e => setFilter(e.target.value)} style={{ width: '100%', padding: '0.65rem 1rem', fontWeight: 600, background: 'var(--surface)', border: '1.5px solid var(--border)' }}>
-              {FILTERS.map(f => <option key={f.value} value={f.value}>Thời gian: {f.label}</option>)}
-            </select>
           </div>
 
           {filter === 'custom' && (
