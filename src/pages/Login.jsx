@@ -60,11 +60,11 @@ const Login = () => {
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div className="search-wrap">
             <User size={18} color="var(--text-light)" />
-            <input type="text" className="form-control" placeholder="Tài khoản" required value={username} onChange={e => setUsername(e.target.value)} />
+            <input type="text" className="form-control" placeholder="Tài khoản" required autoComplete="username" value={username} onChange={e => setUsername(e.target.value)} />
           </div>
           <div className="search-wrap">
             <Lock size={18} color="var(--text-light)" />
-            <input type="password" className="form-control" placeholder="Mật khẩu" required value={password} onChange={e => setPassword(e.target.value)} />
+            <input type="password" className="form-control" placeholder="Mật khẩu" required autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} />
           </div>
           <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem', padding: '0.875rem', fontSize: '1rem' }} disabled={loading}>
             {loading ? 'Đang xử lý...' : 'Đăng nhập'}
