@@ -19,7 +19,7 @@ const FILTERS = [
 ];
 
 export default function Dashboard() {
-  const [filter, setFilter] = useState('7days');
+  const [filter, setFilter] = useState('thismonth');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');

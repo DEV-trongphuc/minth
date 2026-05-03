@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Package, Plus, Edit, Trash2, LayoutGrid, List, Search, Filter, History, Share, Clock, CheckCircle, AlertTriangle, ChevronDown, DollarSign, CalendarDays, Droplets } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, LayoutGrid, List, Search, Filter, History, Share, Clock, CheckCircle, AlertTriangle, ChevronDown, DollarSign, CalendarDays, Droplets, TrendingUp, Layers } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
 import { useNavigate } from 'react-router-dom';
@@ -23,6 +23,8 @@ export default function Inventory() {
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState('date_desc');
   const [isSortByOpen, setIsSortByOpen] = useState(false);
+  const [invFilter, setInvFilter] = useState('thismonth');
+  const [isInvFilterOpen, setIsInvFilterOpen] = useState(false);
   const { showConfirm, showAlert } = useDialog();
 
   const [form, setForm] = useState({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '' });
@@ -215,6 +217,31 @@ export default function Inventory() {
     } catch {}
   };
 
+  const now = new Date();
+  const invFilteredBatches = batches.filter(b => {
+    if (!b.import_date) return false;
+    const d = new Date(b.import_date);
+    if (invFilter === 'thismonth') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    if (invFilter === 'lastmonth') {
+      const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      return d.getFullYear() === lm.getFullYear() && d.getMonth() === lm.getMonth();
+    }
+    if (invFilter === '30days') return (now - d) / 86400000 <= 30;
+    if (invFilter === '7days') return (now - d) / 86400000 <= 7;
+    return true; // all
+  });
+  const invTotalBatches = invFilteredBatches.length;
+  const invTotalCapital = invFilteredBatches.reduce((s, b) => s + (Number(b.import_price) * Number(b.initial_qty)), 0);
+  const invOutOfStock = invFilteredBatches.filter(b => b.current_qty <= 0 && b.current_ml <= 0).length;
+
+  const INV_FILTERS = [
+    { v: 'thismonth', l: 'Tháng này' },
+    { v: 'lastmonth', l: 'Tháng trước' },
+    { v: '30days', l: '30 ngày' },
+    { v: '7days', l: '7 ngày' },
+    { v: 'all', l: 'Tất cả' },
+  ];
+
   const renderCard = (b) => {
     const s = stockStatus(b);
     const isOutOfStock = b.current_qty <= 0 && b.current_ml <= 0;
@@ -324,43 +351,92 @@ export default function Inventory() {
         </div>
       </div>
 
+      {/* Summary Stats with Date Filter */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', flex: 1 }}>
+          {[{
+            icon: <Layers size={20} color="var(--primary)" />,
+            label: 'Lô nhập',
+            value: invTotalBatches,
+            bg: 'var(--primary-bg)',
+            suffix: 'lô'
+          }, {
+            icon: <DollarSign size={20} color="#10b981" />,
+            label: 'Tổng vốn',
+            value: invTotalCapital.toLocaleString('vi-VN'),
+            bg: '#d1fae5',
+            suffix: 'đ'
+          }, {
+            icon: <AlertTriangle size={20} color="var(--danger)" />,
+            label: 'Hết hàng',
+            value: invOutOfStock,
+            bg: '#fee2e2',
+            suffix: 'lô'
+          }].map((s, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '12px', padding: '0.75rem 1rem', flex: '1 1 130px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+              <div style={{ width: 38, height: 38, borderRadius: '10px', background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{s.icon}</div>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>{s.label}</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)' }}>{s.value} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>{s.suffix}</span></div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Inv Date Filter */}
+        <div style={{ position: 'relative', flexShrink: 0 }} tabIndex={0} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setIsInvFilterOpen(false); }}>
+          <div onClick={() => setIsInvFilterOpen(!isInvFilterOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', fontWeight: 600, fontSize: '0.85rem', padding: '0.5rem 0.875rem' }}>
+            <CalendarDays size={14} color="var(--primary)" />
+            <span>{INV_FILTERS.find(f => f.v === invFilter)?.l}</span>
+            <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isInvFilterOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+          </div>
+          {isInvFilterOpen && (
+            <div className="anim-fade-up" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 50, padding: '0.4rem', width: 'max-content' }}>
+              {INV_FILTERS.map(o => (
+                <button key={o.v} onClick={() => { setInvFilter(o.v); setIsInvFilterOpen(false); }} style={{ width: '100%', textAlign: 'left', padding: '0.5rem 0.875rem', background: invFilter === o.v ? 'var(--primary-bg)' : 'transparent', color: invFilter === o.v ? 'var(--primary-dark)' : 'var(--text)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: invFilter === o.v ? 600 : 500, fontSize: '0.85rem' }}>{o.l}</button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: '.75rem', flexWrap: 'wrap' }}>
-        <div className="search-wrap" style={{ flex: 1, minWidth: 220 }}>
+        <div className="search-wrap" style={{ flex: 1, minWidth: 0 }}>
           <Search size={16} color="var(--text-light)" />
           <input className="form-control" placeholder="Tìm sản phẩm hoặc mã lô..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <div style={{ position: 'relative', minWidth: '180px', flex: '0 1 auto' }} tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsStatusFilterOpen(false); }}>
-          <div onClick={() => setIsStatusFilterOpen(!isStatusFilterOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', fontWeight: 600 }}>
+        <div style={{ position: 'relative', flexShrink: 0 }} tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsStatusFilterOpen(false); }}>
+          <div onClick={() => setIsStatusFilterOpen(!isStatusFilterOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', fontWeight: 600, fontSize: '0.85rem' }}>
             <span>{
-              statusFilter === 'all' ? 'Tất cả trạng thái' :
+              statusFilter === 'all' ? 'Trạng thái' :
               statusFilter === 'in_stock' ? 'Còn hàng' :
               statusFilter === 'low_stock' ? 'Sắp hết' : 'Hết hàng'
             }</span>
-            <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: isStatusFilterOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+            <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isStatusFilterOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
           </div>
           {isStatusFilterOpen && (
-            <div className="anim-fade-up" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, minWidth: '100%', background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 50, padding: '0.4rem', width: 'max-content' }}>
-              {[{v:'all', l:'Tất cả trạng thái'}, {v:'in_stock', l:'Còn hàng'}, {v:'low_stock', l:'Sắp hết'}, {v:'out_of_stock', l:'Hết hàng'}].map(o => (
-                <button key={o.v} onClick={() => { setStatusFilter(o.v); setIsStatusFilterOpen(false); }} style={{ width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: statusFilter === o.v ? 'var(--primary-bg)' : 'transparent', color: statusFilter === o.v ? 'var(--primary-dark)' : 'var(--text)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: statusFilter === o.v ? 600 : 500, fontSize: '0.9rem' }} onMouseEnter={e => { if (statusFilter !== o.v) e.target.style.background = 'var(--surface2)' }} onMouseLeave={e => { if (statusFilter !== o.v) e.target.style.background = 'transparent' }}>{o.l}</button>
+            <div className="anim-fade-up" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 50, padding: '0.4rem', width: 'max-content' }}>
+              {[{v:'all', l:'Tất cả'}, {v:'in_stock', l:'Còn hàng'}, {v:'low_stock', l:'Sắp hết'}, {v:'out_of_stock', l:'Hết hàng'}].map(o => (
+                <button key={o.v} onClick={() => { setStatusFilter(o.v); setIsStatusFilterOpen(false); }} style={{ width: '100%', textAlign: 'left', padding: '0.5rem 0.875rem', background: statusFilter === o.v ? 'var(--primary-bg)' : 'transparent', color: statusFilter === o.v ? 'var(--primary-dark)' : 'var(--text)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: statusFilter === o.v ? 600 : 500, fontSize: '0.85rem' }}>{o.l}</button>
               ))}
             </div>
           )}
         </div>
 
-        <div style={{ position: 'relative', minWidth: '200px', flex: '0 1 auto' }} tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsSortByOpen(false); }}>
-          <div onClick={() => setIsSortByOpen(!isSortByOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', fontWeight: 600 }}>
+        <div style={{ position: 'relative', flexShrink: 0 }} tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsSortByOpen(false); }}>
+          <div onClick={() => setIsSortByOpen(!isSortByOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', fontWeight: 600, fontSize: '0.85rem' }}>
             <span>{
-              sortBy === 'date_desc' ? 'Mới nhất trước' :
-              sortBy === 'date_asc' ? 'Cũ nhất trước' :
-              sortBy === 'status_asc' ? 'Ưu tiên Hết/Sắp hết' : 'Ưu tiên Còn hàng'
+              sortBy === 'date_desc' ? 'Mới nhất' :
+              sortBy === 'date_asc' ? 'Cũ nhất' :
+              sortBy === 'status_asc' ? 'Hết trước' : 'Còn trước'
             }</span>
-            <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: isSortByOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+            <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isSortByOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
           </div>
           {isSortByOpen && (
-            <div className="anim-fade-up" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, minWidth: '100%', background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 50, padding: '0.4rem', width: 'max-content' }}>
+            <div className="anim-fade-up" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 50, padding: '0.4rem', width: 'max-content' }}>
               {[{v:'date_desc', l:'Mới nhất trước'}, {v:'date_asc', l:'Cũ nhất trước'}, {v:'status_asc', l:'Ưu tiên Hết/Sắp hết'}, {v:'status_desc', l:'Ưu tiên Còn hàng'}].map(o => (
-                <button key={o.v} onClick={() => { setSortBy(o.v); setIsSortByOpen(false); }} style={{ width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: sortBy === o.v ? 'var(--primary-bg)' : 'transparent', color: sortBy === o.v ? 'var(--primary-dark)' : 'var(--text)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: sortBy === o.v ? 600 : 500, fontSize: '0.9rem' }} onMouseEnter={e => { if (sortBy !== o.v) e.target.style.background = 'var(--surface2)' }} onMouseLeave={e => { if (sortBy !== o.v) e.target.style.background = 'transparent' }}>{o.l}</button>
+                <button key={o.v} onClick={() => { setSortBy(o.v); setIsSortByOpen(false); }} style={{ width: '100%', textAlign: 'left', padding: '0.5rem 0.875rem', background: sortBy === o.v ? 'var(--primary-bg)' : 'transparent', color: sortBy === o.v ? 'var(--primary-dark)' : 'var(--text)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: sortBy === o.v ? 600 : 500, fontSize: '0.85rem' }}>{o.l}</button>
               ))}
             </div>
           )}
