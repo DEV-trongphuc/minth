@@ -13,12 +13,23 @@ const navItems = [
 
 const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
   const [pendingOrders, setPendingOrders] = useState(0);
+  const [currentUser, setCurrentUser] = useState({});
   const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem('luccy_auth');
     navigate('/login');
   };
+
+  useEffect(() => {
+    setCurrentUser(JSON.parse(localStorage.getItem('luccy_user') || '{}'));
+    
+    const handleUserUpdated = () => {
+      setCurrentUser(JSON.parse(localStorage.getItem('luccy_user') || '{}'));
+    };
+    window.addEventListener('user-updated', handleUserUpdated);
+    return () => window.removeEventListener('user-updated', handleUserUpdated);
+  }, []);
 
   useEffect(() => {
     const fetchPendingCount = async () => {
@@ -88,7 +99,7 @@ const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
         })}
 
         <div className="nav-section-label" style={{ marginTop: '1.5rem' }}>Hệ thống</div>
-        <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={() => { if (window.innerWidth < 1024) setIsOpen(false); }}>
           <span className="nav-icon-wrap"><Settings size={17} /></span>
           <span style={{ flex: 1 }}>Cài đặt</span>
         </NavLink>
@@ -96,22 +107,16 @@ const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
 
       {/* Footer */}
       <div className="sidebar-footer">
-        {(() => {
-          const u = JSON.parse(localStorage.getItem('luccy_user') || '{}');
-          return (
-            <>
-              {u.avatar ? (
-                <img src={u.avatar} alt="Avatar" className="sidebar-footer-avatar" style={{ objectFit: 'cover' }} />
-              ) : (
-                <div className="sidebar-footer-avatar">AD</div>
-              )}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="sidebar-footer-name">{u.username === 'admin' ? 'Hà Miên' : (u.username || 'Admin')}</div>
-                <div className="sidebar-footer-role">Chủ cửa hàng</div>
-              </div>
-            </>
-          );
-        })()}
+        {currentUser.avatar ? (
+          <img src={currentUser.avatar} alt="Avatar" className="sidebar-footer-avatar" style={{ objectFit: 'cover' }} onError={(e) => { e.target.src = ''; e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
+        ) : null}
+        <div className="sidebar-footer-avatar" style={{ display: currentUser.avatar ? 'none' : 'flex' }}>
+          AD
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="sidebar-footer-name">{currentUser.username === 'admin' ? 'Hà Miên' : (currentUser.username || 'Admin')}</div>
+          <div className="sidebar-footer-role">Chủ cửa hàng</div>
+        </div>
         <button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.4)', padding: '.25rem' }}>
           <LogOut size={16} />
         </button>

@@ -43,14 +43,47 @@ if ($method === 'POST' && $action === 'login') {
 } elseif ($method === 'POST' && $action === 'change_password') {
     $data = json_decode(file_get_contents("php://input"), true);
     $username = $data['username'];
-    $newPassword = password_hash($data['new_password'], PASSWORD_DEFAULT);
-    
-    $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE username = ?");
-    if ($stmt->execute([$newPassword, $username])) {
-        echo json_encode(["success" => true]);
-    } else {
+    $oldPassword = $data['old_password'] ?? '';
+    $newPassword = $data['new_password'];
+
+    try {
+        $stmt = $pdo->prepare("SELECT password FROM users WHERE username = ?");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch();
+        
+        if ($user && password_verify($oldPassword, $user['password'])) {
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            $updateStmt = $pdo->prepare("UPDATE users SET password = ? WHERE username = ?");
+            if ($updateStmt->execute([$hashedPassword, $username])) {
+                echo json_encode(["success" => true]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["error" => "Lỗi đổi mật khẩu"]);
+            }
+        } else {
+            http_response_code(401);
+            echo json_encode(["error" => "Mật khẩu cũ không chính xác!"]);
+        }
+    } catch (\Exception $e) {
         http_response_code(500);
-        echo json_encode(["error" => "Lỗi đổi mật khẩu"]);
+        echo json_encode(["error" => "Server error: " . $e->getMessage()]);
+    }
+} elseif ($method === 'POST' && $action === 'update_profile') {
+    $data = json_decode(file_get_contents("php://input"), true);
+    $username = $data['username'];
+    $avatar = $data['avatar'] ?? '';
+
+    try {
+        $stmt = $pdo->prepare("UPDATE users SET avatar = ? WHERE username = ?");
+        if ($stmt->execute([$avatar, $username])) {
+            echo json_encode(["success" => true, "avatar" => $avatar]);
+        } else {
+            http_response_code(500);
+            echo json_encode(["error" => "Lỗi cập nhật ảnh đại diện"]);
+        }
+    } catch (\Exception $e) {
+        http_response_code(500);
+        echo json_encode(["error" => "Server error: " . $e->getMessage()]);
     }
 }
 ?>
