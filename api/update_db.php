@@ -24,4 +24,12 @@ try {
 } catch (PDOException $e) {
     echo "Cột tags có thể đã tồn tại: " . $e->getMessage() . "\n";
 }
+
+try {
+    // Thêm cột email
+    $pdo->exec("ALTER TABLE customers ADD COLUMN email VARCHAR(255) DEFAULT NULL AFTER phone");
+    echo "Thêm cột email thành công.\n";
+} catch (PDOException $e) {
+    echo "Cột email có thể đã tồn tại: " . $e->getMessage() . "\n";
+}
 ?>
