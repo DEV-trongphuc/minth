@@ -225,7 +225,7 @@ body {
   display: none;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
   .desktop-only {
     display: none !important;
   }
@@ -237,7 +237,9 @@ body {
   .mobile-only-flex {
     display: flex;
   }
+}
 
+@media (max-width: 1024px) {
   .sidebar {
     transform: translateX(-100%);
   }
