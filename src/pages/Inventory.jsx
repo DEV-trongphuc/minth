@@ -484,11 +484,21 @@ export default function Inventory() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(b => {
+                {filtered.map((b, i) => {
                   const s = stockStatus(b);
+                  const showHeader = (sortBy === 'date_desc' || sortBy === 'date_asc') && (i === 0 || b.import_date !== filtered[i - 1].import_date);
                   return (
-                    <tr key={b.id} style={{ opacity: b.current_qty <= 0 && b.current_ml <= 0 ? 0.5 : 1 }} className={selectedIds.includes(b.id) ? 'row-selected' : ''}>
-                      <td onClick={e => e.stopPropagation()}>
+                    <React.Fragment key={b.id}>
+                      {showHeader && (
+                        <tr>
+                          <td colSpan="7" style={{ background: 'var(--surface2)', fontWeight: 600, padding: '0.75rem 1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            <CalendarDays size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.4rem', marginTop: '-2px' }}/>
+                            Ngày nhập lô: <span style={{ color: 'var(--text)' }}>{b.import_date}</span>
+                          </td>
+                        </tr>
+                      )}
+                      <tr style={{ opacity: b.current_qty <= 0 && b.current_ml <= 0 ? 0.5 : 1 }} className={selectedIds.includes(b.id) ? 'row-selected' : ''}>
+                        <td onClick={e => e.stopPropagation()}>
                         <input type="checkbox" className="custom-check" checked={selectedIds.includes(b.id)} onChange={() => setSelectedIds(prev => prev.includes(b.id) ? prev.filter(i => i !== b.id) : [...prev, b.id])} />
                       </td>
                       <td>
@@ -520,6 +530,7 @@ export default function Inventory() {
                         </div>
                       </td>
                     </tr>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
@@ -530,14 +541,38 @@ export default function Inventory() {
         {/* MOBILE CARD VIEW FOR INVENTORY (FALLBACK FOR LIST MODE) */}
         <div className="mobile-only">
           <div className="grid-3-cards">
-            {filtered.map(b => renderCard(b))}
+            {filtered.map((b, i) => {
+              const showHeader = (sortBy === 'date_desc' || sortBy === 'date_asc') && (i === 0 || b.import_date !== filtered[i - 1].import_date);
+              return (
+                <React.Fragment key={b.id}>
+                  {showHeader && (
+                    <div style={{ gridColumn: '1 / -1', background: 'var(--surface2)', padding: '0.6rem 1rem', borderRadius: 'var(--r-sm)', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--border-light)' }}>
+                      <CalendarDays size={14} /> Ngày nhập lô: <span style={{ color: 'var(--text)' }}>{b.import_date}</span>
+                    </div>
+                  )}
+                  {renderCard(b)}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
         </>
       ) : (
         /* ─── CARD VIEW ─── */
         <div className="grid-3-cards">
-          {filtered.map(b => renderCard(b))}
+          {filtered.map((b, i) => {
+            const showHeader = (sortBy === 'date_desc' || sortBy === 'date_asc') && (i === 0 || b.import_date !== filtered[i - 1].import_date);
+            return (
+              <React.Fragment key={b.id}>
+                {showHeader && (
+                  <div style={{ gridColumn: '1 / -1', background: 'var(--surface2)', padding: '0.6rem 1rem', borderRadius: 'var(--r-sm)', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--border-light)' }}>
+                    <CalendarDays size={14} /> Ngày nhập lô: <span style={{ color: 'var(--text)' }}>{b.import_date}</span>
+                  </div>
+                )}
+                {renderCard(b)}
+              </React.Fragment>
+            );
+          })}
         </div>
       )}
 

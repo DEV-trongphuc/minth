@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         // Lấy danh sách khách hàng và tự động đếm số đơn hàng + ngày mua cuối
         $stmt = $pdo->query("
             SELECT 
-                c.id, c.name, c.phone, c.address, c.note, c.total_spent, c.customer_tier as tier,
+                c.id, c.name, c.phone, c.gender, c.birthday, c.address, c.note, c.total_spent, c.customer_tier as tier,
                 COUNT(o.id) as order_count,
                 MAX(o.created_at) as last_order
             FROM customers c
@@ -38,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         http_response_code(400); echo json_encode(["error" => "Thiếu tên hoặc SĐT"]); exit();
     }
     try {
-        $stmt = $pdo->prepare("INSERT INTO customers (name, phone, address, note) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$data['name'], $data['phone'], $data['address'] ?? '', $data['note'] ?? '']);
+        $stmt = $pdo->prepare("INSERT INTO customers (name, phone, gender, birthday, address, note) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$data['name'], $data['phone'], $data['gender'] ?? null, $data['birthday'] ?? null, $data['address'] ?? '', $data['note'] ?? '']);
         echo json_encode(["message" => "Thêm khách hàng thành công", "id" => $pdo->lastInsertId()]);
     } catch (\PDOException $e) {
         http_response_code(500); echo json_encode(["error" => $e->getMessage()]);
@@ -50,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         http_response_code(400); echo json_encode(["error" => "Thiếu ID hoặc Tên"]); exit();
     }
     try {
-        $stmt = $pdo->prepare("UPDATE customers SET name = ?, phone = ?, address = ?, note = ? WHERE id = ?");
-        $stmt->execute([$data['name'], $data['phone'] ?? '', $data['address'] ?? '', $data['note'] ?? '', $data['id']]);
+        $stmt = $pdo->prepare("UPDATE customers SET name = ?, phone = ?, gender = ?, birthday = ?, address = ?, note = ? WHERE id = ?");
+        $stmt->execute([$data['name'], $data['phone'] ?? '', $data['gender'] ?? null, $data['birthday'] ?? null, $data['address'] ?? '', $data['note'] ?? '', $data['id']]);
         echo json_encode(["message" => "Cập nhật thành công"]);
     } catch (\PDOException $e) {
         http_response_code(500); echo json_encode(["error" => $e->getMessage()]);

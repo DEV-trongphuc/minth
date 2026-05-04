@@ -33,7 +33,7 @@ export default function Customers() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
-  const [form, setForm] = useState({ name: '', phone: '', address: '', note: '' });
+  const [form, setForm] = useState({ name: '', phone: '', gender: '', birthday: '', address: '', note: '' });
   const { showConfirm, showAlert } = useDialog();
   const navigate = useNavigate();
 
@@ -86,8 +86,8 @@ export default function Customers() {
     return matchSearch && matchTier;
   });
 
-  const openAdd = () => { setEditItem(null); setForm({ name: '', phone: '', address: '', note: '' }); setShowModal(true); };
-  const openEdit = (c) => { setEditItem(c); setForm({ name: c.name, phone: c.phone, address: c.address || '', note: c.note || '' }); setShowModal(true); };
+  const openAdd = () => { setEditItem(null); setForm({ name: '', phone: '', gender: '', birthday: '', address: '', note: '' }); setShowModal(true); };
+  const openEdit = (c) => { setEditItem(c); setForm({ name: c.name, phone: c.phone, gender: c.gender || '', birthday: c.birthday || '', address: c.address || '', note: c.note || '' }); setShowModal(true); };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -327,6 +327,21 @@ export default function Customers() {
                     <input className="form-control" placeholder="09xxxxxxxx" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
                   </div>
                 </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Giới tính</label>
+                    <select className="form-control" value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })}>
+                      <option value="">Chưa cập nhật</option>
+                      <option value="Nam">Nam</option>
+                      <option value="Nữ">Nữ</option>
+                      <option value="Khác">Khác</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Ngày sinh</label>
+                    <input type="date" className="form-control" value={form.birthday} onChange={e => setForm({ ...form, birthday: e.target.value })} />
+                  </div>
+                </div>
                 <div className="form-group">
                   <label className="form-label">Địa chỉ giao hàng</label>
                   <AddressSelect 
@@ -378,7 +393,7 @@ export default function Customers() {
                 ))}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.5rem' }}>
-                {[['SĐT', detailItem.phone], ['Địa chỉ', detailItem.address || 'Chưa có'], ['Ghi chú', detailItem.note || 'Trống']].map(([k, v]) => (
+                {[['SĐT', detailItem.phone], ['Giới tính', detailItem.gender || 'Chưa cập nhật'], ['Ngày sinh', detailItem.birthday ? new Date(detailItem.birthday).toLocaleDateString('vi-VN') : 'Chưa cập nhật'], ['Địa chỉ', detailItem.address || 'Chưa có'], ['Ghi chú', detailItem.note || 'Trống']].map(([k, v]) => (
                   <div key={k} style={{ display: 'flex', gap: '1rem', padding: '.625rem 0', borderBottom: '1px solid var(--border-light)' }}>
                     <span className="text-sm text-muted" style={{ minWidth: 80 }}>{k}:</span>
                     <span className="text-sm" style={{ fontWeight: 500 }}>{v}</span>

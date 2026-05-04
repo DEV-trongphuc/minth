@@ -92,6 +92,8 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         phone VARCHAR(20),
+        gender VARCHAR(20) DEFAULT NULL,
+        birthday DATE DEFAULT NULL,
         address TEXT,
         note TEXT,
         total_spent DECIMAL(15, 2) DEFAULT 0,
