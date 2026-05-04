@@ -1269,3 +1269,9 @@ body {
 .bento-span-12 {
   grid-column: span 12;
 }
+
+@media (max-width: 1024px) {
+  .hide-on-tablet {
+    display: none !important;
+  }
+}

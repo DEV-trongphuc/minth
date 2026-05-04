@@ -325,7 +325,7 @@ export default function Orders() {
                     <th style={{ whiteSpace: "nowrap" }}>Mã Đơn</th>
                     <th style={{ whiteSpace: "nowrap" }}>Khách hàng</th>
                     <th style={{ whiteSpace: "nowrap" }}>Tổng tiền</th>
-                    <th style={{ whiteSpace: "nowrap" }}>Thanh toán</th>
+                    <th style={{ whiteSpace: "nowrap" }} className="hide-on-tablet">Thanh toán</th>
                     <th style={{ whiteSpace: "nowrap" }}>Trạng thái</th>
                     <th style={{ whiteSpace: "nowrap" }}>Ngày tạo</th>
                     <th style={{ width: 140 }}>Cập nhật</th>
@@ -357,7 +357,7 @@ export default function Orders() {
                           <div className="text-xs text-muted">{o.customer_phone}</div>
                         </td>
                         <td style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</td>
-                        <td style={{ whiteSpace: "nowrap" }}>
+                        <td style={{ whiteSpace: "nowrap" }} className="hide-on-tablet">
                           <span style={{ display: 'flex', alignItems: 'center', gap: '.25rem', fontSize: '.8rem', color: payInfo.color, fontWeight: 500 }}>
                             {payInfo.icon} {payInfo.label}
                           </span>
