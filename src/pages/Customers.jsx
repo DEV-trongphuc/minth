@@ -258,8 +258,8 @@ export default function Customers() {
         </div>
       ) : (
         <>
-          <div className="table-wrap desktop-only">
-            <table className="data-table">
+          <div className="table-wrap desktop-only" style={{ background: 'var(--surface)', borderRadius: 'var(--r-md)', overflow: 'hidden', border: '1.5px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+            <table className="data-table" style={{ margin: 0 }}>
               <thead>
                 <tr>
                   <th>Khách hàng</th>
