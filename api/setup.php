@@ -96,6 +96,7 @@ try {
         birthday DATE DEFAULT NULL,
         address TEXT,
         note TEXT,
+        tags TEXT DEFAULT NULL,
         total_spent DECIMAL(15, 2) DEFAULT 0,
         customer_tier VARCHAR(50) DEFAULT 'New',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

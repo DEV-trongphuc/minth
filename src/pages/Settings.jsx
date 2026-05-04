@@ -9,12 +9,18 @@ export default function Settings() {
   const [avatarUrl, setAvatarUrl] = useState('');
   
   const [settings, setSettings] = useState({ 
-    tier_loyal: 5000000, 
-    tier_vip: 20000000,
     theme_mode: 'light',
     sound_notification: 1,
     low_stock_threshold: 5
   });
+  
+  const [crmTiers, setCrmTiers] = useState([
+    { id: 'New', name: 'New', min_spend: 0, color: 'success' },
+    { id: 'Loyal', name: 'Loyal', min_spend: 5000000, color: 'primary' },
+    { id: 'VIP', name: 'VIP', min_spend: 20000000, color: 'warning' }
+  ]);
+  const [crmTags, setCrmTags] = useState([]);
+
   
   const [passwordForm, setPasswordForm] = useState({ old_password: '', new_password: '', confirm_password: '' });
   const { showAlert } = useDialog();
@@ -31,12 +37,22 @@ export default function Settings() {
       .then(data => {
         setSettings(s => ({ 
           ...s, 
-          tier_loyal: data.tier_loyal ? Number(data.tier_loyal) : s.tier_loyal,
-          tier_vip: data.tier_vip ? Number(data.tier_vip) : s.tier_vip,
           theme_mode: data.theme_mode || 'light',
           sound_notification: data.sound_notification !== undefined ? Number(data.sound_notification) : 1,
           low_stock_threshold: data.low_stock_threshold !== undefined ? Number(data.low_stock_threshold) : 5
         }));
+        if (data.crm_tiers) {
+          try { setCrmTiers(JSON.parse(data.crm_tiers)); } catch(e){}
+        } else {
+          setCrmTiers([
+            { id: 'New', name: 'New', min_spend: 0, color: 'success' },
+            { id: 'Loyal', name: 'Loyal', min_spend: data.tier_loyal ? Number(data.tier_loyal) : 5000000, color: 'primary' },
+            { id: 'VIP', name: 'VIP', min_spend: data.tier_vip ? Number(data.tier_vip) : 20000000, color: 'warning' }
+          ]);
+        }
+        if (data.crm_tags) {
+          try { setCrmTags(JSON.parse(data.crm_tags)); } catch(e){}
+        }
       })
       .catch(console.error);
   }, []);
@@ -108,13 +124,22 @@ export default function Settings() {
       await fetch(`${API_BASE_URL}/settings.php`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier_loyal: settings.tier_loyal, tier_vip: settings.tier_vip })
+        body: JSON.stringify({ crm_tiers: JSON.stringify(crmTiers), crm_tags: JSON.stringify(crmTags) })
       });
-      showAlert('Thành công', 'Đã lưu cấu hình phân hạng Khách hàng!', 'success');
+      showAlert('Thành công', 'Đã lưu cấu hình phân hạng & Tags Khách hàng!', 'success');
     } catch (e) {
       showAlert('Lỗi', 'Không thể lưu cài đặt', 'error');
     }
   };
+
+  const updateTier = (index, field, value) => {
+    const newTiers = [...crmTiers];
+    newTiers[index][field] = value;
+    setCrmTiers(newTiers);
+  };
+  const removeTier = (index) => setCrmTiers(crmTiers.filter((_, i) => i !== index));
+  const addTier = () => setCrmTiers([...crmTiers, { id: 'Tier_' + Date.now(), name: '', min_spend: 0, color: 'primary' }]);
+  const removeTag = (index) => setCrmTags(crmTags.filter((_, i) => i !== index));
 
   const handleSaveSystemSettings = async () => {
     try {
@@ -141,7 +166,7 @@ export default function Settings() {
   ];
 
   return (
-    <div className="animate-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
+    <div className="animate-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
       <div className="page-header" style={{ marginBottom: 0 }}>
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
@@ -252,29 +277,77 @@ export default function Settings() {
                 <p className="text-muted text-sm">Thiết lập điều kiện để khách hàng thăng hạng tự động.</p>
               </div>
 
-              <form onSubmit={handleSaveTiers} style={{ maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div className="form-group">
-                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Tổng chi tiêu tối thiểu - Hạng LOYAL</span>
-                    <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{settings.tier_loyal.toLocaleString('vi-VN')} đ</span>
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input type="number" className="form-control" value={settings.tier_loyal} onChange={e => setSettings({...settings, tier_loyal: Number(e.target.value)})} style={{ paddingRight: '2rem' }} />
-                    <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>đ</span>
+              <form onSubmit={handleSaveTiers} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ background: 'var(--surface2)', padding: '1.25rem', borderRadius: 'var(--r-md)' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 150px 40px', gap: '0.75rem', marginBottom: '0.75rem', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    <div>Tên Hạng</div>
+                    <div>Chi tiêu tối thiểu (đ)</div>
+                    <div>Màu sắc</div>
+                    <div></div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {crmTiers.map((tier, index) => (
+                      <div key={index} style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 150px 40px', gap: '0.75rem', alignItems: 'center' }}>
+                        <input type="text" value={tier.name} onChange={e => updateTier(index, 'name', e.target.value)} className="form-control" placeholder="Tên Hạng (Ví dụ: Kim cương)" required />
+                        <div style={{ position: 'relative' }}>
+                          <input type="number" value={tier.min_spend} onChange={e => updateTier(index, 'min_spend', Number(e.target.value))} className="form-control" style={{ paddingRight: '2rem' }} required min="0" />
+                          <span style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>đ</span>
+                        </div>
+                                                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                          {['success', 'primary', 'warning', 'danger', 'info', 'dark'].map(c => (
+                            <div 
+                              key={c}
+                              onClick={() => updateTier(index, 'color', c)}
+                              style={{ 
+                                width: '22px', height: '22px', borderRadius: '50%', cursor: 'pointer',
+                                background: `var(--${c})`,
+                                border: tier.color === c ? '2px solid var(--text-main)' : '2px solid transparent',
+                                opacity: tier.color === c ? 1 : 0.4,
+                                transform: tier.color === c ? 'scale(1.1)' : 'scale(1)',
+                                transition: 'all 0.2s'
+                              }}
+                              title={c}
+                            />
+                          ))}
+                        </div>
+                        <button type="button" onClick={() => removeTier(index)} className="btn btn-ghost btn-icon text-danger" title="Xóa hạng">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                  <button type="button" onClick={addTier} className="btn btn-secondary btn-sm" style={{ marginTop: '1rem' }}>+ Thêm Hạng Khách hàng</button>
+                </div>
+
+                <div style={{ borderTop: '1px dashed var(--border-light)', paddingTop: '1.5rem' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>Quản lý Thẻ (Tags)</h3>
+                  <p className="text-muted text-sm" style={{ marginBottom: '1rem' }}>Tạo các thẻ để gắn cho khách hàng (Khách sỉ, Boom hàng, Mối ruột...)</p>
+                  
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                    {crmTags.length === 0 && <div className="text-muted text-sm">Chưa có Thẻ nào được tạo.</div>}
+                    {crmTags.map((tag, index) => (
+                      <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', background: tag.color || '#ec4899', color: '#fff', padding: '0.3rem 0.6rem', borderRadius: 'var(--r-xs)', fontSize: '0.85rem', fontWeight: 600 }}>
+                        {tag.name}
+                        <button type="button" onClick={() => removeTag(index)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', marginLeft: '0.2rem', padding: 0, opacity: 0.8 }} className="hover-opacity">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: 'var(--surface2)', padding: '1rem', borderRadius: 'var(--r-sm)' }}>
+                    <input type="text" id="newTagName" placeholder="Tên Thẻ mới (Ví dụ: Khách sỉ)" className="form-control" style={{ flex: 1, minWidth: '150px' }} />
+                    <input type="color" id="newTagColor" defaultValue="#ec4899" className="form-control" style={{ width: '60px', padding: '0.2rem', cursor: 'pointer', height: '38px' }} title="Chọn màu" />
+                    <button type="button" onClick={() => {
+                      const nameInput = document.getElementById('newTagName');
+                      const name = nameInput.value.trim();
+                      const color = document.getElementById('newTagColor').value;
+                      if (name) {
+                        setCrmTags([...crmTags, { id: 'tag_' + Date.now(), name, color }]);
+                        nameInput.value = '';
+                      }
+                    }} className="btn btn-secondary">Tạo Thẻ</button>
                   </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Tổng chi tiêu tối thiểu - Hạng VIP</span>
-                    <span style={{ color: 'var(--warning)', fontWeight: 700 }}>{settings.tier_vip.toLocaleString('vi-VN')} đ</span>
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input type="number" className="form-control" value={settings.tier_vip} onChange={e => setSettings({...settings, tier_vip: Number(e.target.value)})} style={{ paddingRight: '2rem' }} />
-                    <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}>đ</span>
-                  </div>
-                </div>
+
                 <div style={{ marginTop: '0.5rem' }}>
-                  <button type="submit" className="btn btn-warning" style={{ color: '#000', fontWeight: 600 }}>Lưu Phân hạng CRM</button>
+                  <button type="submit" className="btn btn-primary" style={{ fontWeight: 600 }}>Lưu Cấu hình CRM</button>
                 </div>
               </form>
             </div>
@@ -334,3 +407,4 @@ export default function Settings() {
     </div>
   );
 }
+

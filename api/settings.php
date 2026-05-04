@@ -32,6 +32,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                 $stmt->execute([$key, (string)$value]);
             }
             $pdo->commit();
+            
+            // Recalculate customer tiers if crm_tiers is updated
+            if (isset($data['crm_tiers'])) {
+                try {
+                    $tiers = json_decode($data['crm_tiers'], true);
+                    if (is_array($tiers) && !empty($tiers)) {
+                        usort($tiers, function($a, $b) { return $b['min_spend'] <=> $a['min_spend']; });
+                        $caseSql = "CASE ";
+                        foreach ($tiers as $t) {
+                            $minSpend = (float)$t['min_spend'];
+                            $name = $pdo->quote($t['name']);
+                            $caseSql .= "WHEN total_spent >= $minSpend THEN $name ";
+                        }
+                        $caseSql .= "ELSE 'New' END";
+                        $pdo->exec("UPDATE customers SET customer_tier = $caseSql");
+                    }
+                } catch(Exception $ex) {}
+            }
+            
             echo json_encode(["message" => "Cập nhật cài đặt thành công"]);
         } catch (Exception $e) {
             $pdo->rollBack();

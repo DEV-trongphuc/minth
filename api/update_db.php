@@ -16,4 +16,12 @@ try {
 } catch (PDOException $e) {
     echo "Cột birthday có thể đã tồn tại: " . $e->getMessage() . "\n";
 }
+
+try {
+    // Thêm cột tags
+    $pdo->exec("ALTER TABLE customers ADD COLUMN tags TEXT DEFAULT NULL AFTER note");
+    echo "Thêm cột tags thành công.\n";
+} catch (PDOException $e) {
+    echo "Cột tags có thể đã tồn tại: " . $e->getMessage() . "\n";
+}
 ?>

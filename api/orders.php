@@ -2,6 +2,49 @@
 require_once 'db.php';
 header("Content-Type: application/json; charset=UTF-8");
 
+function updateCustomerTier($pdo, $customerId) {
+    $pdo->exec("
+        UPDATE customers 
+        SET total_spent = COALESCE((
+            SELECT SUM(total_amount) FROM orders 
+            WHERE customer_id = $customerId 
+            AND status != 'cancelled' 
+            AND payment_status = 'paid'
+        ), 0)
+        WHERE id = $customerId
+    ");
+    
+    $stmt = $pdo->prepare("SELECT total_spent FROM customers WHERE id = ?");
+    $stmt->execute([$customerId]);
+    $totalSpent = (float) $stmt->fetchColumn();
+    
+    $stmt = $pdo->query("SELECT setting_value FROM settings WHERE setting_key = 'crm_tiers'");
+    $tiersJson = $stmt->fetchColumn();
+    $tierName = 'New';
+    
+    if ($tiersJson) {
+        $tiers = json_decode($tiersJson, true);
+        if (is_array($tiers)) {
+            usort($tiers, function($a, $b) { return $b['min_spend'] <=> $a['min_spend']; });
+            foreach ($tiers as $t) {
+                if ($totalSpent >= (float)$t['min_spend']) {
+                    $tierName = $t['name'];
+                    break;
+                }
+            }
+        }
+    } else {
+        $settings = $pdo->query("SELECT setting_key, setting_value FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
+        $tierLoyal = (int)($settings['tier_loyal'] ?? 5000000);
+        $tierVip = (int)($settings['tier_vip'] ?? 20000000);
+        if ($totalSpent >= $tierVip) $tierName = 'VIP';
+        elseif ($totalSpent >= $tierLoyal) $tierName = 'Loyal';
+    }
+    
+    $stmt = $pdo->prepare("UPDATE customers SET customer_tier = ? WHERE id = ?");
+    $stmt->execute([$tierName, $customerId]);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['action']) && $_GET['action'] === 'get_items') {
         try {
@@ -160,20 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
 
                 // Recalculate customer tier if paid
                 if ($order['customer_id']) {
-                    $pdo->exec("
-                        UPDATE customers 
-                        SET total_spent = COALESCE((
-                            SELECT SUM(total_amount) FROM orders 
-                            WHERE customer_id = {$order['customer_id']} 
-                            AND status != 'cancelled' 
-                            AND payment_status = 'paid'
-                        ), 0)
-                        WHERE id = {$order['customer_id']}
-                    ");
-                    $settings = $pdo->query("SELECT setting_key, setting_value FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
-                    $tierLoyal = (int)($settings['tier_loyal'] ?? 5000000);
-                    $tierVip = (int)($settings['tier_vip'] ?? 20000000);
-                    $pdo->exec("UPDATE customers SET customer_tier = CASE WHEN total_spent >= $tierVip THEN 'VIP' WHEN total_spent >= $tierLoyal THEN 'Loyal' ELSE 'New' END WHERE id = {$order['customer_id']}");
+                    updateCustomerTier($pdo, $order['customer_id']);
                 }
 
                 $pdo->commit();
@@ -258,20 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             
             // Luôn tính lại tổng chi tiêu của Khách hàng sau khi có thay đổi trạng thái
             if ($order['customer_id']) {
-                $pdo->exec("
-                    UPDATE customers 
-                    SET total_spent = COALESCE((
-                        SELECT SUM(total_amount) FROM orders 
-                        WHERE customer_id = {$order['customer_id']} 
-                        AND status != 'cancelled' 
-                        AND payment_status = 'paid'
-                    ), 0)
-                    WHERE id = {$order['customer_id']}
-                ");
-                $settings = $pdo->query("SELECT setting_key, setting_value FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
-                $tierLoyal = (int)($settings['tier_loyal'] ?? 5000000);
-                $tierVip = (int)($settings['tier_vip'] ?? 20000000);
-                $pdo->exec("UPDATE customers SET customer_tier = CASE WHEN total_spent >= $tierVip THEN 'VIP' WHEN total_spent >= $tierLoyal THEN 'Loyal' ELSE 'New' END WHERE id = {$order['customer_id']}");
+                updateCustomerTier($pdo, $order['customer_id']);
             }
 
             $pdo->commit();
@@ -373,20 +390,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Cập nhật hạng thành viên CRM tự động (Recalculate)
         if ($customerId) {
-            $pdo->exec("
-                UPDATE customers 
-                SET total_spent = COALESCE((
-                    SELECT SUM(total_amount) FROM orders 
-                    WHERE customer_id = $customerId 
-                    AND status != 'cancelled' 
-                    AND payment_status = 'paid'
-                ), 0)
-                WHERE id = $customerId
-            ");
-            $settings = $pdo->query("SELECT setting_key, setting_value FROM settings")->fetchAll(PDO::FETCH_KEY_PAIR);
-            $tierLoyal = (int)($settings['tier_loyal'] ?? 5000000);
-            $tierVip = (int)($settings['tier_vip'] ?? 20000000);
-            $pdo->exec("UPDATE customers SET customer_tier = CASE WHEN total_spent >= $tierVip THEN 'VIP' WHEN total_spent >= $tierLoyal THEN 'Loyal' ELSE 'New' END WHERE id = $customerId");
+            updateCustomerTier($pdo, $customerId);
         }
         
         $pdo->commit();
