@@ -220,7 +220,7 @@ export default function Dashboard() {
         </div>
 
         {/* Donut & Geo (Span 4 cols) */}
-        <div className="card bento-span-4" style={{ , minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
+        <div className="card bento-span-4" style={{ minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1rem' }}>Cơ cấu Bán hàng</h3>
           <div style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
             <Doughnut data={donutChartData} options={{ maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Outfit', size: 11 } } } } }} />
