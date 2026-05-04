@@ -205,7 +205,7 @@ export default function Dashboard() {
       <div className="bento-grid">
         
         {/* Main Line Chart (Span 8 cols on desktop) */}
-        <div className="card bento-span-8" style={{ , minHeight: '320px', display: 'flex', flexDirection: 'column' }}>
+        <div className="card bento-span-8" style={{ minHeight: '320px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
             <div>
               <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.25rem' }}>Hiệu suất Kinh doanh</h3>
@@ -238,7 +238,7 @@ export default function Dashboard() {
         </div>
 
         {/* Top Products (Span 4 cols) */}
-        <div className="card bento-span-4" style={{ , minHeight: '350px' }}>
+        <div className="card bento-span-4" style={{ minHeight: '350px' }}>
           <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1.25rem' }}>Sản phẩm Bán chạy</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {(!report.top_products || report.top_products.length === 0) && <div className="text-center text-muted" style={{ padding: '2rem' }}>Chưa có dữ liệu</div>}
@@ -255,7 +255,7 @@ export default function Dashboard() {
         </div>
 
         {/* Heatmap/Bar Chart (Span 4 cols) */}
-        <div className="card bento-span-4" style={{ , minHeight: '320px', display: 'flex', flexDirection: 'column' }}>
+        <div className="card bento-span-4" style={{ minHeight: '320px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ marginBottom: '1rem' }}>
             <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity size={18} color="var(--warning)" /> Ngày Vàng Mua Sắm</h3>
             <p className="text-sm text-muted">Tần suất chốt đơn theo ngày trong tuần</p>
@@ -264,7 +264,7 @@ export default function Dashboard() {
         </div>
 
         {/* Inventory Tabs & Recent Orders (Span 4 cols) */}
-        <div className="card bento-span-4" style={{ , minHeight: '350px', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
+        <div className="card bento-span-4" style={{ minHeight: '350px', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}>
           {/* Tabs */}
           <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--surface2)' }}>
             <button onClick={() => setInventoryTab('low_stock')} style={{ flex: 1, padding: '1rem', border: 'none', background: inventoryTab === 'low_stock' ? 'var(--surface)' : 'transparent', fontWeight: 700, fontSize: '0.85rem', color: inventoryTab === 'low_stock' ? 'var(--warning-dark)' : 'var(--text-muted)', cursor: 'pointer', borderTop: inventoryTab === 'low_stock' ? '2px solid var(--warning)' : '2px solid transparent', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}><Package size={14}/> Sắp hết hàng ({(report.low_stock||[]).length})</button>
