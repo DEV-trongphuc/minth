@@ -237,7 +237,7 @@ export default function Dashboard() {
                 <div style={{ width: 32, height: 32, borderRadius: '8px', background: i < 3 ? `var(--primary${i===0?'-dark':(i===2?'-light':'')})` : 'var(--surface2)', color: i < 3 ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}>{i+1}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>{p.name}</div>
-                  <div className="text-xs text-muted" style={{ marginTop: '0.2rem', display: 'flex', flexDirection: 'column', gap: '0.1rem' }}><span>Doanh thu: <b style={{color:"var(--primary)"}}>{Number(p.revenue).toLocaleString('vi-VN')} đ</b></span><span>Lãi: <b style={{color:"var(--success)"}}>{Number(p.profit).toLocaleString('vi-VN')} đ</b></span><span>SL: {(p.chai_sales > 0 ? p.chai_sales + " chai " : "") + (p.ml_sales > 0 ? p.ml_sales + " ml" : "") + (p.other_sales > 0 ? p.other_sales + " " + p.unit : "")}</span></div>
+                  <div className="text-xs text-muted" style={{ marginTop: '0.25rem', lineHeight: '1.4' }}><span style={{color:"var(--primary)", fontWeight: 700}}>{Number(p.revenue).toLocaleString('vi-VN')} đ</span> &bull; Lãi: <span style={{color:"var(--success)", fontWeight: 600}}>{Number(p.profit).toLocaleString('vi-VN')} đ</span><br/>SL: <span style={{fontWeight: 600, color: "var(--text)"}}>{(p.chai_sales > 0 ? p.chai_sales + " chai " : "") + (p.ml_sales > 0 ? p.ml_sales + " ml" : "") + (p.other_sales > 0 ? p.other_sales + " " + p.unit : "")}</span></div>
                 </div>
               </div>
             ))}
@@ -327,8 +327,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </div>
-
+        
       {/* SETUP MODAL */}
       {showSetupModal && createPortal(
         <div className="modal-overlay" style={{ zIndex: 1000 }} onClick={e => { if (e.target === e.currentTarget) setShowSetupModal(false); }}>
