@@ -165,7 +165,7 @@ export default function Dashboard() {
       </div>
 
       {/* 2. BENTO GRID - KEY METRICS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+      <div className="grid-stats">
         
         {/* Doanh thu */}
         <div className="card hover-shadow" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', background: 'linear-gradient(to bottom right, var(--surface), var(--surface2))', position: 'relative', overflow: 'hidden' }}>
