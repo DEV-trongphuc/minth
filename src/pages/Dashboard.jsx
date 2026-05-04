@@ -282,7 +282,11 @@ export default function Dashboard() {
                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.name}</div>
                        <div className="text-xs text-muted">Lô: {item.batch_code}</div>
                        </div>
-                       <span style={{ fontWeight: 700, color: 'var(--warning-dark)', background: 'var(--warning-bg)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Còn {item.qty} {item.unit === 'chai' ? 'Chai' : item.unit === 'hop' ? 'Hộp' : item.unit === 'set' ? 'Set' : 'Cái'} {Number(item.ml) > 0 ? `- ${item.ml} ml` : ''}</span>
+                       {Number(item.qty) === 0 && Number(item.ml) === 0 ? (
+                         <span style={{ fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-bg)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Hết hàng</span>
+                       ) : (
+                         <span style={{ fontWeight: 700, color: 'var(--warning-dark)', background: 'var(--warning-bg)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Còn {item.qty} {item.unit === 'chai' ? 'Chai' : item.unit === 'hop' ? 'Hộp' : item.unit === 'set' ? 'Set' : 'Cái'} {Number(item.ml) > 0 ? `- ${item.ml} ml` : ''}</span>
+                       )}
                    </div>
                  ))
                 }
