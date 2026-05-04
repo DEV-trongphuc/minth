@@ -96,6 +96,8 @@ const POS = ({ onClose, onSuccess }) => {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return showAlert('Giỏ hàng trống', 'Vui lòng chọn ít nhất 1 sản phẩm vào giỏ.', 'warning');
+    if (!customerInfo.name || !customerInfo.name.trim()) return showAlert('Thiếu thông tin', 'Vui lòng nhập Họ tên khách hàng.', 'warning');
+    if (!customerInfo.phone || !customerInfo.phone.trim()) return showAlert('Thiếu thông tin', 'Vui lòng nhập Số điện thoại khách hàng.', 'warning');
     
     try {
       const res = await fetch(`${API_BASE_URL}/orders.php`, {
