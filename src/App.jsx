@@ -9,6 +9,7 @@ import Products from './pages/Products';
 import Login from './pages/Login';
 import Settings from './pages/Settings';
 import Orders from './pages/Orders';
+import Expenses from './pages/Expenses';
 import { DialogProvider } from './components/ui/DialogContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -30,6 +31,7 @@ function App() {
           <Route path="customers" element={<Customers />} />
           <Route path="products" element={<Products />} />
           <Route path="orders" element={<Orders />} />
+          <Route path="expenses" element={<Expenses />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

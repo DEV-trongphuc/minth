@@ -2,8 +2,8 @@
 require_once 'db.php';
 
 try {
-    // Bảng Users
-    $pdo->exec("
+  // Bảng Users
+  $pdo->exec("
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(50) NOT NULL UNIQUE,
@@ -13,22 +13,25 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-    
-    // Fix cho bảng users nếu thiếu cột avatar
-    try { $pdo->exec("ALTER TABLE users ADD COLUMN avatar VARCHAR(255) DEFAULT '/imgs/avatar.jpg'"); } catch (\PDOException $e) {}
 
-    // Tạo user admin mặc định nếu chưa có
-    $stmt = $pdo->query("SELECT COUNT(*) FROM users");
-    if ($stmt->fetchColumn() == 0) {
-        $defaultPassword = password_hash('admin123', PASSWORD_DEFAULT);
-        $pdo->exec("INSERT INTO users (username, password, role, avatar) VALUES ('admin', '$defaultPassword', 'admin', '/imgs/avatar.jpg')");
-    } else {
-        // Ensure existing admin gets the avatar if empty
-        $pdo->exec("UPDATE users SET avatar = '/imgs/avatar.jpg' WHERE username = 'admin' AND (avatar IS NULL OR avatar = '')");
-    }
+  // Fix cho bảng users nếu thiếu cột avatar
+  try {
+    $pdo->exec("ALTER TABLE users ADD COLUMN avatar VARCHAR(255) DEFAULT '/imgs/avatar.jpg'");
+  } catch (\PDOException $e) {
+  }
 
-    // Bảng Sản phẩm
-    $pdo->exec("
+  // Tạo user admin mặc định nếu chưa có
+  $stmt = $pdo->query("SELECT COUNT(*) FROM users");
+  if ($stmt->fetchColumn() == 0) {
+    $defaultPassword = password_hash('admin123', PASSWORD_DEFAULT);
+    $pdo->exec("INSERT INTO users (username, password, role, avatar) VALUES ('admin', '$defaultPassword', 'admin', '/imgs/avatar.jpg')");
+  } else {
+    // Ensure existing admin gets the avatar if empty
+    $pdo->exec("UPDATE users SET avatar = '/imgs/avatar.jpg' WHERE username = 'admin' AND (avatar IS NULL OR avatar = '')");
+  }
+
+  // Bảng Sản phẩm
+  $pdo->exec("
       CREATE TABLE IF NOT EXISTS products (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -41,8 +44,8 @@ try {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // Bảng Lô hàng
-    $pdo->exec("
+  // Bảng Lô hàng
+  $pdo->exec("
       CREATE TABLE IF NOT EXISTS batches (
         id INT AUTO_INCREMENT PRIMARY KEY,
         product_id INT,
@@ -59,12 +62,15 @@ try {
         FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-    
-    // Fix cho bảng batches nếu thiếu cột expiry_date
-    try { $pdo->exec("ALTER TABLE batches ADD COLUMN expiry_date DATE"); } catch (\PDOException $e) {}
 
-    // Bảng Lịch sử & Xuất kho nội bộ
-    $pdo->exec("
+  // Fix cho bảng batches nếu thiếu cột expiry_date
+  try {
+    $pdo->exec("ALTER TABLE batches ADD COLUMN expiry_date DATE");
+  } catch (\PDOException $e) {
+  }
+
+  // Bảng Lịch sử & Xuất kho nội bộ
+  $pdo->exec("
       CREATE TABLE IF NOT EXISTS inventory_logs (
         id INT AUTO_INCREMENT PRIMARY KEY,
         batch_id INT NOT NULL,
@@ -80,8 +86,8 @@ try {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // Bảng Khách hàng
-    $pdo->exec("
+  // Bảng Khách hàng
+  $pdo->exec("
       CREATE TABLE IF NOT EXISTS customers (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -94,8 +100,8 @@ try {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // Bảng Đơn hàng
-    $pdo->exec("
+  // Bảng Đơn hàng
+  $pdo->exec("
       CREATE TABLE IF NOT EXISTS orders (
         id INT AUTO_INCREMENT PRIMARY KEY,
         customer_id INT,
@@ -111,8 +117,8 @@ try {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
 
-    // Bảng Chi tiết Đơn hàng
-    $pdo->exec("
+  // Bảng Chi tiết Đơn hàng
+  $pdo->exec("
       CREATE TABLE IF NOT EXISTS order_items (
         id INT AUTO_INCREMENT PRIMARY KEY,
         order_id INT,
@@ -126,33 +132,64 @@ try {
         FOREIGN KEY (batch_id) REFERENCES batches(id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-    // Fix cho bảng customers nếu thiếu cột note (sẽ bỏ qua nếu đã có)
-    try { $pdo->exec("ALTER TABLE customers ADD COLUMN note TEXT"); } catch (\PDOException $e) {}
-    
-    // Fix cho bảng orders nếu thiếu cột payment_status
-    try { $pdo->exec("ALTER TABLE orders ADD COLUMN payment_status VARCHAR(50) DEFAULT 'paid'"); } catch (\PDOException $e) {}
+  // Fix cho bảng customers nếu thiếu cột note (sẽ bỏ qua nếu đã có)
+  try {
+    $pdo->exec("ALTER TABLE customers ADD COLUMN note TEXT");
+  } catch (\PDOException $e) {
+  }
 
-    // Bảng Settings
-    $pdo->exec("
+  // Fix cho bảng orders nếu thiếu cột payment_status
+  try {
+    $pdo->exec("ALTER TABLE orders ADD COLUMN payment_status VARCHAR(50) DEFAULT 'paid'");
+  } catch (\PDOException $e) {
+  }
+
+  // Bảng Settings
+  $pdo->exec("
       CREATE TABLE IF NOT EXISTS settings (
         setting_key VARCHAR(50) PRIMARY KEY,
         setting_value TEXT NOT NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     ");
-    $stmt = $pdo->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
-    $stmt->execute(['tier_loyal', '5000000']);
-    $stmt->execute(['tier_vip', '20000000']);
-    $stmt->execute(['setup_completed', '0']);
+  $stmt = $pdo->prepare("INSERT IGNORE INTO settings (setting_key, setting_value) VALUES (?, ?)");
+  $stmt->execute(['tier_loyal', '5000000']);
+  $stmt->execute(['tier_vip', '20000000']);
+  $stmt->execute(['setup_completed', '0']);
 
-    // Tối ưu Database (Indexes)
-    try { $pdo->exec("CREATE INDEX idx_customers_phone ON customers(phone)"); } catch (\PDOException $e) {}
-    try { $pdo->exec("CREATE INDEX idx_orders_status ON orders(status)"); } catch (\PDOException $e) {}
-    try { $pdo->exec("CREATE INDEX idx_orders_payment_status ON orders(payment_status)"); } catch (\PDOException $e) {}
-    try { $pdo->exec("CREATE INDEX idx_batches_product ON batches(product_id)"); } catch (\PDOException $e) {}
+  // Bảng Chi phí (Expenses)
+  $pdo->exec("
+      CREATE TABLE IF NOT EXISTS expenses (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        category VARCHAR(100) NOT NULL,
+        amount DECIMAL(15, 2) NOT NULL,
+        description TEXT,
+        expense_date DATE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_expenses_date (expense_date)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    ");
 
-    echo json_encode(["message" => "Database schema & indexes initialized successfully!"]);
+  // Tối ưu Database (Indexes)
+  try {
+    $pdo->exec("CREATE INDEX idx_customers_phone ON customers(phone)");
+  } catch (\PDOException $e) {
+  }
+  try {
+    $pdo->exec("CREATE INDEX idx_orders_status ON orders(status)");
+  } catch (\PDOException $e) {
+  }
+  try {
+    $pdo->exec("CREATE INDEX idx_orders_payment_status ON orders(payment_status)");
+  } catch (\PDOException $e) {
+  }
+  try {
+    $pdo->exec("CREATE INDEX idx_batches_product ON batches(product_id)");
+  } catch (\PDOException $e) {
+  }
+
+  echo json_encode(["message" => "Database schema & indexes initialized successfully!"]);
 } catch (\PDOException $e) {
-    http_response_code(500);
-    echo json_encode(["error" => "Error initializing schema: " . $e->getMessage()]);
+  http_response_code(500);
+  echo json_encode(["error" => "Error initializing schema: " . $e->getMessage()]);
 }
 ?>

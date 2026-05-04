@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingCart, Users, BarChart2, Settings, LogOut, Store, PlusCircle, ClipboardList, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, BarChart2, Settings, LogOut, Store, PlusCircle, ClipboardList, ChevronLeft, ChevronRight, Wallet } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { path: '/inventory', label: 'Quản lý Kho', icon: Package },
   { path: '/orders', label: 'Quản lý đơn hàng', icon: ShoppingCart, badge: 'orders' },
   { path: '/customers', label: 'Khách hàng', icon: Users },
+  { path: '/expenses', label: 'Chi phí & Đầu tư', icon: Wallet },
 ];
 
 const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {

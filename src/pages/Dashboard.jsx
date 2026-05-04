@@ -68,8 +68,8 @@ export default function Dashboard() {
   const stats = [
     { label: 'Doanh thu', value: report.total_revenue, format: 'currency', icon: DollarSign, color: '#5b4fcf', trend: '', up: true },
     { label: 'Lợi nhuận gộp', value: report.gross_profit, format: 'currency', icon: TrendingUp, color: '#10b981', trend: '', up: true },
-    { label: 'Trị giá Đơn (AOV)', value: report.aov, format: 'currency', icon: ShoppingBag, color: '#f59e0b', trend: '', up: true },
-    { label: 'Biên lợi nhuận', value: (report.profit_margin || 0).toFixed(1), format: 'percent', icon: Percent, color: '#ec4899', trend: '', up: true },
+    { label: 'Chi phí vận hành', value: (report.total_expenses || 0) + (report.op_cost || 0), format: 'currency', icon: AlertTriangle, color: '#ec4899', trend: '', up: false },
+    { label: 'Lợi nhuận ròng', value: report.net_profit || 0, format: 'currency', icon: CheckCircle, color: '#f59e0b', trend: '', up: true },
   ];
 
   // Chart Data

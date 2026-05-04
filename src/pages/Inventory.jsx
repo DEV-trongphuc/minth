@@ -252,73 +252,90 @@ export default function Inventory() {
     return (
       <div key={b.id} style={{
         background: 'var(--surface)',
-        borderRadius: '14px',
+        borderRadius: '16px',
         border: '1px solid var(--border-light)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         opacity: isOutOfStock ? 0.6 : 1,
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.04)'
-      }} className="hover-card">
-
-        {/* Top accent bar */}
-        <div style={{ height: '3px', background: isLowStock ? 'var(--danger)' : 'linear-gradient(90deg, var(--primary), #a78bfa)', width: '100%' }} />
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+        position: 'relative'
+      }} className="hover-card-premium"
+      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.08)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = 'var(--border-light)'; }}>
 
         {/* Card Body */}
-        <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.875rem', flex: 1 }}>
+        <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
 
           {/* Header: name + badge */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.product_name}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem', fontFamily: 'monospace' }}>{b.batch_code}</div>
+              <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text)', lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.product_name}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Layers size={14} /> {b.batch_code}
+              </div>
             </div>
-            <span className={`badge ${s.cls}`} style={{ flexShrink: 0, fontSize: '0.75rem', padding: '0.25rem 0.55rem', borderRadius: '6px' }}>{s.label}</span>
+            <span style={{ 
+              flexShrink: 0, fontSize: '0.75rem', padding: '0.35rem 0.65rem', borderRadius: '20px', 
+              background: isOutOfStock ? '#fee2e2' : (isLowStock ? '#fef3c7' : '#d1fae5'),
+              color: isOutOfStock ? '#dc2626' : (isLowStock ? '#d97706' : '#059669'),
+              fontWeight: 700, border: `1px solid ${isOutOfStock ? '#fca5a5' : (isLowStock ? '#fde68a' : '#a7f3d0')}`
+            }}>{s.label}</span>
           </div>
 
           {/* Stats row: 2-col grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface2)', padding: '0.6rem 0.75rem', borderRadius: '8px' }}>
-              <DollarSign size={14} color={accentColor} strokeWidth={2.5} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'var(--bg)', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'var(--primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <DollarSign size={16} color="var(--primary)" strokeWidth={2.5} />
+              </div>
               <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>Giá vốn</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: accentColor }}>{Number(b.import_price).toLocaleString('vi-VN')}đ</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Giá vốn</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>{Number(b.import_price).toLocaleString('vi-VN')}đ</div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface2)', padding: '0.6rem 0.75rem', borderRadius: '8px' }}>
-              <CalendarDays size={14} color="var(--text-muted)" strokeWidth={2} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'var(--bg)', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CalendarDays size={16} color="#6b7280" strokeWidth={2} />
+              </div>
               <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>Ngày nhập</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>{b.import_date}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ngày nhập</div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>{b.import_date}</div>
               </div>
             </div>
           </div>
 
           {/* Stock progress */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>Tồn kho</span>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isLowStock ? 'var(--danger)' : 'var(--text)' }}>{b.current_qty} / {b.initial_qty} chai</span>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', padding: '0.85rem', borderRadius: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Tồn kho hiện tại</span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 800, color: isOutOfStock ? 'var(--danger)' : 'var(--text)' }}>{b.current_qty} <span style={{fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500}}>/ {b.initial_qty} chai</span></span>
             </div>
-            <div style={{ height: '6px', borderRadius: 99, background: 'var(--surface2)', overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: isLowStock ? 'var(--danger)' : 'linear-gradient(90deg, var(--primary), #a78bfa)', transition: 'width 0.5s ease-out' }} />
+            <div style={{ height: '8px', borderRadius: 99, background: 'var(--bg)', overflow: 'hidden', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)' }}>
+              <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: isLowStock ? 'var(--danger)' : 'linear-gradient(90deg, var(--primary), #a78bfa)', transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }} />
             </div>
             {b.ml_per_unit > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.4rem', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                <Droplets size={12} color="var(--primary)" />
-                {b.current_ml.toLocaleString()} ml chờ chiết
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.6rem', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                <Droplets size={14} color="var(--primary)" />
+                Còn {b.current_ml.toLocaleString()} ml chờ chiết
               </div>
             )}
           </div>
 
           {/* Actions */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
-            <button onClick={() => openEditModal(b)} style={{ flex: 1, padding: '0.55rem 0.75rem', borderRadius: '8px', border: 'none', background: 'var(--primary-bg)', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem' }} onMouseEnter={e => e.currentTarget.style.opacity='0.85'} onMouseLeave={e => e.currentTarget.style.opacity='1'}>
-              <Edit size={14} /> Chỉnh sửa
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginTop: 'auto', paddingTop: '0.5rem' }}>
+            <button onClick={() => { setExportForm({ batch_id: b.id, qty: '', reason: 'Hàng Tester', export_type: 'chai' }); setEditItem(b); setShowExportModal(true); }} style={{ padding: '0.6rem', borderRadius: '10px', border: '1px solid var(--border-light)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }} title="Xuất kho nội bộ" onMouseEnter={e => {e.currentTarget.style.color='var(--primary)'; e.currentTarget.style.borderColor='var(--primary)'; e.currentTarget.style.background='var(--primary-bg)';}} onMouseLeave={e => {e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.borderColor='var(--border-light)'; e.currentTarget.style.background='var(--surface)';}}>
+              <Share size={18} />
             </button>
-            <button onClick={() => handleDelete([b.id])} style={{ width: '38px', flexShrink: 0, borderRadius: '8px', border: 'none', background: '#fee2e2', color: 'var(--danger)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center' }} onMouseEnter={e => e.currentTarget.style.opacity='0.8'} onMouseLeave={e => e.currentTarget.style.opacity='1'} title="Xóa lô">
-              <Trash2 size={15} />
+            <button onClick={() => openHistory(b)} style={{ padding: '0.6rem', borderRadius: '10px', border: '1px solid var(--border-light)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }} title="Lịch sử lô hàng" onMouseEnter={e => {e.currentTarget.style.color='#10b981'; e.currentTarget.style.borderColor='#10b981'; e.currentTarget.style.background='#d1fae5';}} onMouseLeave={e => {e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.borderColor='var(--border-light)'; e.currentTarget.style.background='var(--surface)';}}>
+              <History size={18} />
+            </button>
+            <button onClick={() => openEditModal(b)} style={{ padding: '0.6rem', borderRadius: '10px', border: '1px solid var(--border-light)', background: 'var(--surface)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }} title="Sửa thông tin" onMouseEnter={e => {e.currentTarget.style.color='#f59e0b'; e.currentTarget.style.borderColor='#f59e0b'; e.currentTarget.style.background='#fef3c7';}} onMouseLeave={e => {e.currentTarget.style.color='var(--text-muted)'; e.currentTarget.style.borderColor='var(--border-light)'; e.currentTarget.style.background='var(--surface)';}}>
+              <Edit size={18} />
+            </button>
+            <button onClick={() => handleDelete([b.id])} style={{ padding: '0.6rem', borderRadius: '10px', border: '1px solid #fee2e2', background: '#fff0f0', color: 'var(--danger)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', transition: 'all 0.2s' }} title="Xóa lô" onMouseEnter={e => {e.currentTarget.style.background='#fecaca';}} onMouseLeave={e => {e.currentTarget.style.background='#fff0f0';}}>
+              <Trash2 size={18} />
             </button>
           </div>
 
@@ -511,14 +528,14 @@ export default function Inventory() {
 
         {/* MOBILE CARD VIEW FOR INVENTORY (FALLBACK FOR LIST MODE) */}
         <div className="mobile-only">
-          <div className="grid-auto">
+          <div className="grid-3-cards">
             {filtered.map(b => renderCard(b))}
           </div>
         </div>
         </>
       ) : (
         /* ─── CARD VIEW ─── */
-        <div className="grid-auto">
+        <div className="grid-3-cards">
           {filtered.map(b => renderCard(b))}
         </div>
       )}

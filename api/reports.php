@@ -202,17 +202,25 @@ if ($method === 'GET') {
         $stmtPending->execute();
         $pendingOrders = (int)$stmtPending->fetchColumn();
 
+        // 12. Total Expenses
+        $stmtExp = $pdo->prepare("SELECT SUM(amount) FROM expenses WHERE expense_date BETWEEN DATE(:start) AND DATE(:end)");
+        $stmtExp->execute([':start' => $startDate, ':end' => $endDate]);
+        $totalExpenses = (float)$stmtExp->fetchColumn();
+
         // Calculations
         $totalRev = (float)$stats['total_revenue'];
         $totalOrd = (int)$stats['total_orders'];
         $grossProfit = (float)$stats['gross_profit'];
+        $netProfit = $grossProfit - $totalExpenses - (float)$opCost;
         
         $aov = $totalOrd > 0 ? ($totalRev / $totalOrd) : 0;
-        $profitMargin = $totalRev > 0 ? ($grossProfit / $totalRev) * 100 : 0;
+        $profitMargin = $totalRev > 0 ? ($netProfit / $totalRev) * 100 : 0;
 
         echo json_encode([
             "total_revenue" => $totalRev,
             "gross_profit" => $grossProfit,
+            "total_expenses" => $totalExpenses,
+            "net_profit" => $netProfit,
             "total_orders" => $totalOrd,
             "pending_orders" => $pendingOrders,
             "total_shipping" => (float)$totalShipping,
