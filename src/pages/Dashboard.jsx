@@ -131,9 +131,11 @@ export default function Dashboard() {
         borderRadius: 'var(--r-lg)', padding: '1.25rem 2rem', color: '#fff',
         display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem',
         boxShadow: '0 8px 20px -6px rgba(124, 58, 237, 0.3)',
-        position: 'relative', overflow: 'hidden'
+        position: 'relative'
       }}>
-        <div style={{ position: 'absolute', right: '-5%', top: '-50%', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', borderRadius: 'var(--r-lg)', pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', right: '-5%', top: '-50%', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', borderRadius: '50%' }} />
+        </div>
         
         <div style={{ zIndex: 1 }}>
           <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>Tổng quan Hệ thống</h1>
