@@ -155,6 +155,14 @@ export default function Inventory() {
     return { id: 'in_stock', label: 'Còn hàng', cls: 'badge-success' };
   };
 
+  
+  const groupedProducts = products.reduce((acc, p) => {
+    const cat = p.category || 'Chưa phân loại';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(p);
+    return acc;
+  }, {});
+
   const filtered = batches
     .filter(b => b.product_name?.toLowerCase().includes(search.toLowerCase()) || b.batch_code?.toLowerCase().includes(search.toLowerCase()))
     .filter(b => {
@@ -601,7 +609,11 @@ export default function Inventory() {
                   ) : (
                     <select className="form-control" required value={form.product_id} onChange={e => setForm({ ...form, product_id: e.target.value })}>
                       <option value="">— Chọn sản phẩm —</option>
-                      {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      {Object.entries(groupedProducts).map(([cat, items]) => (
+                        <optgroup key={cat} label={cat}>
+                          {items.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </optgroup>
+                      ))}
                     </select>
                   )}
                 </div>

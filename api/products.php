@@ -90,6 +90,29 @@ if ($method === 'GET') {
         http_response_code(500);
         echo json_encode(["error" => $e->getMessage()]);
     }
+} elseif ($method === 'PATCH') {
+    $data = json_decode(file_get_contents("php://input"));
+    if (!$data || empty($data->ids) || !is_array($data->ids)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Thiếu danh sách ID sản phẩm"]);
+        exit();
+    }
+    
+    try {
+        $inQuery = implode(',', array_fill(0, count($data->ids), '?'));
+        $category = $data->category ?? null;
+        if ($category === '') $category = null;
+        
+        $sql = "UPDATE products SET category = ? WHERE id IN ($inQuery)";
+        $stmt = $pdo->prepare($sql);
+        $params = array_merge([$category], $data->ids);
+        $stmt->execute($params);
+        
+        echo json_encode(["message" => "Đã chuyển danh mục cho " . count($data->ids) . " sản phẩm"]);
+    } catch (\PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
 } elseif ($method === 'DELETE') {
     $data = json_decode(file_get_contents("php://input"));
     if (!$data || empty($data->id)) {

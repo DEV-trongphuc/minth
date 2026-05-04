@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ShoppingCart, Search, Trash2, CreditCard, Printer, UserPlus, CheckCircle, Package, Plus, ChevronDown, Truck } from 'lucide-react';
+import { ShoppingCart, Search, Trash2, CreditCard, Printer, UserPlus, CheckCircle, Package, Plus, ChevronDown, Truck, Layers } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import AddressSelect from '../components/ui/AddressSelect';
 import { useDialog } from '../components/ui/DialogContext';
@@ -57,6 +57,13 @@ const POS = ({ onClose, onSuccess }) => {
     
     return matchSearch;
   });
+
+    const groupedBatches = filteredBatches.reduce((acc, b) => {
+    const cat = b.category || 'Khác (Chưa phân loại)';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(b);
+    return acc;
+  }, {});
 
   const addToCart = (batch, sellType) => {
     if (sellType === 'chai' && batch.current_qty <= 0) return showAlert('Hết hàng', 'Lô này đã hết chai nguyên!', 'warning');
@@ -172,7 +179,15 @@ const POS = ({ onClose, onSuccess }) => {
                 <Plus size={14} /> Đến trang Nhập kho
               </button>
             </div>
-          ) : filteredBatches.map(batch => (
+          ) : Object.entries(groupedBatches).map(([cat, batchesInCat]) => (
+            <div key={cat} style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', padding: '0 0.25rem' }}>
+                <Layers size={16} color={cat.includes('Khác') ? 'var(--text-muted)' : 'var(--primary)'} />
+                <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text)' }}>{cat}</span>
+                <span className="badge badge-muted" style={{ padding: '0.1rem 0.4rem', fontSize: '0.7rem' }}>{batchesInCat.length}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {batchesInCat.map(batch => (
             <div key={batch.id} style={{ padding: '0.85rem', background: 'var(--surface)', border: `1px solid var(--border-light)`, borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.85rem', transition: 'all 0.2s', boxShadow: '0 2px 12px rgba(0,0,0,0.02)' }} className="hover-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                 <div style={{ flex: 1 }}>
@@ -202,6 +217,9 @@ const POS = ({ onClose, onSuccess }) => {
                     Bán Chiết
                   </button>
                 )}
+              </div>
+            </div>
+          ))}
               </div>
             </div>
           ))}
