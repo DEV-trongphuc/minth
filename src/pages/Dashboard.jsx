@@ -73,16 +73,15 @@ export default function Dashboard() {
 
   // Weekday Bar Chart (Ngày vàng)
   const weekdayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-  const weekdayDataObj = report.weekday_sales || {};
-  // MySQL DAYOFWEEK: 1=Sun, 2=Mon ... 7=Sat
+  const wd = report.weekday_sales || {};
   const weekdayData = [
-    weekdayDataObj["1"] || 0,
-    weekdayDataObj["2"] || 0,
-    weekdayDataObj["3"] || 0,
-    weekdayDataObj["4"] || 0,
-    weekdayDataObj["5"] || 0,
-    weekdayDataObj["6"] || 0,
-    weekdayDataObj["7"] || 0
+    Number(wd[1] || wd["1"] || 0),
+    Number(wd[2] || wd["2"] || 0),
+    Number(wd[3] || wd["3"] || 0),
+    Number(wd[4] || wd["4"] || 0),
+    Number(wd[5] || wd["5"] || 0),
+    Number(wd[6] || wd["6"] || 0),
+    Number(wd[7] || wd["7"] || 0)
   ];
   
   const barData = {
@@ -225,15 +224,6 @@ export default function Dashboard() {
           <div style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
             <Doughnut data={donutChartData} options={{ maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Outfit', size: 11 } } } } }} />
           </div>
-          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}><MapPin size={14} style={{ display: 'inline', verticalAlign: 'text-bottom' }}/> Khu vực Top 1</span>
-              <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(report.geo_sales && report.geo_sales[0]) ? report.geo_sales[0].region : 'N/A'}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Top Khách hàng</span>
-              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary)' }}>{(report.top_customers && report.top_customers[0]) ? report.top_customers[0].name : 'N/A'}</span>
-            </div>
           </div>
         </div>
 
@@ -247,7 +237,7 @@ export default function Dashboard() {
                 <div style={{ width: 32, height: 32, borderRadius: '8px', background: i < 3 ? `var(--primary${i===0?'-dark':(i===2?'-light':'')})` : 'var(--surface2)', color: i < 3 ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}>{i+1}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>{p.name}</div>
-                  <div className="text-xs text-muted" style={{ marginTop: '0.1rem' }}>{Number(p.revenue).toLocaleString('vi-VN')} đ</div>
+                  <div className="text-xs text-muted" style={{ marginTop: '0.2rem', display: 'flex', flexDirection: 'column', gap: '0.1rem' }}><span>Doanh thu: <b style={{color:"var(--primary)"}}>{Number(p.revenue).toLocaleString('vi-VN')} đ</b></span><span>Lãi: <b style={{color:"var(--success)"}}>{Number(p.profit).toLocaleString('vi-VN')} đ</b></span><span>SL: {(p.chai_sales > 0 ? p.chai_sales + " chai " : "") + (p.ml_sales > 0 ? p.ml_sales + " ml" : "") + (p.other_sales > 0 ? p.other_sales + " " + p.unit : "")}</span></div>
                 </div>
               </div>
             ))}
@@ -303,6 +293,40 @@ export default function Dashboard() {
           </div>
         </div>
 
+
+        {/* Top Regions & Customers (Span 12 cols on desktop/mobile) */}
+        <div className="card bento-span-12" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', padding: '1.5rem' }}>
+          <div>
+            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text)' }}><MapPin size={18} style={{ display: 'inline', verticalAlign: 'text-bottom', color: 'var(--primary)' }}/> Khu vực Mua nhiều nhất</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {(!report.geo_sales || report.geo_sales.length === 0) && <div className="text-muted text-sm">Chưa có dữ liệu</div>}
+              {(report.geo_sales || []).slice(0, 5).map((g, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{g.region || 'Không xác định'}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{Number(g.revenue).toLocaleString('vi-VN')} đ</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--text)' }}><Users size={18} style={{ display: 'inline', verticalAlign: 'text-bottom', color: 'var(--success)' }}/> Top Khách hàng VIP</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {(!report.top_customers || report.top_customers.length === 0) && <div className="text-muted text-sm">Chưa có dữ liệu</div>}
+              {(report.top_customers || []).slice(0, 5).map((c, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{c.name}</span>
+                    <span className="text-xs text-muted">{c.phone || c.email || 'Chưa cập nhật'}</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span style={{ fontWeight: 700, color: 'var(--success)' }}>{Number(c.total_spent).toLocaleString('vi-VN')} đ</span>
+                    <span className="text-xs text-muted">{c.order_count} đơn</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* SETUP MODAL */}

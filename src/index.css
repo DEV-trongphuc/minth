@@ -1266,3 +1266,6 @@ body {
     grid-column: span 12;
   }
 }
+.bento-span-12 {
+  grid-column: span 12;
+}
