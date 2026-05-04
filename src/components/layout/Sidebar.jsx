@@ -51,8 +51,8 @@ const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       {/* Brand */}
       <div className="sidebar-brand">
-        <div className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Store size={22} />
+        <div className="sidebar-logo" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <img src="/imgs/logo.jpg" alt="MINTH Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         <div>
           <div className="sidebar-brand-name">MINTH</div>
