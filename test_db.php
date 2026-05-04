@@ -1,0 +1,1 @@
+<?php require 'api/db.php'; $stmt = $pdo->query('SELECT o.id, c.name, c.address, TRIM(SUBSTRING_INDEX(c.address, \', \', -1)) as province FROM orders o LEFT JOIN customers c ON o.customer_id = c.id'); echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC)); ?>
