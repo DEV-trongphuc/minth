@@ -360,6 +360,10 @@ export default function Inventory() {
               <Trash2 size={15} /> Xóa {selectedIds.length} lô
             </button>
           )}
+          <div className="view-toggle">
+            <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="Xem dạng danh sách"><List size={16} /></button>
+            <button className={`view-btn ${viewMode === 'card' ? 'active' : ''}`} onClick={() => setViewMode('card')} title="Xem dạng card"><LayoutGrid size={16} /></button>
+          </div>
           {/* Inv Date Filter */}
           <div style={{ position: 'relative', flexShrink: 0 }} tabIndex={0} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setIsInvFilterOpen(false); }}>
             <div onClick={() => setIsInvFilterOpen(!isInvFilterOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', fontWeight: 600, fontSize: '0.85rem', padding: '0.45rem 0.875rem', height: '100%', minHeight: '36px' }}>
@@ -374,10 +378,6 @@ export default function Inventory() {
                 ))}
               </div>
             )}
-          </div>
-          <div className="view-toggle">
-            <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="Xem dạng danh sách"><List size={16} /></button>
-            <button className={`view-btn ${viewMode === 'card' ? 'active' : ''}`} onClick={() => setViewMode('card')} title="Xem dạng card"><LayoutGrid size={16} /></button>
           </div>
           <button className="btn btn-primary" onClick={openAddModal}><Plus size={17} /> Nhập Lô mới</button>
         </div>
@@ -418,7 +418,7 @@ export default function Inventory() {
 
       {/* Toolbar */}
       <div style={{ display: 'flex', gap: '.75rem', flexWrap: 'wrap' }}>
-        <div className="search-wrap" style={{ flex: '1 1 100%', minWidth: '250px' }}>
+        <div className="search-wrap" style={{ flex: '1 1 250px', minWidth: '250px' }}>
           <Search size={16} color="var(--text-light)" />
           <input className="form-control" placeholder="Tìm sản phẩm hoặc mã lô..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
