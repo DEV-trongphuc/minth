@@ -1227,3 +1227,12 @@ body {
     display: none !important;
   }
 }
+@media (max-width: 768px) {
+  .page-actions {
+    width: 100%;
+  }
+  .page-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
