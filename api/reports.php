@@ -180,11 +180,8 @@ if ($method === 'GET') {
         $stmtGeo = $pdo->prepare("
             SELECT 
                 CASE 
-                    WHEN LOWER(c.address) LIKE '%hồ chí minh%' OR LOWER(c.address) LIKE '%hcm%' THEN 'Hồ Chí Minh'
-                    WHEN LOWER(c.address) LIKE '%hà nội%' OR LOWER(c.address) LIKE '%hn%' THEN 'Hà Nội'
-                    WHEN LOWER(c.address) LIKE '%đà nẵng%' THEN 'Đà Nẵng'
-                    WHEN c.address IS NULL OR c.address = '' THEN 'Chưa cập nhật'
-                    ELSE 'Tỉnh/Thành khác'
+                    WHEN c.address IS NULL OR TRIM(c.address) = '' THEN 'Chưa cập nhật'
+                    ELSE TRIM(SUBSTRING_INDEX(c.address, ',', -1))
                 END as region,
                 SUM(o.total_amount) as revenue,
                 COUNT(o.id) as order_count

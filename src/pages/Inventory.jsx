@@ -360,20 +360,9 @@ export default function Inventory() {
               <Trash2 size={15} /> Xóa {selectedIds.length} lô
             </button>
           )}
-          <div className="view-toggle">
-            <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="Xem dạng danh sách"><List size={16} /></button>
-            <button className={`view-btn ${viewMode === 'card' ? 'active' : ''}`} onClick={() => setViewMode('card')} title="Xem dạng card"><LayoutGrid size={16} /></button>
-          </div>
-          <button className="btn btn-primary" onClick={openAddModal}><Plus size={17} /> Nhập Lô mới</button>
-        </div>
-      </div>
-
-      {/* Summary Stats with Date Filter */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           {/* Inv Date Filter */}
-          <div style={{ position: 'relative' }} tabIndex={0} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setIsInvFilterOpen(false); }}>
-            <div onClick={() => setIsInvFilterOpen(!isInvFilterOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', fontWeight: 600, fontSize: '0.85rem', padding: '0.5rem 0.875rem' }}>
+          <div style={{ position: 'relative', flexShrink: 0 }} tabIndex={0} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setIsInvFilterOpen(false); }}>
+            <div onClick={() => setIsInvFilterOpen(!isInvFilterOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', fontWeight: 600, fontSize: '0.85rem', padding: '0.45rem 0.875rem', height: '100%', minHeight: '36px' }}>
               <CalendarDays size={14} color="var(--primary)" />
               <span>{INV_FILTERS.find(f => f.v === invFilter)?.l}</span>
               <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isInvFilterOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
@@ -386,8 +375,16 @@ export default function Inventory() {
               </div>
             )}
           </div>
+          <div className="view-toggle">
+            <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="Xem dạng danh sách"><List size={16} /></button>
+            <button className={`view-btn ${viewMode === 'card' ? 'active' : ''}`} onClick={() => setViewMode('card')} title="Xem dạng card"><LayoutGrid size={16} /></button>
+          </div>
+          <button className="btn btn-primary" onClick={openAddModal}><Plus size={17} /> Nhập Lô mới</button>
         </div>
+      </div>
 
+      {/* Summary Stats */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
           {[{
             icon: <Layers size={20} color="var(--primary)" />,

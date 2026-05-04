@@ -493,7 +493,7 @@ export default function Dashboard() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.2rem' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{new Date(o.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}</span>
-                    <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: o.payment_status === 'paid' ? 'var(--success-bg)' : 'var(--warning-bg)', color: o.payment_status === 'paid' ? 'var(--success)' : 'var(--warning-dark)', fontWeight: 600 }}>{o.payment_status === 'paid' ? 'Đã thanh toán' : 'COD'}</span>
+                    <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: o.status === 'completed' ? 'var(--success-bg)' : o.status === 'cancelled' ? 'var(--danger-bg)' : o.status === 'shipping' ? 'rgba(59, 130, 246, 0.1)' : 'var(--warning-bg)', color: o.status === 'completed' ? 'var(--success)' : o.status === 'cancelled' ? 'var(--danger)' : o.status === 'shipping' ? '#3b82f6' : 'var(--warning-dark)', fontWeight: 600 }}>{o.status === 'completed' ? 'Hoàn thành' : o.status === 'cancelled' ? 'Đã hủy' : o.status === 'shipping' ? 'Đang giao' : 'Chờ xử lý'}</span>
                   </div>
                 </div>
               </div>
