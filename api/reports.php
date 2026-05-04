@@ -102,11 +102,11 @@ if ($method === 'GET') {
 
         // 4. Low Stock
         $stmtLowStock = $pdo->query("
-            SELECT p.name, b.current_qty as qty, b.batch_code as unit 
+            SELECT p.name, p.unit, b.batch_code, b.current_qty as qty, b.current_ml as ml 
             FROM batches b
             JOIN products p ON b.product_id = p.id
-            WHERE b.current_qty <= 5
-            ORDER BY b.current_qty ASC
+            WHERE b.status != 'archived' AND (b.current_qty <= 5)
+            ORDER BY b.current_qty ASC, b.current_ml ASC
             LIMIT 5
         ");
         $lowStock = $stmtLowStock->fetchAll();

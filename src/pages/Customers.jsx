@@ -11,6 +11,8 @@ export default function Customers() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   const [viewMode, setViewMode] = useState('card');
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -79,11 +81,16 @@ export default function Customers() {
     setLoadingItems(false);
   };
 
+  useEffect(() => { setCurrentPage(1); }, [search, tierFilter]);
+
   const filtered = customers.filter(c => {
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search);
     const matchTier = tierFilter === '' || c.tier === tierFilter;
     return matchSearch && matchTier;
   });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedCustomers = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const openAdd = () => { setEditItem(null); setForm({ name: '', phone: '', email: '', gender: '', birthday: '', address: '', note: '', tags: [] }); setShowModal(true); };
   const openEdit = (c) => { 
@@ -254,7 +261,7 @@ export default function Customers() {
         </div>
       ) : viewMode === 'card' ? (
         <div className="grid-3-cards">
-          {filtered.map(c => <CustomerCard key={c.id} c={c} />)}
+          {paginatedCustomers.map(c => <CustomerCard key={c.id} c={c} />)}
         </div>
       ) : (
         <>
@@ -277,7 +284,7 @@ export default function Customers() {
                     <td colSpan="7" className="text-center text-muted" style={{ padding: '2rem' }}>Chưa có khách hàng nào</td>
                   </tr>
                 )}
-                {filtered.map(c => (
+                {paginatedCustomers.map(c => (
                   <tr key={c.id} onClick={() => setDetailItem(c)} style={{ cursor: 'pointer' }}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
@@ -308,11 +315,35 @@ export default function Customers() {
         {/* MOBILE CARD VIEW */}
         <div className="mobile-only">
           <div className="grid-3-cards">
-            {filtered.map(c => <CustomerCard key={c.id} c={c} />)}
+            {paginatedCustomers.map(c => <CustomerCard key={c.id} c={c} />)}
           </div>
         </div>
         </>
       )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+          <button 
+            className="btn btn-secondary btn-sm" 
+            disabled={currentPage === 1} 
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          >
+            Trang trước
+          </button>
+          <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+            Trang {currentPage} / {totalPages}
+          </span>
+          <button 
+            className="btn btn-secondary btn-sm" 
+            disabled={currentPage === totalPages} 
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          >
+            Trang sau
+          </button>
+        </div>
+      )}
+
       {showModal && createPortal(
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
           <div className="modal">

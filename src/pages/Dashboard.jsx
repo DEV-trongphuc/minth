@@ -113,7 +113,7 @@ export default function Dashboard() {
     responsive: true, maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(0,0,0,0.8)', titleFont: { family: 'Outfit' }, bodyFont: { family: 'Outfit' }, padding: 12, cornerRadius: 8, callbacks: { label: function(c) { return c.dataset.label + ': ' + Number(c.raw).toLocaleString('vi-VN') + (c.dataset.label==='Đơn hàng'?'':' đ'); } } }
+      tooltip: { mode: 'index', intersect: false, backgroundColor: 'rgba(0,0,0,0.8)', titleFont: { family: 'Outfit' }, bodyFont: { family: 'Outfit' }, padding: 12, cornerRadius: 8, callbacks: { label: function(c) { return c.dataset.label + ': ' + Math.round(Number(c.raw)).toLocaleString('vi-VN') + (c.dataset.label==='Đơn hàng'?'':' đ'); } } }
     },
     scales: {
       y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.03)', drawBorder: false }, ticks: { font: { family: 'Outfit', size: 11 }, callback: function(v) { if(v>=1000000) return (v/1000000).toLocaleString('vi-VN')+'Tr'; if(v>=1000) return (v/1000).toLocaleString('vi-VN')+'K'; return v; } } },
@@ -170,14 +170,14 @@ export default function Dashboard() {
         <div className="card hover-shadow" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', background: 'linear-gradient(to bottom right, var(--surface), var(--surface2))', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', right: '-10px', top: '-10px', opacity: 0.03, transform: 'rotate(15deg)' }}><DollarSign size={100} /></div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--text-muted)' }}><DollarSign size={18} color="var(--primary)" /><span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Doanh thu</span></div>
-          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{Number(report.total_revenue || 0).toLocaleString('vi-VN')} đ</div>
+          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{Math.round(Number(report.total_revenue || 0)).toLocaleString('vi-VN')} đ</div>
           <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--success)' }}><ArrowUpRight size={14} /> Tăng trưởng ổn định</div>
         </div>
 
         {/* Lợi nhuận gộp */}
         <div className="card hover-shadow" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--text-muted)' }}><TrendingUp size={18} color="var(--success)" /><span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Lợi nhuận gộp</span></div>
-          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{Number(report.gross_profit || 0).toLocaleString('vi-VN')} đ</div>
+          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{Math.round(Number(report.gross_profit || 0)).toLocaleString('vi-VN')} đ</div>
           <div style={{ marginTop: 'auto', paddingTop: '1rem', width: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 600 }}><span className="text-muted">Biên lợi nhuận</span><span style={{ color: 'var(--success)' }}>{Number(report.profit_margin || 0).toFixed(1)}%</span></div>
             <div style={{ width: '100%', height: '4px', background: 'var(--surface2)', borderRadius: '4px', overflow: 'hidden' }}><div style={{ width: `${Math.min(report.profit_margin || 0, 100)}%`, height: '100%', background: 'var(--success)', borderRadius: '4px' }}/></div>
@@ -188,16 +188,16 @@ export default function Dashboard() {
         <div className="card hover-shadow" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--text-muted)' }}><ShoppingBag size={18} color="var(--info)" /><span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Đơn & AOV</span></div>
           <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{report.total_orders || 0} <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)' }}>đơn</span></div>
-          <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)' }}><span className="text-muted">TB/Đơn:</span> {Number(report.aov || 0).toLocaleString('vi-VN')} đ</div>
+          <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text)' }}><span className="text-muted">TB/Đơn:</span> {Math.round(Number(report.aov || 0)).toLocaleString('vi-VN')} đ</div>
         </div>
 
         {/* Chi phí */}
         <div className="card hover-shadow" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--text-muted)' }}><AlertTriangle size={18} color="var(--danger)" /><span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Chi phí & Hao hụt</span></div>
-          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--danger)', lineHeight: 1 }}>- {Number((report.total_shipping || 0) + (report.op_cost || 0)).toLocaleString('vi-VN')} đ</div>
+          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--danger)', lineHeight: 1 }}>- {Math.round(Number((report.total_shipping || 0) + (report.op_cost || 0))).toLocaleString('vi-VN')} đ</div>
           <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
             <span className="text-muted" style={{fontSize: '0.75rem'}}>Bao gồm: Hao hụt kho & Phí vận hành</span>
-            <span>LN Ròng: <span style={{ color: 'var(--success)', fontWeight: 700 }}>{Number((report.gross_profit || 0) - ((report.total_shipping || 0) + (report.op_cost || 0))).toLocaleString('vi-VN')} đ</span></span>
+            <span>LN Ròng: <span style={{ color: 'var(--success)', fontWeight: 700 }}>{Math.round(Number((report.gross_profit || 0) - ((report.total_shipping || 0) + (report.op_cost || 0)))).toLocaleString('vi-VN')} đ</span></span>
           </div>
         </div>
 
@@ -233,7 +233,7 @@ export default function Dashboard() {
               <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(report.geo_sales && report.geo_sales[0]) ? report.geo_sales[0].region : 'N/A'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Top Khách hàng</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}><Users size={14} style={{ display: 'inline', verticalAlign: 'text-bottom' }}/> Top Khách hàng</span>
               <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary)' }}>{(report.top_customers && report.top_customers[0]) ? report.top_customers[0].name : 'N/A'}</span>
             </div>
           </div>
@@ -249,7 +249,7 @@ export default function Dashboard() {
                 <div style={{ width: 32, height: 32, borderRadius: '8px', background: i < 3 ? `var(--primary${i===0?'-dark':(i===2?'-light':'')})` : 'var(--surface2)', color: i < 3 ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}>{i+1}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>{p.name}</div>
-                  <div className="text-xs text-muted" style={{ marginTop: '0.25rem', lineHeight: '1.4' }}><span style={{color:"var(--primary)", fontWeight: 700}}>{Number(p.revenue).toLocaleString('vi-VN')} đ</span> &bull; Lãi: <span style={{color:"var(--success)", fontWeight: 600}}>{Number(p.profit).toLocaleString('vi-VN')} đ</span><br/>SL: <span style={{fontWeight: 600, color: "var(--text)"}}>{(p.chai_sales > 0 ? p.chai_sales + " chai " : "") + (p.ml_sales > 0 ? p.ml_sales + " ml" : "") + (p.other_sales > 0 ? p.other_sales + " " + p.unit : "")}</span></div>
+                  <div className="text-xs text-muted" style={{ marginTop: '0.25rem', lineHeight: '1.4' }}><span style={{color:"var(--primary)", fontWeight: 700}}>{Math.round(Number(p.revenue)).toLocaleString('vi-VN')} đ</span> &bull; Lãi: <span style={{color:"var(--success)", fontWeight: 600}}>{Math.round(Number(p.profit)).toLocaleString('vi-VN')} đ</span><br/>SL: <span style={{fontWeight: 600, color: "var(--text)"}}>{(p.chai_sales > 0 ? p.chai_sales + " chai " : "") + (p.ml_sales > 0 ? p.ml_sales + " ml" : "") + (p.other_sales > 0 ? p.other_sales + " " + p.unit : "")}</span></div>
                 </div>
               </div>
             ))}
@@ -280,9 +280,9 @@ export default function Dashboard() {
                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                      <div>
                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.name}</div>
-                       <div className="text-xs text-muted">Đơn vị: {item.unit}</div>
-                     </div>
-                     <span style={{ fontWeight: 700, color: 'var(--warning-dark)', background: 'var(--warning-bg)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem' }}>Còn {item.qty}</span>
+                       <div className="text-xs text-muted">Lô: {item.batch_code}</div>
+                       </div>
+                       <span style={{ fontWeight: 700, color: 'var(--warning-dark)', background: 'var(--warning-bg)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Còn {item.qty} {item.unit === 'chai' ? 'Chai' : item.unit === 'hop' ? 'Hộp' : item.unit === 'set' ? 'Set' : 'Cái'} {Number(item.ml) > 0 ? `- ${item.ml} ml` : ''}</span>
                    </div>
                  ))
                 }
@@ -315,7 +315,7 @@ export default function Dashboard() {
               {(report.geo_sales || []).slice(0, 5).map((g, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-light)', paddingBottom: '0.5rem' }}>
                   <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{g.region || 'Không xác định'}</span>
-                  <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{Number(g.revenue).toLocaleString('vi-VN')} đ</span>
+                  <span style={{ fontWeight: 700, color: 'var(--primary)' }}>{Math.round(Number(g.revenue)).toLocaleString('vi-VN')} đ</span>
                 </div>
               ))}
             </div>
@@ -331,7 +331,7 @@ export default function Dashboard() {
                     <span className="text-xs text-muted">{c.phone || c.email || 'Chưa cập nhật'}</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                    <span style={{ fontWeight: 700, color: 'var(--success)' }}>{Number(c.total_spent).toLocaleString('vi-VN')} đ</span>
+                    <span style={{ fontWeight: 700, color: 'var(--success)' }}>{Math.round(Number(c.total_spent)).toLocaleString('vi-VN')} đ</span>
                     <span className="text-xs text-muted">{c.order_count} đơn</span>
                   </div>
                 </div>

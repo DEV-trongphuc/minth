@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Package, Plus, Edit, Trash2, Search, Droplets, Box, Layers, AlertTriangle } from 'lucide-react';
+import { Package, Plus, Edit, Trash2, Search, Droplets, Box, Layers, AlertTriangle, ChevronDown } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
 
@@ -8,6 +8,7 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [collapsedCategories, setCollapsedCategories] = useState({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -327,14 +328,15 @@ export default function Products() {
             <tbody>
               {Object.entries(groupedProducts).map(([cat, items]) => (
                 <React.Fragment key={cat}>
-                  <tr style={{ background: 'var(--surface2)' }}>
+                  <tr style={{ background: 'var(--surface2)', cursor: 'pointer', transition: 'background 0.2s' }} onClick={() => setCollapsedCategories(prev => ({ ...prev, [cat]: !prev[cat] }))} onMouseEnter={e => e.currentTarget.style.background='var(--surface)'} onMouseLeave={e => e.currentTarget.style.background='var(--surface2)'}>
                     <td colSpan="7" style={{ padding: '0.75rem 1rem', fontWeight: 700, color: 'var(--primary-dark)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: collapsedCategories[cat] ? 'rotate(-90deg)' : 'rotate(0deg)' }} />
                         <Layers size={16} /> {cat} <span className="badge badge-muted">{items.length}</span>
                       </div>
                     </td>
                   </tr>
-                  {items.map(p => (
+                  {!collapsedCategories[cat] && items.map(p => (
                     <tr key={p.id}>
                       <td style={{ paddingLeft: '1rem' }}>
                         <input type="checkbox" className="custom-check" checked={selectedIds.includes(p.id)} onChange={() => setSelectedIds(prev => prev.includes(p.id) ? prev.filter(id => id !== p.id) : [...prev, p.id])} />
