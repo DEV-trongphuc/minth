@@ -483,11 +483,11 @@ export default function Inventory() {
                   <th style={{ width: 40 }}>
                     <input type="checkbox" className="custom-check" onChange={e => setSelectedIds(e.target.checked ? filtered.map(b => b.id) : [])} checked={selectedIds.length === filtered.length && filtered.length > 0} />
                   </th>
-                  <th>Sản phẩm & Mã lô</th>
-                  <th>Ngày nhập / HSD</th>
-                  <th>Giá vốn</th>
-                  <th>Tồn kho</th>
-                  <th>Trạng thái</th>
+                  <th style={{ whiteSpace: "nowrap" }}>Sản phẩm & Mã lô</th>
+                  <th style={{ whiteSpace: "nowrap" }}>Ngày nhập / HSD</th>
+                  <th style={{ whiteSpace: "nowrap" }}>Giá vốn</th>
+                  <th style={{ whiteSpace: "nowrap" }}>Tồn kho</th>
+                  <th style={{ whiteSpace: "nowrap" }}>Trạng thái</th>
                   <th style={{ width: 140 }}>Thao tác</th>
                 </tr>
               </thead>
@@ -513,7 +513,7 @@ export default function Inventory() {
                         <div style={{ fontWeight: 600 }}>{b.product_name}</div>
                         <div className="text-xs text-muted">{b.batch_code}</div>
                       </td>
-                      <td>
+                      <td style={{ whiteSpace: "nowrap" }}>
                         <div className="text-sm text-muted">Nhập: {b.import_date}</div>
                         {b.expiry_date && b.expiry_date !== '0000-00-00' && (
                           <div className="text-xs" style={{ display: 'flex', gap: '.3rem', marginTop: '.2rem' }}>
@@ -522,14 +522,14 @@ export default function Inventory() {
                           </div>
                         )}
                       </td>
-                      <td style={{ fontWeight: 700 }}>{Number(b.import_price).toLocaleString('vi-VN')} đ</td>
-                      <td>
+                      <td style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{Number(b.import_price).toLocaleString('vi-VN')} đ</td>
+                      <td style={{ whiteSpace: "nowrap" }}>
                         <div style={{ fontWeight: 600, color: b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--text)' }}>
                           {b.current_qty} / {b.initial_qty} chai
                         </div>
                         {b.ml_per_unit > 0 && <div className="text-muted text-xs mt-1">Còn {b.current_ml} ml</div>}
                       </td>
-                      <td><span className={`badge ${s.cls}`}>{s.label}</span></td>
+                      <td style={{ whiteSpace: "nowrap" }}><span className={`badge ${s.cls}`}>{s.label}</span></td>
                       <td style={{ whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', gap: '.375rem' }}>
                           <button className="btn btn-secondary btn-icon btn-sm" onClick={() => { setExportForm({ batch_id: b.id, qty: '', reason: 'Hàng Tester', export_type: 'chai' }); setEditItem(b); setShowExportModal(true); }} title="Xuất nội bộ"><Share size={14} /></button>

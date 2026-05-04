@@ -318,16 +318,16 @@ export default function Orders() {
           </div>
         ) : (
           <>
-            <div className="table-wrap desktop-only" style={{ overflow: 'visible' }}>
+            <div className="table-wrap desktop-only" style={{ overflowX: 'auto', paddingBottom: '20px' }}>
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Mã Đơn</th>
-                    <th>Khách hàng</th>
-                    <th>Tổng tiền</th>
-                    <th>Thanh toán</th>
-                    <th>Trạng thái</th>
-                    <th>Ngày tạo</th>
+                    <th style={{ whiteSpace: "nowrap" }}>Mã Đơn</th>
+                    <th style={{ whiteSpace: "nowrap" }}>Khách hàng</th>
+                    <th style={{ whiteSpace: "nowrap" }}>Tổng tiền</th>
+                    <th style={{ whiteSpace: "nowrap" }}>Thanh toán</th>
+                    <th style={{ whiteSpace: "nowrap" }}>Trạng thái</th>
+                    <th style={{ whiteSpace: "nowrap" }}>Ngày tạo</th>
                     <th style={{ width: 140 }}>Cập nhật</th>
                   </tr>
                 </thead>
@@ -338,7 +338,7 @@ export default function Orders() {
 
                     return (
                       <tr key={o.id}>
-                        <td style={{ fontWeight: 700, color: 'var(--primary)' }}>
+                        <td style={{ fontWeight: 700, color: \'var(--primary)\', whiteSpace: "nowrap" }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                             #{o.id}
                             <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditModal(o)} title="Sửa thông tin">
@@ -356,18 +356,18 @@ export default function Orders() {
                           </div>
                           <div className="text-xs text-muted">{o.customer_phone}</div>
                         </td>
-                        <td style={{ fontWeight: 700 }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</td>
-                        <td>
+                        <td style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</td>
+                        <td style={{ whiteSpace: "nowrap" }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '.25rem', fontSize: '.8rem', color: payInfo.color, fontWeight: 500 }}>
                             {payInfo.icon} {payInfo.label}
                           </span>
                         </td>
-                        <td>
+                        <td style={{ whiteSpace: "nowrap" }}>
                           <span className="badge" style={{ background: statusInfo.bg, color: statusInfo.color, display: 'flex', alignItems: 'center', gap: '.25rem', width: 'fit-content' }}>
                             {statusInfo.icon} {statusInfo.label}
                           </span>
                         </td>
-                        <td className="text-sm text-muted">{new Date(o.created_at).toLocaleString('vi-VN')}</td>
+                        <td className="text-sm text-muted" style={{ whiteSpace: "nowrap" }}>{new Date(o.created_at).toLocaleString('vi-VN')}</td>
                         <td>
                           {o.status === 'pending' && (
                             <div style={{ display: 'flex', gap: '.25rem' }}>
