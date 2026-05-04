@@ -194,8 +194,11 @@ export default function Dashboard() {
         {/* Chi phí */}
         <div className="card hover-shadow" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--text-muted)' }}><AlertTriangle size={18} color="var(--danger)" /><span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Chi phí & Hao hụt</span></div>
-          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--danger)', lineHeight: 1 }}>- {Number((report.total_expenses || 0) + (report.op_cost || 0)).toLocaleString('vi-VN')} đ</div>
-          <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>Bao gồm: Hao hụt kho & Phí vận hành</div>
+          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--danger)', lineHeight: 1 }}>- {Number((report.total_shipping || 0) + (report.op_cost || 0)).toLocaleString('vi-VN')} đ</div>
+          <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
+            <span className="text-muted" style={{fontSize: '0.75rem'}}>Bao gồm: Hao hụt kho & Phí vận hành</span>
+            <span>LN Ròng: <span style={{ color: 'var(--success)', fontWeight: 700 }}>{Number((report.gross_profit || 0) - ((report.total_shipping || 0) + (report.op_cost || 0))).toLocaleString('vi-VN')} đ</span></span>
+          </div>
         </div>
 
       </div>
@@ -224,6 +227,15 @@ export default function Dashboard() {
           <div style={{ height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
             <Doughnut data={donutChartData} options={{ maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { family: 'Outfit', size: 11 } } } } }} />
           </div>
+          <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}><MapPin size={14} style={{ display: 'inline', verticalAlign: 'text-bottom' }}/> Khu vực Top 1</span>
+              <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{(report.geo_sales && report.geo_sales[0]) ? report.geo_sales[0].region : 'N/A'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Top Khách hàng</span>
+              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary)' }}>{(report.top_customers && report.top_customers[0]) ? report.top_customers[0].name : 'N/A'}</span>
+            </div>
           </div>
         </div>
 
@@ -327,7 +339,9 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-        
+        </div>
+      </div>
+
       {/* SETUP MODAL */}
       {showSetupModal && createPortal(
         <div className="modal-overlay" style={{ zIndex: 1000 }} onClick={e => { if (e.target === e.currentTarget) setShowSetupModal(false); }}>
