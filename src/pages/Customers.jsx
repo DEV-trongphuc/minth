@@ -6,10 +6,6 @@ import AddressSelect from '../components/ui/AddressSelect';
 import { useNavigate } from 'react-router-dom';
 import { useDialog } from '../components/ui/DialogContext';
 
-
-
-
-
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,18 +24,18 @@ export default function Customers() {
   const { showConfirm, showAlert } = useDialog();
   const navigate = useNavigate();
 
-    const [crmTiers, setCrmTiers] = useState([{ name: 'New', color: 'success' }, { name: 'Loyal', color: 'primary' }, { name: 'VIP', color: 'warning' }]);
+  const [crmTiers, setCrmTiers] = useState([{ name: 'New', color: 'success' }, { name: 'Loyal', color: 'primary' }, { name: 'VIP', color: 'warning' }]);
   const [crmTags, setCrmTags] = useState([]);
-
-  const handleCreateOrder = (c) => {
-    localStorage.setItem('luccy_pos_customer_draft', JSON.stringify(c));
-    window.dispatchEvent(new Event('open-pos'));
-  };
 
   const getTierConfig = (tierName) => {
     const t = crmTiers.find(x => x.name === tierName);
     if (!t) return { cls: 'badge-secondary', bg: 'var(--border)' };
     return { cls: `badge-${t.color}`, bg: `var(--${t.color})` };
+  };
+
+  const handleCreateOrder = (c) => {
+    localStorage.setItem('luccy_pos_customer_draft', JSON.stringify(c));
+    window.dispatchEvent(new Event('open-pos'));
   };
 
   useEffect(() => {
@@ -148,28 +144,14 @@ export default function Customers() {
         </div>
       )}
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-        <div className="customer-avatar" style={{ background: getTierConfig(c.tier).bg }}>
+        <div className="customer-avatar" style={{ background: getTierConfig(c.tier).bg || 'var(--primary)' }}>
           {c.name.charAt(0)}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
           <div className="text-sm text-muted">{c.phone}</div>
-                      {c.address && <div className="text-xs text-muted" style={{ marginTop: '.15rem', display: 'flex', alignItems: 'flex-start', gap: '0.25rem' }}><MapPin size={12} style={{ marginTop: '0.1rem', flexShrink: 0 }} /> <span>{c.address}</span></div>}
-            {c.tags && (() => {
-              try {
-                const tags = typeof c.tags === 'string' ? JSON.parse(c.tags) : c.tags;
-                if (!tags || tags.length === 0) return null;
-                return (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.35rem' }}>
-                    {tags.map((t, i) => {
-                      const tagConfig = crmTags.find(x => x.name === t);
-                      return <span key={i} style={{ background: tagConfig?.color || '#ec4899', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 600 }}>{t}</span>;
-                    })}
-                  </div>
-                );
-              } catch(e) { return null; }
-            })()}
-          </div>
+          {c.address && <div className="text-xs text-muted" style={{ marginTop: '.15rem', display: 'flex', alignItems: 'flex-start', gap: '0.25rem' }}><MapPin size={12} style={{ marginTop: '0.1rem', flexShrink: 0 }} /> <span>{c.address}</span></div>}
+        </div>
         <span className={`badge ${getTierConfig(c.tier).cls}`} style={{ display: 'flex', alignItems: 'center', gap: '.25rem', flexShrink: 0 }}>
            {c.tier}
         </span>
@@ -199,22 +181,19 @@ export default function Customers() {
   );
 
   return (
-        <div className="anim-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div className="anim-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Header */}
       <div className="page-header">
         <div>
           <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
             <Users size={24} color="var(--pink)" /> Quản lý Khách hàng (CRM)
           </h1>
-          <p className="page-sub" style={{ marginTop: '0.25rem' }}>{customers.length} khách hàng • Phân loại hạng tự động theo chi tiêu.</p>
-          <div className="desktop-only" style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: '1rem', background: 'var(--surface2)', padding: '0.5rem 0.75rem', borderRadius: 'var(--r-sm)', alignItems: 'center' }}>
+          <p className="page-sub" style={{ marginTop: '0.25rem' }}>{customers.length} khách hàng · Phân loại hạng VIP tự động theo chi tiêu.</p>
+          <div className="desktop-only" style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', background: 'var(--surface2)', padding: '0.5rem 0.75rem', borderRadius: 'var(--r-sm)' }}>
             <strong style={{ color: 'var(--text)' }}>Hướng dẫn phân hạng:</strong>
-            {crmTiers.map(t => (
-              <span key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span className={`badge badge-${t.color}`} style={{ padding: '0.1rem 0.3rem' }}>{t.name}</span>
-                {t.min_spend > 0 ? `> ${(t.min_spend).toLocaleString('vi-VN')}đ` : 'Mặc định'}
-              </span>
-            ))}
+            <span><span className="badge badge-success" style={{ padding: '0.1rem 0.3rem' }}>New</span> Khách mới</span>
+            <span><span className="badge badge-primary" style={{ padding: '0.1rem 0.3rem' }}>Loyal</span> Chi tiêu {'>'} {settings.tier_loyal.toLocaleString('vi-VN')}đ</span>
+            <span><span className="badge badge-warning" style={{ padding: '0.1rem 0.3rem' }}>VIP</span> Chi tiêu {'>'} {settings.tier_vip.toLocaleString('vi-VN')}đ</span>
           </div>
         </div>
         <div className="page-actions">
@@ -233,7 +212,7 @@ export default function Customers() {
         </div>
         {/* Desktop Filter */}
         <div className="desktop-only" style={{ display: 'flex', background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 'var(--r-sm)', overflow: 'hidden', flexShrink: 0 }}>
-          {([{ label: "T?t c?", value: "" }, ...crmTiers.map(t => ({ label: t.name, value: t.name }))]).map(t => (
+          {([{ label: 'Tất cả', value: '' }, ...crmTiers.map(t => ({ label: t.name, value: t.name }))]).map(t => (
             <button key={t.value} onClick={() => setTierFilter(t.value)} style={{ padding: '.45rem .875rem', border: 'none', cursor: 'pointer', fontFamily: 'Outfit', fontSize: '.825rem', fontWeight: 600, transition: 'all .2s', background: tierFilter === t.value ? 'var(--primary)' : 'transparent', color: tierFilter === t.value ? '#fff' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
               {t.label}
             </button>
@@ -242,7 +221,7 @@ export default function Customers() {
         {/* Mobile Filter Dropdown */}
         <div className="mobile-only" style={{ width: '100%' }}>
           <select className="form-control" value={tierFilter} onChange={e => setTierFilter(e.target.value)} style={{ width: '100%', padding: '0.65rem 1rem', fontWeight: 600, background: 'var(--surface)', border: '1.5px solid var(--border)' }}>
-            {([{ label: "T?t c?", value: "" }, ...crmTiers.map(t => ({ label: t.name, value: t.name }))]).map(t => <option key={t.value} value={t.value}>Lọc hạng: {t.label}</option>)}
+            {([{ label: 'Tất cả', value: '' }, ...crmTiers.map(t => ({ label: t.name, value: t.name }))]).map(t => <option key={t.value} value={t.value}>Lọc hạng: {t.label}</option>)}
           </select>
         </div>
       </div>
@@ -300,24 +279,8 @@ export default function Customers() {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
                         <div className="customer-avatar" style={{ width: 36, height: 36, background: getTierConfig(c.tier).bg, fontSize: '.875rem', borderRadius: 8 }}>{c.name.charAt(0)}</div>
-                                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                            <span style={{ fontWeight: 600 }}>{c.name}</span>
-                            {c.tags && (() => {
-                              try {
-                                const tags = typeof c.tags === 'string' ? JSON.parse(c.tags) : c.tags;
-                                if (!tags || tags.length === 0) return null;
-                                return (
-                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
-                                    {tags.map((t, i) => {
-                                      const tagConfig = crmTags.find(x => x.name === t);
-                                      return <span key={i} style={{ background: tagConfig?.color || '#ec4899', color: '#fff', fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: '4px', fontWeight: 600 }}>{t}</span>;
-                                    })}
-                                  </div>
-                                );
-                              } catch(e) { return null; }
-                            })()}
-                          </div>
-                        </div>
+                        <span style={{ fontWeight: 600 }}>{c.name}</span>
+                      </div>
                     </td>
                     <td>
                       <div className="text-sm">{c.phone}</div>
@@ -391,28 +354,12 @@ export default function Customers() {
                     onChange={addr => setForm({ ...form, address: addr })} 
                   />
                 </div>
-                                  <div className="form-group">
-                    <label className="form-label">Ghi chú (Sở thích, lưu ý...)</label>
-                    <textarea className="form-control" placeholder="VD: Thích nước hoa Chanel, nhạy cảm với mùi hương mạnh..." rows={3} value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} style={{ resize: 'vertical' }} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Thẻ Phân loại (Tags)</label>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', background: 'var(--surface2)', padding: '0.75rem', borderRadius: 'var(--r-sm)' }}>
-                      {crmTags.length === 0 && <span className="text-muted text-sm">Chưa có Thẻ nào.</span>}
-                      {crmTags.map(tag => (
-                        <label key={tag.id} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={(form.tags || []).includes(tag.name)} onChange={e => {
-                            const tags = form.tags || [];
-                            if (e.target.checked) setForm({ ...form, tags: [...tags, tag.name] });
-                            else setForm({ ...form, tags: tags.filter(t => t !== tag.name) });
-                          }} style={{ width: 'auto', margin: 0 }} />
-                          <span style={{ background: tag.color, color: '#fff', padding: '0.15rem 0.4rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>{tag.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                <div className="form-group">
+                  <label className="form-label">Ghi chú (Sở thích, lưu ý...)</label>
+                  <textarea className="form-control" placeholder="VD: Thích nước hoa Chanel, nhạy cảm với mùi hương mạnh..." rows={3} value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} style={{ resize: 'vertical' }} />
                 </div>
-                <div className="modal-footer">
+              </div>
+              <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Hủy bỏ</button>
                 <button type="submit" className="btn btn-primary" style={{ background: 'var(--pink)', borderColor: 'var(--pink)' }}>{editItem ? 'Cập nhật' : 'Thêm khách hàng'}</button>
               </div>
@@ -429,22 +376,10 @@ export default function Customers() {
             <div className="modal-header">
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <div className="customer-avatar" style={{ width: 52, height: 52, borderRadius: 14, fontSize: '1.5rem', background: getTierConfig(detailItem.tier).bg }}>{detailItem.name.charAt(0)}</div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <h2 className="modal-title">{detailItem.name}</h2>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span className={`badge ${getTierConfig(detailItem.tier).cls}`}>{detailItem.tier}</span>
-                      {detailItem.tags && (() => {
-                        try {
-                          const tags = typeof detailItem.tags === 'string' ? JSON.parse(detailItem.tags) : detailItem.tags;
-                          if (!tags || tags.length === 0) return null;
-                          return tags.map((t, i) => {
-                            const tagConfig = crmTags.find(x => x.name === t);
-                            return <span key={i} style={{ background: tagConfig?.color || '#ec4899', color: '#fff', fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: 600 }}>{t}</span>;
-                          });
-                        } catch(e) { return null; }
-                      })()}
-                    </div>
-                  </div>
+                <div>
+                  <h2 className="modal-title">{detailItem.name}</h2>
+                  <span className={`badge ${getTierConfig(detailItem.tier).cls}`}>{detailItem.tier}</span>
+                </div>
               </div>
               <button className="btn btn-ghost btn-icon" onClick={() => setDetailItem(null)}>✕</button>
             </div>
@@ -558,4 +493,3 @@ export default function Customers() {
     </div>
   );
 }
-
