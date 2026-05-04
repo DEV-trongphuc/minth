@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿import os
+
+content = """import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { TrendingUp, Package, Users, DollarSign, Calendar, ArrowUpRight, AlertTriangle, ShoppingBag, Percent, Settings, CheckCircle, Clock, Truck, ChevronDown, Activity, MapPin } from 'lucide-react';
 import {
@@ -27,7 +29,7 @@ export default function Dashboard() {
   const [report, setReport] = useState({
     total_revenue: 0, gross_profit: 0, total_orders: 0, aov: 0, profit_margin: 0,
     chart_data: [], donut_data: [], top_products: [], low_stock: [], expiring_soon: [],
-    total_shipping: 0, op_cost: 0, top_customers: [], recent_orders: [], geo_sales: [], weekday_sales: {}
+    total_shipping: 0, op_cost: 0, top_customers: [], recent_orders: [], geo_sales: [], hourly_sales: []
   });
   const [showSetupModal, setShowSetupModal] = useState(false);
 
@@ -71,26 +73,16 @@ export default function Dashboard() {
     ],
   };
 
-  // Weekday Bar Chart (Ngày vàng)
-  const weekdayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-  const weekdayDataObj = report.weekday_sales || {};
-  // MySQL DAYOFWEEK: 1=Sun, 2=Mon ... 7=Sat
-  const weekdayData = [
-    weekdayDataObj["1"] || 0,
-    weekdayDataObj["2"] || 0,
-    weekdayDataObj["3"] || 0,
-    weekdayDataObj["4"] || 0,
-    weekdayDataObj["5"] || 0,
-    weekdayDataObj["6"] || 0,
-    weekdayDataObj["7"] || 0
-  ];
+  // Hourly Bar Chart (Giờ vàng)
+  const hourlyLabels = Array.from({length: 24}, (_, i) => `${i}h`);
+  const hourlyData = report.hourly_sales || Array(24).fill(0);
   
   const barData = {
-    labels: weekdayLabels,
+    labels: hourlyLabels,
     datasets: [{
       label: 'Đơn hàng',
-      data: weekdayData,
-      backgroundColor: weekdayData.map(val => (val > 0 && val >= Math.max(...weekdayData) * 0.7) ? '#f59e0b' : '#e5e7eb'),
+      data: hourlyData,
+      backgroundColor: hourlyData.map(val => val > Math.max(...hourlyData) * 0.7 ? '#f59e0b' : '#e5e7eb'),
       borderRadius: 4,
     }]
   };
@@ -219,6 +211,32 @@ export default function Dashboard() {
           <div style={{ flex: 1, minHeight: '240px' }}><Line options={chartOpts} data={lineData} /></div>
         </div>
 
+        {/* Heatmap/Bar Chart (Span 4 cols) */}
+        <div className="card" style={{ gridColumn: 'span 4', minHeight: '320px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity size={18} color="var(--warning)" /> Giờ Vàng Mua Sắm</h3>
+            <p className="text-sm text-muted">Tần suất chốt đơn theo khung giờ</p>
+          </div>
+          <div style={{ flex: 1, minHeight: '200px' }}><Bar options={{...chartOpts, scales: { x: { grid: { display: false }, ticks: { font: { size: 9 }, maxTicksLimit: 12 } }, y: { display: false }}}} data={barData} /></div>
+        </div>
+
+        {/* Top Products (Span 4 cols) */}
+        <div className="card" style={{ gridColumn: 'span 4', minHeight: '350px' }}>
+          <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1.25rem' }}>Sản phẩm Bán chạy</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {(!report.top_products || report.top_products.length === 0) && <div className="text-center text-muted" style={{ padding: '2rem' }}>Chưa có dữ liệu</div>}
+            {(report.top_products || []).slice(0, 5).map((p, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ width: 32, height: 32, borderRadius: '8px', background: i < 3 ? `var(--primary-${i===0?'dark':(i===1?'DEFAULT':'light')})` : 'var(--surface2)', color: i < 3 ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}>{i+1}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>{p.name}</div>
+                  <div className="text-xs text-muted" style={{ marginTop: '0.1rem' }}>{Number(p.revenue).toLocaleString('vi-VN')} đ</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Donut & Geo (Span 4 cols) */}
         <div className="card" style={{ gridColumn: 'span 4', minHeight: '350px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1rem' }}>Cơ cấu Bán hàng</h3>
@@ -235,32 +253,6 @@ export default function Dashboard() {
               <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--primary)' }}>{(report.top_customers && report.top_customers[0]) ? report.top_customers[0].name : 'N/A'}</span>
             </div>
           </div>
-        </div>
-
-        {/* Top Products (Span 4 cols) */}
-        <div className="card" style={{ gridColumn: 'span 4', minHeight: '350px' }}>
-          <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '1.25rem' }}>Sản phẩm Bán chạy</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {(!report.top_products || report.top_products.length === 0) && <div className="text-center text-muted" style={{ padding: '2rem' }}>Chưa có dữ liệu</div>}
-            {(report.top_products || []).slice(0, 5).map((p, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: 32, height: 32, borderRadius: '8px', background: i < 3 ? `var(--primary${i===0?'-dark':(i===2?'-light':'')})` : 'var(--surface2)', color: i < 3 ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}>{i+1}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>{p.name}</div>
-                  <div className="text-xs text-muted" style={{ marginTop: '0.1rem' }}>{Number(p.revenue).toLocaleString('vi-VN')} đ</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Heatmap/Bar Chart (Span 4 cols) */}
-        <div className="card" style={{ gridColumn: 'span 4', minHeight: '320px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Activity size={18} color="var(--warning)" /> Ngày Vàng Mua Sắm</h3>
-            <p className="text-sm text-muted">Tần suất chốt đơn theo ngày trong tuần</p>
-          </div>
-          <div style={{ flex: 1, minHeight: '200px' }}><Bar options={{...chartOpts, scales: { x: { grid: { display: false }, ticks: { font: { size: 9 }, maxTicksLimit: 12 } }, y: { display: false }}}} data={barData} /></div>
         </div>
 
         {/* Inventory Tabs & Recent Orders (Span 4 cols) */}
@@ -340,3 +332,8 @@ export default function Dashboard() {
     </div>
   );
 }
+"""
+
+with open("F:\\HAMIEN_LUCCY\\src\\pages\\Dashboard.jsx", "w", encoding="utf-8") as f:
+    f.write(content)
+print("Dashboard refactored")

@@ -213,6 +213,24 @@ if ($method === 'GET') {
         $aov = $totalOrd > 0 ? ($totalRev / $totalOrd) : 0;
         $profitMargin = $totalRev > 0 ? ($netProfit / $totalRev) * 100 : 0;
 
+        // 13. Weekday Sales (Ngày vàng mua sắm)
+        $stmtWeekday = $pdo->prepare("
+            SELECT 
+                DAYOFWEEK(created_at) as weekday, 
+                COUNT(id) as order_count 
+            FROM orders 
+            WHERE created_at BETWEEN :start AND :end AND status != 'cancelled'
+            GROUP BY DAYOFWEEK(created_at)
+            ORDER BY weekday ASC
+        ");
+        $stmtWeekday->execute([':start' => $startDate, ':end' => $endDate]);
+        $weekdaySalesRaw = $stmtWeekday->fetchAll();
+        
+        $weekdaySales = array_fill(1, 7, 0); // 1 = Sunday, 7 = Saturday
+        foreach ($weekdaySalesRaw as $row) {
+            $weekdaySales[(int)$row['weekday']] = (int)$row['order_count'];
+        }
+
         echo json_encode([
             "total_revenue" => $totalRev,
             "gross_profit" => $grossProfit,
@@ -232,6 +250,7 @@ if ($method === 'GET') {
             "top_customers" => $topCustomers,
             "recent_orders" => $recentOrders,
             "geo_sales" => $geoSales,
+            "weekday_sales" => $weekdaySales,
             "filter" => $filter,
             "period" => "$startDate to $endDate"
         ]);
