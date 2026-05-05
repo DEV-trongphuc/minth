@@ -231,6 +231,25 @@ if ($method === 'GET') {
             $weekdaySales[(int)$row['weekday']] = (int)$row['order_count'];
         }
 
+        // 14. Detailed Expenses
+        $stmtExpDetail = $pdo->prepare("SELECT expense_date as date, category, description, amount FROM expenses WHERE expense_date BETWEEN DATE(:start) AND DATE(:end) ORDER BY expense_date DESC LIMIT 20");
+        $stmtExpDetail->execute([':start' => $startDate, ':end' => $endDate]);
+        $expenseDetails = $stmtExpDetail->fetchAll();
+
+        // 15. Detailed Inventory Loss (EXPORT_INTERNAL)
+        $stmtLossDetail = $pdo->prepare("
+            SELECT i.created_at as date, p.name, b.batch_code, i.qty_change, i.ml_change, i.reason,
+                CASE WHEN i.qty_change < 0 THEN ABS(i.qty_change) * b.import_price 
+                ELSE ABS(i.ml_change) * (b.import_price / CASE WHEN p.ml_per_unit > 0 THEN p.ml_per_unit ELSE 1 END) END as loss_value
+            FROM inventory_logs i
+            JOIN batches b ON i.batch_id = b.id
+            JOIN products p ON b.product_id = p.id
+            WHERE i.action_type = 'EXPORT_INTERNAL' AND i.created_at BETWEEN :start AND :end
+            ORDER BY i.created_at DESC LIMIT 20
+        ");
+        $stmtLossDetail->execute([':start' => $startDate, ':end' => $endDate]);
+        $lossDetails = $stmtLossDetail->fetchAll();
+
         echo json_encode([
             "total_revenue" => $totalRev,
             "gross_profit" => $grossProfit,
@@ -251,6 +270,8 @@ if ($method === 'GET') {
             "recent_orders" => $recentOrders,
             "geo_sales" => $geoSales,
             "weekday_sales" => $weekdaySales,
+            "expense_details" => $expenseDetails,
+            "inventory_loss_details" => $lossDetails,
             "filter" => $filter,
             "period" => "$startDate to $endDate"
         ]);

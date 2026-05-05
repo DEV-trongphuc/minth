@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { TrendingUp, Package, Users, DollarSign, Calendar, ArrowUpRight, AlertTriangle, ShoppingBag, Percent, Settings, CheckCircle, Clock, Truck, ChevronDown, Activity, MapPin } from 'lucide-react';
+import { TrendingUp, Package, Users, DollarSign, Calendar, ArrowUpRight, AlertTriangle, ShoppingBag, Percent, Settings, CheckCircle, Clock, Truck, ChevronDown, Activity, MapPin, X } from 'lucide-react';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement,
   LineElement, BarElement, Title, Tooltip, Filler, Legend, ArcElement,
@@ -27,9 +27,10 @@ export default function Dashboard() {
   const [report, setReport] = useState({
     total_revenue: 0, gross_profit: 0, total_orders: 0, aov: 0, profit_margin: 0,
     chart_data: [], donut_data: [], top_products: [], low_stock: [], expiring_soon: [],
-    total_shipping: 0, op_cost: 0, top_customers: [], recent_orders: [], geo_sales: [], weekday_sales: {}
+    total_shipping: 0, op_cost: 0, total_expenses: 0, top_customers: [], recent_orders: [], geo_sales: [], weekday_sales: {}
   });
   const [showSetupModal, setShowSetupModal] = useState(false);
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
 
   useEffect(() => {
     fetchReport();
@@ -194,12 +195,18 @@ export default function Dashboard() {
         </div>
 
         {/* Chi phí */}
-        <div className="card hover-shadow" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
+        <div 
+          className="card hover-shadow" 
+          onClick={() => setShowExpenseModal(true)}
+          style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', cursor: 'pointer', transition: 'all 0.2s' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--text-muted)' }}><AlertTriangle size={18} color="var(--danger)" /><span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Chi phí & Hao hụt</span></div>
-          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--danger)', lineHeight: 1 }}>- {Math.round(Number((report.total_shipping || 0) + (report.op_cost || 0))).toLocaleString('vi-VN')} đ</div>
+          <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--danger)', lineHeight: 1 }}>
+            - {Math.round(Number((report.total_shipping || 0) + (report.op_cost || 0) + (report.total_expenses || 0))).toLocaleString('vi-VN')} đ
+          </div>
           <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
             <span className="text-muted" style={{fontSize: '0.75rem'}}>Bao gồm: Hao hụt kho & Phí vận hành</span>
-            <span>LN Ròng: <span style={{ color: 'var(--success)', fontWeight: 700 }}>{Math.round(Number((report.gross_profit || 0) - ((report.total_shipping || 0) + (report.op_cost || 0)))).toLocaleString('vi-VN')} đ</span></span>
+            <span>LN Ròng: <span style={{ color: 'var(--success)', fontWeight: 700 }}>{Math.round(Number((report.gross_profit || 0) - ((report.total_shipping || 0) + (report.op_cost || 0) + (report.total_expenses || 0)))).toLocaleString('vi-VN')} đ</span></span>
           </div>
         </div>
 
@@ -346,6 +353,150 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* EXPENSE BREAKDOWN MODAL */}
+      {showExpenseModal && createPortal(
+        <div className="modal-overlay" style={{ zIndex: 1000, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(8px)' }} onClick={e => { if (e.target === e.currentTarget) setShowExpenseModal(false); }}>
+          <div className="modal anim-scale-in" style={{ maxWidth: '1000px', width: '95%', borderRadius: 'var(--r-lg)', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '90vh', border: '1px solid var(--border)', boxShadow: 'var(--shadow-lg)' }}>
+            
+            <div className="modal-header" style={{ padding: '1.25rem 2rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)' }}>
+              <div>
+                <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text)', fontSize: '1.2rem', fontWeight: 800 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '8px', background: 'var(--danger-bg)', color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><AlertTriangle size={18} /></div>
+                  Báo cáo Chi phí & Hao hụt
+                </h2>
+              </div>
+              <button className="btn-icon-bare" onClick={() => setShowExpenseModal(false)} style={{ color: 'var(--text-muted)', background: 'var(--surface2)', width: 32, height: 32, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}><X size={18}/></button>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 350px) 1fr', flex: 1, overflow: 'hidden' }}>
+              
+              {/* Left Column: Summary */}
+              <div style={{ padding: '2rem', background: 'var(--surface2)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1.25rem' }}>Phân bổ chi phí</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+                    {[
+                      { label: 'Hao hụt kho', value: report.op_cost, icon: Activity, color: 'var(--danger)', bg: 'rgba(239, 68, 68, 0.1)' },
+                      { label: 'Vận chuyển', value: report.total_shipping, icon: Truck, color: 'var(--info)', bg: 'rgba(59, 130, 246, 0.1)' },
+                      { label: 'Vận hành', value: report.total_expenses, icon: DollarSign, color: 'var(--success)', bg: 'rgba(16, 185, 129, 0.1)' }
+                    ].map((item, idx) => (
+                      <div key={idx} style={{ background: 'var(--surface)', padding: '1rem 1.25rem', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-light)', boxShadow: 'var(--shadow-xs)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '10px', background: item.bg, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><item.icon size={18} /></div>
+                          <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.label}</div>
+                        </div>
+                        <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text)' }}>{Math.round(item.value || 0).toLocaleString('vi-VN')} đ</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 'auto', padding: '1.5rem', background: 'linear-gradient(135deg, #1e1557, #3d2d9e)', color: '#fff', borderRadius: '20px', boxShadow: 'var(--shadow-glow)', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', right: '-10%', top: '-10%', opacity: 0.1 }}><DollarSign size={80} /></div>
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>TỔNG CHI PHÍ THỰC TẾ</div>
+                    <div style={{ fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.02em' }}>
+                      {Math.round((report.op_cost || 0) + (report.total_shipping || 0) + (report.total_expenses || 0)).toLocaleString('vi-VN')} đ
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Details List */}
+              <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface)', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', padding: '0.5rem 1.5rem', borderBottom: '1px solid var(--border)', gap: '1.5rem', background: 'var(--surface)' }}>
+                  <button 
+                    onClick={() => setInventoryTab('loss_logs')} 
+                    style={{ 
+                      padding: '1rem 0', border: 'none', background: 'none', fontWeight: 700, fontSize: '0.85rem', 
+                      color: inventoryTab === 'loss_logs' || inventoryTab === 'low_stock' ? 'var(--primary)' : 'var(--text-light)', 
+                      cursor: 'pointer', position: 'relative', transition: 'var(--transition)'
+                    }}
+                  >
+                    Lịch sử Hao hụt
+                    {(inventoryTab === 'loss_logs' || inventoryTab === 'low_stock') && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: 'var(--primary)', borderRadius: '3px 3px 0 0' }} />}
+                  </button>
+                  <button 
+                    onClick={() => setInventoryTab('expense_logs')} 
+                    style={{ 
+                      padding: '1rem 0', border: 'none', background: 'none', fontWeight: 700, fontSize: '0.85rem', 
+                      color: inventoryTab === 'expense_logs' ? 'var(--primary)' : 'var(--text-light)', 
+                      cursor: 'pointer', position: 'relative', transition: 'var(--transition)'
+                    }}
+                  >
+                    Chi phí Vận hành
+                    {inventoryTab === 'expense_logs' && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: 'var(--primary)', borderRadius: '3px 3px 0 0' }} />}
+                  </button>
+                </div>
+
+                <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', background: 'var(--surface2)' }}>
+                  {inventoryTab === 'expense_logs' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {(!report.expense_details || report.expense_details.length === 0) ? (
+                        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-light)' }}>
+                          <DollarSign size={48} style={{ opacity: 0.1, marginBottom: '1rem' }} />
+                          <div style={{ fontWeight: 500 }}>Không có dữ liệu chi phí trong kỳ</div>
+                        </div>
+                      ) : 
+                        report.expense_details.map((exp, i) => (
+                          <div key={i} className="hover-shadow" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border-light)', transition: 'var(--transition)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)' }}>{exp.description || 'Chi phí không tên'}</div>
+                              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--primary)', background: 'var(--primary-light)', padding: '0.2rem 0.6rem', borderRadius: '6px', textTransform: 'uppercase' }}>{exp.category}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-light)' }}>
+                                  <Calendar size={12} /> {new Date(exp.date).toLocaleDateString('vi-VN')}
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontWeight: 900, color: 'var(--danger)', fontSize: '1rem' }}>-{Number(exp.amount).toLocaleString('vi-VN')} đ</div>
+                            </div>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {(!report.inventory_loss_details || report.inventory_loss_details.length === 0) ? (
+                        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-light)' }}>
+                          <Package size={48} style={{ opacity: 0.1, marginBottom: '1rem' }} />
+                          <div style={{ fontWeight: 500 }}>Không ghi nhận hao hụt trong kỳ</div>
+                        </div>
+                      ) : 
+                        report.inventory_loss_details.map((log, i) => (
+                          <div key={i} className="hover-shadow" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border-light)', transition: 'var(--transition)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)' }}>{log.name}</div>
+                              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>Lô: {log.batch_code}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-light)' }}>
+                                  <Clock size={12} /> {new Date(log.date).toLocaleString('vi-VN')}
+                                </div>
+                              </div>
+                              {log.reason && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', background: 'var(--surface2)', padding: '0.25rem 0.5rem', borderRadius: '4px', width: 'fit-content' }}>"{log.reason}"</div>}
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontWeight: 900, color: 'var(--danger)', fontSize: '1rem' }}>-{Math.round(log.loss_value).toLocaleString('vi-VN')} đ</div>
+                              <div style={{ fontSize: '0.65rem', color: 'var(--text-light)', fontWeight: 600 }}>{log.qty_change != 0 ? `${Math.abs(log.qty_change)} đv` : ''} {log.ml_change != 0 ? `${Math.abs(log.ml_change)} ml` : ''}</div>
+                            </div>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer" style={{ padding: '1.25rem 2rem', background: 'var(--surface)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <button className="btn btn-secondary" style={{ borderRadius: '10px', fontWeight: 600 }} onClick={() => setShowExpenseModal(false)}>Đóng</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* SETUP MODAL */}
       {showSetupModal && createPortal(
