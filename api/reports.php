@@ -39,7 +39,9 @@ if ($method === 'GET') {
                 SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END) as total_revenue,
                 SUM(
                   CASE WHEN payment_status = 'paid' THEN 
-                    total_amount - COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
+                    total_amount 
+                    - COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
+                    - CASE WHEN shipping_customer_pay = 0 THEN shipping_fee ELSE 0 END
                   ELSE 0 END
                 ) as gross_profit,
                 COUNT(id) as total_orders
@@ -56,7 +58,9 @@ if ($method === 'GET') {
                 SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END) as revenue,
                 SUM(
                     CASE WHEN payment_status = 'paid' THEN 
-                        total_amount - COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
+                        total_amount 
+                        - COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
+                        - CASE WHEN shipping_customer_pay = 0 THEN shipping_fee ELSE 0 END
                     ELSE 0 END
                 ) as profit
             FROM orders 
@@ -126,12 +130,16 @@ if ($method === 'GET') {
 
         // 6. Shipping Fees
         $stmtShipping = $pdo->prepare("
-            SELECT SUM(shipping_fee) as total_shipping 
+            SELECT 
+                SUM(CASE WHEN shipping_customer_pay = 1 THEN shipping_fee ELSE 0 END) as collected_shipping,
+                SUM(CASE WHEN shipping_customer_pay = 0 THEN shipping_fee ELSE 0 END) as shop_paid_shipping
             FROM orders 
             WHERE payment_status = 'paid' AND status != 'cancelled' AND created_at BETWEEN :start AND :end
         ");
         $stmtShipping->execute([':start' => $startDate, ':end' => $endDate]);
-        $totalShipping = $stmtShipping->fetchColumn() ?: 0;
+        $shippingStats = $stmtShipping->fetch();
+        $totalShippingCollected = (float)$shippingStats['collected_shipping'];
+        $totalShopShipping = (float)$shippingStats['shop_paid_shipping'];
 
         // 7. Operational Costs (Export Internal Loss)
         $stmtCost = $pdo->prepare("
@@ -257,7 +265,8 @@ if ($method === 'GET') {
             "net_profit" => $netProfit,
             "total_orders" => $totalOrd,
             "pending_orders" => $pendingOrders,
-            "total_shipping" => (float)$totalShipping,
+            "total_shipping" => $totalShippingCollected,
+            "shop_paid_shipping" => $totalShopShipping,
             "op_cost" => (float)$opCost,
             "aov" => $aov,
             "profit_margin" => $profitMargin,

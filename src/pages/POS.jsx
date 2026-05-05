@@ -14,7 +14,7 @@ const POS = ({ onClose, onSuccess }) => {
   const [search, setSearch] = useState('');
   const [customerInfo, setCustomerInfo] = useState({ id: null, name: '', phone: '', address: '', note: '' });
   const [showCheckout, setShowCheckout] = useState(false);
-  const [orderConfig, setOrderConfig] = useState({ status: 'pending', payment_status: 'paid' });
+  const [orderConfig, setOrderConfig] = useState({ status: 'pending', payment_status: 'paid', shipping_customer_pay: true });
   const [shippingFee, setShippingFee] = useState(0);
   const [showGuide, setShowGuide] = useState(false);
   const { showAlert } = useDialog();
@@ -119,7 +119,8 @@ const POS = ({ onClose, onSuccess }) => {
           customer_address: customerInfo.address,
           customer_note: customerInfo.note,
           status: orderConfig.status,
-          payment_status: orderConfig.payment_status
+          payment_status: orderConfig.payment_status,
+          shipping_customer_pay: orderConfig.shipping_customer_pay ? 1 : 0
         })
       });
       
@@ -385,21 +386,46 @@ const POS = ({ onClose, onSuccess }) => {
                   
                   {orderConfig.status !== 'completed' && (
                     <div className="form-group" style={{ marginBottom: '1rem', padding: '0.5rem 0', borderBottom: '1px dashed var(--border)' }}>
-                      <label className="text-sm text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Phí ship (nếu có)</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <label className="text-sm text-muted" style={{ fontWeight: 500, margin: 0 }}>Phí ship (nếu có)</label>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button 
+                            type="button" 
+                            className={`btn btn-xs ${orderConfig.shipping_customer_pay ? 'btn-primary' : 'btn-ghost'}`} 
+                            style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', height: 'auto', minHeight: 0 }} 
+                            onClick={() => setOrderConfig({...orderConfig, shipping_customer_pay: true})}
+                          >
+                            Thu khách
+                          </button>
+                          <button 
+                            type="button" 
+                            className={`btn btn-xs ${!orderConfig.shipping_customer_pay ? 'btn-danger' : 'btn-ghost'}`} 
+                            style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', height: 'auto', minHeight: 0 }} 
+                            onClick={() => setOrderConfig({...orderConfig, shipping_customer_pay: false})}
+                          >
+                            Shop trả
+                          </button>
+                        </div>
+                      </div>
                       <div style={{ position: 'relative', width: '100%' }}>
                         <Truck size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
-                        <input type="text" className="form-control" style={{ width: '100%', textAlign: 'right', padding: '0.6rem 2.2rem 0.6rem 2.2rem', fontWeight: 600 }} value={shippingFee > 0 ? shippingFee.toLocaleString('vi-VN') : ''} placeholder="0" onChange={e => {
+                        <input type="text" className="form-control" style={{ width: '100%', textAlign: 'right', padding: '0.6rem 2.2rem 0.6rem 2.2rem', fontWeight: 600, color: orderConfig.shipping_customer_pay ? 'inherit' : 'var(--danger)' }} value={shippingFee > 0 ? shippingFee.toLocaleString('vi-VN') : ''} placeholder="0" onChange={e => {
                           const val = Number(e.target.value.replace(/\D/g, ''));
                           setShippingFee(val);
                         }} />
                         <span style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: '0.85rem' }}>đ</span>
                       </div>
+                      {!orderConfig.shipping_customer_pay && shippingFee > 0 && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--danger)', marginTop: '0.25rem', fontWeight: 600 }}>
+                          * Shop chịu phí vận chuyển
+                        </div>
+                      )}
                     </div>
                   )}
                   
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--primary-light)', padding: '1.25rem', borderRadius: 'var(--r-sm)' }}>
-                    <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--primary-dark)' }}>Tổng cộng:</span>
-                    <span style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--primary)' }}>{(totalAmount + (orderConfig.status !== 'completed' ? shippingFee : 0)).toLocaleString('vi-VN')} đ</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--primary-dark)' }}>Tổng thu khách:</span>
+                    <span style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--primary)' }}>{(totalAmount + (orderConfig.status !== 'completed' && orderConfig.shipping_customer_pay ? shippingFee : 0)).toLocaleString('vi-VN')} đ</span>
                   </div>
                 </div>
                 

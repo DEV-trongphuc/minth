@@ -27,7 +27,7 @@ export default function Orders() {
   const [showPOS, setShowPOS] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
-  const [editForm, setEditForm] = useState({ customer_name: '', customer_phone: '', customer_address: '', total_amount: 0, shipping_fee: 0, final_amount: 0 });
+  const [editForm, setEditForm] = useState({ customer_name: '', customer_phone: '', customer_address: '', total_amount: 0, shipping_fee: 0, final_amount: 0, shipping_customer_pay: 1 });
   const [cart, setCart] = useState([]);
   const [originalCart, setOriginalCart] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
@@ -72,7 +72,8 @@ export default function Orders() {
       customer_address: order.customer_address || '',
       shipping_fee: Number(order.shipping_fee) || 0,
       total_amount: Number(order.total_amount) || 0,
-      final_amount: Number(order.final_amount) || Number(order.total_amount) || 0
+      final_amount: Number(order.final_amount) || Number(order.total_amount) || 0,
+      shipping_customer_pay: order.shipping_customer_pay !== undefined ? Number(order.shipping_customer_pay) : 1
     });
     setCart([]);
     setLoadingItems(true);
@@ -112,7 +113,8 @@ export default function Orders() {
 
     const total_amount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const shipping_fee = Number(editForm.shipping_fee) || 0;
-    const final_amount = total_amount + shipping_fee;
+    const shipping_customer_pay = Number(editForm.shipping_customer_pay);
+    const final_amount = total_amount + (shipping_customer_pay ? shipping_fee : 0);
 
     // Calculate diffs
     const diffs = [];
@@ -145,6 +147,7 @@ export default function Orders() {
             total_amount,
             shipping_fee,
             final_amount,
+            shipping_customer_pay,
             cart
           })
         });
@@ -688,8 +691,39 @@ export default function Orders() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Phí giao hàng (VNĐ)</label>
-                  <input className="form-control" type="number" value={editForm.shipping_fee} onChange={e => setEditForm({ ...editForm, shipping_fee: e.target.value })} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <label className="form-label" style={{ margin: 0 }}>Phí giao hàng (VNĐ)</label>
+                    <div style={{ display: 'flex', gap: '0.35rem' }}>
+                      <button 
+                        type="button" 
+                        className={`btn btn-xs ${Number(editForm.shipping_customer_pay) === 1 ? 'btn-primary' : 'btn-ghost'}`} 
+                        style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', height: 'auto', minHeight: 0 }} 
+                        onClick={() => setEditForm({...editForm, shipping_customer_pay: 1})}
+                      >
+                        Thu khách
+                      </button>
+                      <button 
+                        type="button" 
+                        className={`btn btn-xs ${Number(editForm.shipping_customer_pay) === 0 ? 'btn-danger' : 'btn-ghost'}`} 
+                        style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', height: 'auto', minHeight: 0 }} 
+                        onClick={() => setEditForm({...editForm, shipping_customer_pay: 0})}
+                      >
+                        Shop trả
+                      </button>
+                    </div>
+                  </div>
+                  <input 
+                    className="form-control" 
+                    type="number" 
+                    value={editForm.shipping_fee} 
+                    onChange={e => setEditForm({ ...editForm, shipping_fee: e.target.value })} 
+                    style={{ color: Number(editForm.shipping_customer_pay) === 0 ? 'var(--danger)' : 'inherit', fontWeight: Number(editForm.shipping_customer_pay) === 0 ? 600 : 400 }}
+                  />
+                  {Number(editForm.shipping_customer_pay) === 0 && Number(editForm.shipping_fee) > 0 && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--danger)', marginTop: '0.35rem', fontWeight: 600 }}>
+                      * Shop chịu phí vận chuyển {Number(editForm.shipping_fee).toLocaleString()}đ
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -747,9 +781,9 @@ export default function Orders() {
                     </div>
 
                     <div style={{ marginTop: 'auto', background: 'var(--primary-light)', padding: '1rem', borderRadius: 'var(--r-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>Tổng thanh toán:</span>
+                      <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>Tổng thu khách:</span>
                       <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>
-                        {(cart.reduce((s, c) => s + (c.price * c.quantity), 0) + (Number(editForm.shipping_fee) || 0)).toLocaleString('vi-VN')} đ
+                        {(cart.reduce((s, c) => s + (c.price * c.quantity), 0) + (Number(editForm.shipping_customer_pay) === 1 ? Number(editForm.shipping_fee) || 0 : 0)).toLocaleString('vi-VN')} đ
                       </span>
                     </div>
                   </>

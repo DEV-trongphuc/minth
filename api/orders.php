@@ -107,7 +107,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                 
                 $shippingFee = $data['shipping_fee'] ?? $order['shipping_fee'];
                 $totalAmount = $data['total_amount'] ?? $order['total_amount'];
-                $finalAmount = $data['final_amount'] ?? ($totalAmount + $shippingFee);
+                $shipping_customer_pay = $data['shipping_customer_pay'] ?? $order['shipping_customer_pay'] ?? 1;
+                $finalAmount = $data['final_amount'] ?? ($totalAmount + ($shipping_customer_pay ? $shippingFee : 0));
 
                 if (isset($data['cart'])) {
                     // Cập nhật chi tiết đơn hàng
@@ -198,8 +199,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                     }
                 }
 
-                $pdo->prepare("UPDATE orders SET total_amount = ?, shipping_fee = ?, final_amount = ? WHERE id = ?")
-                    ->execute([$totalAmount, $shippingFee, $finalAmount, $data['id']]);
+                $pdo->prepare("UPDATE orders SET total_amount = ?, shipping_fee = ?, shipping_customer_pay = ?, final_amount = ? WHERE id = ?")
+                    ->execute([$totalAmount, $shippingFee, $shipping_customer_pay, $finalAmount, $data['id']]);
 
                 // Recalculate customer tier if paid
                 if ($order['customer_id']) {
@@ -337,10 +338,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status = $data['status'] ?? 'pending';
         $paymentStatus = $data['payment_status'] ?? 'paid';
         $shippingFee = $data['shipping_fee'] ?? 0;
-        $finalAmount = $data['final_amount'] ?? ($data['total_amount'] + $shippingFee);
+        $shipping_customer_pay = $data['shipping_customer_pay'] ?? 1;
+        $finalAmount = $data['final_amount'] ?? ($data['total_amount'] + ($shipping_customer_pay ? $shippingFee : 0));
         
-        $stmt = $pdo->prepare("INSERT INTO orders (customer_id, total_amount, shipping_fee, final_amount, status, payment_status) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$customerId, $data['total_amount'], $shippingFee, $finalAmount, $status, $paymentStatus]);
+        $stmt = $pdo->prepare("INSERT INTO orders (customer_id, total_amount, shipping_fee, shipping_customer_pay, final_amount, status, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$customerId, $data['total_amount'], $shippingFee, $shipping_customer_pay, $finalAmount, $status, $paymentStatus]);
         $orderId = $pdo->lastInsertId();
         
         $stmtItem = $pdo->prepare("INSERT INTO order_items (order_id, batch_id, sell_type, quantity, price_per_unit, subtotal, cost_per_unit) VALUES (?, ?, ?, ?, ?, ?, ?)");

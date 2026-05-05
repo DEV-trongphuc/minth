@@ -27,7 +27,7 @@ export default function Dashboard() {
   const [report, setReport] = useState({
     total_revenue: 0, gross_profit: 0, total_orders: 0, aov: 0, profit_margin: 0,
     chart_data: [], donut_data: [], top_products: [], low_stock: [], expiring_soon: [],
-    total_shipping: 0, op_cost: 0, total_expenses: 0, top_customers: [], recent_orders: [], geo_sales: [], weekday_sales: {}
+    total_shipping: 0, shop_paid_shipping: 0, op_cost: 0, total_expenses: 0, top_customers: [], recent_orders: [], geo_sales: [], weekday_sales: {}
   });
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -198,15 +198,25 @@ export default function Dashboard() {
         <div 
           className="card hover-shadow" 
           onClick={() => setShowExpenseModal(true)}
-          style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', cursor: 'pointer', transition: 'all 0.2s' }}
+          style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem', cursor: 'pointer', transition: 'all 0.2s', position: 'relative' }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'none'}
         >
+          {/* Visual Hint */}
+          <div style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', width: '32px', height: '32px', borderRadius: '50%', background: 'var(--surface2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-light)', transition: 'all 0.2s' }} className="hint-icon">
+            <ArrowUpRight size={16} />
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--text-muted)' }}><AlertTriangle size={18} color="var(--danger)" /><span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Chi phí & Hao hụt</span></div>
           <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--danger)', lineHeight: 1 }}>
-            - {Math.round(Number((report.total_shipping || 0) + (report.op_cost || 0) + (report.total_expenses || 0))).toLocaleString('vi-VN')} đ
+            - {Math.round(Number((report.shop_paid_shipping || 0) + (report.op_cost || 0) + (report.total_expenses || 0))).toLocaleString('vi-VN')} đ
           </div>
           <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
-            <span className="text-muted" style={{fontSize: '0.75rem'}}>Bao gồm: Hao hụt kho & Phí vận hành</span>
-            <span>LN Ròng: <span style={{ color: 'var(--success)', fontWeight: 700 }}>{Math.round(Number((report.gross_profit || 0) - ((report.total_shipping || 0) + (report.op_cost || 0) + (report.total_expenses || 0)))).toLocaleString('vi-VN')} đ</span></span>
+            <span className="text-muted" style={{fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+              Hao hụt kho, Vận hành & Ship shop trả
+              <span style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: 700 }}>Bấm để xem chi tiết</span>
+            </span>
+            <span>LN Ròng: <span style={{ color: 'var(--success)', fontWeight: 700 }}>{Math.round(Number(report.net_profit || 0)).toLocaleString('vi-VN')} đ</span></span>
           </div>
         </div>
 
@@ -378,13 +388,23 @@ export default function Dashboard() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                     {[
                       { label: 'Hao hụt kho', value: report.op_cost, icon: Activity, color: 'var(--danger)', bg: 'rgba(239, 68, 68, 0.1)' },
-                      { label: 'Vận chuyển', value: report.total_shipping, icon: Truck, color: 'var(--info)', bg: 'rgba(59, 130, 246, 0.1)' },
+                      { 
+                        label: 'Vận chuyển', 
+                        value: report.shop_paid_shipping, 
+                        icon: Truck, 
+                        color: 'var(--info)', 
+                        bg: 'rgba(59, 130, 246, 0.1)',
+                        sub: `Đã thu: ${Math.round(report.total_shipping || 0).toLocaleString()}đ`
+                      },
                       { label: 'Vận hành', value: report.total_expenses, icon: DollarSign, color: 'var(--success)', bg: 'rgba(16, 185, 129, 0.1)' }
                     ].map((item, idx) => (
                       <div key={idx} style={{ background: 'var(--surface)', padding: '1rem 1.25rem', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-light)', boxShadow: 'var(--shadow-xs)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
                           <div style={{ width: 36, height: 36, borderRadius: '10px', background: item.bg, color: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><item.icon size={18} /></div>
-                          <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.label}</div>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)' }}>{item.label}</div>
+                            {item.sub && <div style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-light)' }}>{item.sub}</div>}
+                          </div>
                         </div>
                         <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text)' }}>{Math.round(item.value || 0).toLocaleString('vi-VN')} đ</div>
                       </div>
@@ -397,7 +417,7 @@ export default function Dashboard() {
                   <div style={{ position: 'relative', zIndex: 1 }}>
                     <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.7, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>TỔNG CHI PHÍ THỰC TẾ</div>
                     <div style={{ fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.02em' }}>
-                      {Math.round((report.op_cost || 0) + (report.total_shipping || 0) + (report.total_expenses || 0)).toLocaleString('vi-VN')} đ
+                      {Math.round((report.op_cost || 0) + (report.shop_paid_shipping || 0) + (report.total_expenses || 0)).toLocaleString('vi-VN')} đ
                     </div>
                   </div>
                 </div>
