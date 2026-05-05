@@ -27,7 +27,8 @@ export default function Dashboard() {
   const [report, setReport] = useState({
     total_revenue: 0, gross_profit: 0, total_orders: 0, aov: 0, profit_margin: 0,
     chart_data: [], donut_data: [], top_products: [], low_stock: [], expiring_soon: [],
-    total_shipping: 0, shop_paid_shipping: 0, op_cost: 0, total_expenses: 0, top_customers: [], recent_orders: [], geo_sales: [], weekday_sales: {}
+    total_shipping: 0, shop_paid_shipping: 0, op_cost: 0, total_expenses: 0, top_customers: [], recent_orders: [], geo_sales: [], weekday_sales: {},
+    expense_details: [], inventory_loss_details: [], shipping_details: []
   });
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -448,6 +449,17 @@ export default function Dashboard() {
                     Chi phí Vận hành
                     {inventoryTab === 'expense_logs' && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: 'var(--primary)', borderRadius: '3px 3px 0 0' }} />}
                   </button>
+                  <button 
+                    onClick={() => setInventoryTab('shipping_logs')} 
+                    style={{ 
+                      padding: '1rem 0', border: 'none', background: 'none', fontWeight: 700, fontSize: '0.85rem', 
+                      color: inventoryTab === 'shipping_logs' ? 'var(--primary)' : 'var(--text-light)', 
+                      cursor: 'pointer', position: 'relative', transition: 'var(--transition)'
+                    }}
+                  >
+                    Phí Vận chuyển
+                    {inventoryTab === 'shipping_logs' && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '3px', background: 'var(--primary)', borderRadius: '3px 3px 0 0' }} />}
+                  </button>
                 </div>
 
                 <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', background: 'var(--surface2)' }}>
@@ -472,6 +484,36 @@ export default function Dashboard() {
                             </div>
                             <div style={{ textAlign: 'right' }}>
                               <div style={{ fontWeight: 900, color: 'var(--danger)', fontSize: '1rem' }}>-{Number(exp.amount).toLocaleString('vi-VN')} đ</div>
+                            </div>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  ) : inventoryTab === 'shipping_logs' ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {(!report.shipping_details || report.shipping_details.length === 0) ? (
+                        <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-light)' }}>
+                          <Truck size={48} style={{ opacity: 0.1, marginBottom: '1rem' }} />
+                          <div style={{ fontWeight: 500 }}>Không có dữ liệu vận chuyển trong kỳ</div>
+                        </div>
+                      ) : 
+                        report.shipping_details.map((ship, i) => (
+                          <div key={i} className="hover-shadow" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border-light)', transition: 'var(--transition)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text)' }}>Đơn hàng #{ship.order_id} - {ship.customer_name || 'Khách lẻ'}</div>
+                              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.7rem', fontWeight: 700, color: Number(ship.shipping_customer_pay) === 1 ? 'var(--primary)' : 'var(--danger)', background: Number(ship.shipping_customer_pay) === 1 ? 'var(--primary-light)' : 'var(--danger-bg)', padding: '0.2rem 0.6rem', borderRadius: '6px', textTransform: 'uppercase' }}>
+                                  {Number(ship.shipping_customer_pay) === 1 ? 'Thu khách' : 'Shop trả'}
+                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', color: 'var(--text-light)' }}>
+                                  <Calendar size={12} /> {new Date(ship.date).toLocaleDateString('vi-VN')}
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontWeight: 900, color: Number(ship.shipping_customer_pay) === 1 ? 'var(--primary)' : 'var(--danger)', fontSize: '1rem' }}>
+                                {Number(ship.shipping_customer_pay) === 1 ? '+' : '-'}{Number(ship.shipping_fee).toLocaleString('vi-VN')} đ
+                              </div>
                             </div>
                           </div>
                         ))

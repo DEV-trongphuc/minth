@@ -258,6 +258,17 @@ if ($method === 'GET') {
         $stmtLossDetail->execute([':start' => $startDate, ':end' => $endDate]);
         $lossDetails = $stmtLossDetail->fetchAll();
 
+        // 16. Detailed Shipping
+        $stmtShipDetail = $pdo->prepare("
+            SELECT o.created_at as date, c.name as customer_name, o.shipping_fee, o.shipping_customer_pay, o.id as order_id
+            FROM orders o
+            LEFT JOIN customers c ON o.customer_id = c.id
+            WHERE o.payment_status = 'paid' AND o.status != 'cancelled' AND o.shipping_fee > 0 AND o.created_at BETWEEN :start AND :end
+            ORDER BY o.created_at DESC LIMIT 50
+        ");
+        $stmtShipDetail->execute([':start' => $startDate, ':end' => $endDate]);
+        $shippingDetails = $stmtShipDetail->fetchAll();
+
         echo json_encode([
             "total_revenue" => $totalRev,
             "gross_profit" => $grossProfit,
@@ -281,6 +292,7 @@ if ($method === 'GET') {
             "weekday_sales" => $weekdaySales,
             "expense_details" => $expenseDetails,
             "inventory_loss_details" => $lossDetails,
+            "shipping_details" => $shippingDetails,
             "filter" => $filter,
             "period" => "$startDate to $endDate"
         ]);
