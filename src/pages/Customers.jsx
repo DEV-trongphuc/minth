@@ -528,7 +528,7 @@ export default function Customers() {
                     <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--surface2)', borderRadius: 'var(--r-sm)' }}>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.quantity}x {item.product_name}</div>
-                        <div className="text-xs text-muted" style={{ marginTop: '0.2rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên chai' : 'Chiết ml'})</div>
+                        <div className="text-xs text-muted" style={{ marginTop: '0.2rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : 'Lẻ'})</div>
                       </div>
                       <div style={{ fontWeight: 700 }}>
                         {(item.price_per_unit * item.quantity).toLocaleString('vi-VN')} đ

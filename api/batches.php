@@ -7,7 +7,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     try {
         $stmt = $pdo->query("
-            SELECT b.*, p.name as product_name, p.category, p.ml_per_unit 
+            SELECT b.*, p.name as product_name, p.category, p.ml_per_unit, p.unit 
             FROM batches b
             JOIN products p ON b.product_id = p.id
             WHERE b.status != 'archived' OR b.status IS NULL

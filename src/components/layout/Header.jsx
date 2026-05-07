@@ -30,7 +30,7 @@ const Header = ({ toggleSidebar, pageName }) => {
               id: `stock_${b.id}`,
               type: 'stock',
               title: 'Sắp hết hàng',
-              message: `${b.product_name} (Lô: ${b.batch_code}) - Tồn: ${b.current_qty} chai`,
+              message: `${b.product_name} (Lô: ${b.batch_code}) - Tồn: ${b.current_qty} ${b.unit === 'chai' ? 'chai' : (b.unit === 'tuyp' ? 'tuýp' : 'đơn vị')}`,
               color: 'var(--warning)',
               icon: <PackageX size={16} />
             });

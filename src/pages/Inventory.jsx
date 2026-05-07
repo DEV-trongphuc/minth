@@ -699,7 +699,7 @@ export default function Inventory() {
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ background: 'var(--surface2)', padding: '1rem', borderRadius: 'var(--r-sm)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.5rem' }}>
-                    <span className="text-sm">Tồn kho nguyên chai:</span>
+                    <span className="text-sm">Tồn kho nguyên đơn vị:</span>
                     <strong>{editItem.current_qty} {unitLabels[editItem.unit] || 'đơn vị'}</strong>
                   </div>
                   {editItem.ml_per_unit > 0 && (
