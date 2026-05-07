@@ -270,7 +270,7 @@ const FILTERS = [
                 <div style={{ width: 32, height: 32, borderRadius: '8px', background: i < 3 ? `var(--primary${i===0?'-dark':(i===2?'-light':'')})` : 'var(--surface2)', color: i < 3 ? '#fff' : 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.9rem' }}>{i+1}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>{p.name}</div>
-                  <div className="text-xs text-muted" style={{ marginTop: '0.25rem', lineHeight: '1.4' }}><span style={{color:"var(--primary)", fontWeight: 700}}>{Math.round(Number(p.revenue)).toLocaleString('vi-VN')} đ</span> &bull; Lãi: <span style={{color:"var(--success)", fontWeight: 600}}>{Math.round(Number(p.profit)).toLocaleString('vi-VN')} đ</span><br/>SL: <span style={{fontWeight: 600, color: "var(--text)"}}>{(p.chai_sales > 0 ? p.chai_sales + " " + (unitLabels[p.unit]?.toLowerCase() || 'chai') + " " : "") + (p.ml_sales > 0 ? p.ml_sales + (p.unit === 'chai' ? " ml" : " đv lẻ") : "") + (p.other_sales > 0 ? p.other_sales + " " + p.unit : "")}</span></div>
+                  <div className="text-xs text-muted" style={{ marginTop: '0.25rem', lineHeight: '1.4' }}><span style={{color:"var(--primary)", fontWeight: 700}}>{Math.round(Number(p.revenue)).toLocaleString('vi-VN')} đ</span> &bull; Lãi: <span style={{color:"var(--success)", fontWeight: 600}}>{Math.round(Number(p.profit)).toLocaleString('vi-VN')} đ</span><br/>SL: <span style={{fontWeight: 600, color: "var(--text)"}}>{(p.chai_sales > 0 ? p.chai_sales + " " + (unitLabels[p.unit]?.toLowerCase() || 'chai') + " " : "") + (p.ml_sales > 0 ? p.ml_sales + (p.unit === 'chai' ? " ml" : p.unit === 'tuyp' ? " g" : " đv lẻ") : "") + (p.other_sales > 0 ? p.other_sales + " " + p.unit : "")}</span></div>
                 </div>
               </div>
             ))}
@@ -306,7 +306,7 @@ const FILTERS = [
                        {Number(item.qty) === 0 && Number(item.ml) === 0 ? (
                          <span style={{ fontWeight: 700, color: 'var(--danger)', background: 'var(--danger-bg)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Hết hàng</span>
                        ) : (
-                         <span style={{ fontWeight: 700, color: 'var(--warning-dark)', background: 'var(--warning-bg)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Còn {item.qty} {unitLabels[item.unit] || 'Sản phẩm'} {Number(item.ml) > 0 ? `- ${item.ml} ${item.unit === 'chai' ? 'ml' : 'đv lẻ'}` : ''}</span>
+                         <span style={{ fontWeight: 700, color: 'var(--warning-dark)', background: 'var(--warning-bg)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>Còn {item.qty} {unitLabels[item.unit] || 'Sản phẩm'} {Number(item.ml) > 0 ? `- ${item.ml} ${item.unit === 'chai' ? 'ml' : item.unit === 'tuyp' ? 'g' : 'đv lẻ'}` : ''}</span>
                        )}
                    </div>
                  ))

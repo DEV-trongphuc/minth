@@ -207,7 +207,7 @@ const POS = ({ onClose, onSuccess }) => {
                   <span style={{ padding: '0.25rem 0.5rem', background: batch.current_qty <= 5 ? 'var(--danger-bg)' : 'var(--primary-bg)', color: batch.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
                     {batch.current_qty > 0 ? `Tồn: ${batch.current_qty}` : 'Hết hàng'}
                   </span>
-                  {batch.ml_per_unit > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{batch.current_ml} {batch.unit === 'chai' ? 'ml' : 'đv lẻ'}</span>}
+                  {batch.ml_per_unit > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{batch.current_ml} {batch.unit === 'chai' ? 'ml' : batch.unit === 'tuyp' ? 'g' : 'đv lẻ'}</span>}
                 </div>
               </div>
               

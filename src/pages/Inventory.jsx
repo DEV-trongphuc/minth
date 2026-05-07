@@ -328,7 +328,7 @@ export default function Inventory() {
             {b.ml_per_unit > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.6rem', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                 <Droplets size={14} color="var(--primary)" />
-                Còn {b.current_ml.toLocaleString()} {b.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'} chờ chiết
+                Còn {b.current_ml.toLocaleString()} {b.unit === 'chai' ? 'ml' : b.unit === 'tuyp' ? 'g' : 'đơn vị nhỏ'} chờ chiết
               </div>
             )}
           </div>
@@ -529,7 +529,7 @@ export default function Inventory() {
                         <div style={{ fontWeight: 600, color: b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--text)' }}>
                           {b.current_qty} / {b.initial_qty} {unitLabels[b.unit] || 'đơn vị'}
                         </div>
-                        {b.ml_per_unit > 0 && <div className="text-muted text-xs mt-1">Còn {b.current_ml} {b.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'}</div>}
+                        {b.ml_per_unit > 0 && <div className="text-muted text-xs mt-1">Còn {b.current_ml} {b.unit === 'chai' ? 'ml' : b.unit === 'tuyp' ? 'g' : 'đơn vị nhỏ'}</div>}
                       </td>
                       <td style={{ whiteSpace: "nowrap" }}><span className={`badge ${s.cls}`}>{s.label}</span></td>
                       <td style={{ whiteSpace: 'nowrap' }}>
@@ -705,7 +705,7 @@ export default function Inventory() {
                   {editItem.ml_per_unit > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span className="text-sm">Tồn kho dung tích:</span>
-                      <strong>{editItem.current_ml} {editItem.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'}</strong>
+                      <strong>{editItem.current_ml} {editItem.unit === 'chai' ? 'ml' : editItem.unit === 'tuyp' ? 'g' : 'đơn vị nhỏ'}</strong>
                     </div>
                   )}
                 </div>

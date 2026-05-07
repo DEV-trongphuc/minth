@@ -360,7 +360,7 @@ export default function Products() {
                       <td><span className="badge badge-muted">{unitLabels[p.unit] || p.unit}</span></td>
                       <td>
                         {(!['cai', 'hop', 'gam'].includes(p.unit) && p.ml_per_unit > 0) ? (
-                          <span className="badge badge-primary">1 {unitLabels[p.unit] || p.unit} = {p.ml_per_unit} {p.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'}</span>
+                          <span className="badge badge-primary">1 {unitLabels[p.unit] || p.unit} = {p.ml_per_unit} {p.unit === 'chai' ? 'ml' : p.unit === 'tuyp' ? 'g' : 'đơn vị nhỏ'}</span>
                         ) : (
                           <span className="badge badge-muted">1 {unitLabels[p.unit] || p.unit}</span>
                         )}
@@ -397,7 +397,7 @@ export default function Products() {
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <span className="badge badge-muted">Đơn vị: {unitLabels[p.unit] || p.unit}</span>
                     {(!['cai', 'hop', 'gam'].includes(p.unit) && p.ml_per_unit > 0) ? (
-                      <span className="badge badge-primary">Quy đổi: 1 {unitLabels[p.unit] || p.unit} = {p.ml_per_unit} {p.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'}</span>
+                      <span className="badge badge-primary">Quy đổi: 1 {unitLabels[p.unit] || p.unit} = {p.ml_per_unit} {p.unit === 'chai' ? 'ml' : p.unit === 'tuyp' ? 'g' : 'đơn vị nhỏ'}</span>
                     ) : (
                       <span className="badge badge-muted">1 {unitLabels[p.unit] || p.unit} (Không xé lẻ)</span>
                     )}
@@ -463,7 +463,7 @@ export default function Products() {
                       <div className="form-hint">
                         {form.unit === 'chai' || form.unit === 'tuyp'
                           ? `Dung tích/Trọng lượng của 1 đơn vị nguyên gốc. Lúc bán hàng, bạn có thể linh hoạt chọn chiết ra các mức tùy ý (VD: 10ml, 5g). Để 0 nếu không bán lẻ.`
-                          : 'Số lượng đơn vị nhỏ nằm trong 1 đơn vị gốc để có thể xé lẻ ra bán. Nhập 0 nếu không bán lẻ.'}
+                          : `Số lượng đơn vị nhỏ (g, viên, gói...) nằm trong 1 đơn vị gốc để có thể xé lẻ ra bán. Nhập 0 nếu không bán lẻ.`}
                       </div>
                     </div>
                   )}
