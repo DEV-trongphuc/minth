@@ -18,8 +18,9 @@ const FILTERS = [
   { value: 'custom', label: 'Tùy chỉnh' },
 ];
 
+export default function Dashboard() {
+  const [filter, setFilter] = useState('thismonth');
   const [showExpenseModal, setShowExpenseModal] = useState(false);
-  
   const unitLabels = { chai: 'Chai', cai: 'Cái', hop: 'Hộp', set: 'Set', tuyp: 'Tuýp', gam: 'Gam (g)' };
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [customStart, setCustomStart] = useState('');
@@ -32,7 +33,6 @@ const FILTERS = [
     expense_details: [], inventory_loss_details: [], shipping_details: []
   });
   const [showSetupModal, setShowSetupModal] = useState(false);
-  const [showExpenseModal, setShowExpenseModal] = useState(false);
 
   useEffect(() => {
     fetchReport();
