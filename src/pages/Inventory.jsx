@@ -30,6 +30,8 @@ export default function Inventory() {
   const [form, setForm] = useState({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '' });
   const [totalValue, setTotalValue] = useState('');
   const [priceInputMode, setPriceInputMode] = useState('unit'); // 'unit' | 'total'
+  
+  const unitLabels = { chai: 'Chai', cai: 'Cái', hop: 'Hộp', set: 'Set', tuyp: 'Tuýp', gam: 'Gam (g)' };
 
   useEffect(() => { fetchData(); }, []);
 
@@ -318,7 +320,7 @@ export default function Inventory() {
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', padding: '0.85rem', borderRadius: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Tồn kho hiện tại</span>
-              <span style={{ fontSize: '0.9rem', fontWeight: 800, color: isOutOfStock ? 'var(--danger)' : 'var(--text)' }}>{b.current_qty} <span style={{fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500}}>/ {b.initial_qty} chai</span></span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 800, color: isOutOfStock ? 'var(--danger)' : 'var(--text)' }}>{b.current_qty} <span style={{fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500}}>/ {b.initial_qty} {unitLabels[b.unit] || 'đơn vị'}</span></span>
             </div>
             <div style={{ height: '8px', borderRadius: 99, background: 'var(--bg)', overflow: 'hidden', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)' }}>
               <div style={{ height: '100%', width: `${pct}%`, borderRadius: 99, background: isLowStock ? 'var(--danger)' : 'linear-gradient(90deg, var(--primary), #a78bfa)', transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }} />
@@ -326,7 +328,7 @@ export default function Inventory() {
             {b.ml_per_unit > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.6rem', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                 <Droplets size={14} color="var(--primary)" />
-                Còn {b.current_ml.toLocaleString()} ml chờ chiết
+                Còn {b.current_ml.toLocaleString()} {b.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'} chờ chiết
               </div>
             )}
           </div>
@@ -525,9 +527,9 @@ export default function Inventory() {
                       <td style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{Number(b.import_price).toLocaleString('vi-VN')} đ</td>
                       <td style={{ whiteSpace: "nowrap" }}>
                         <div style={{ fontWeight: 600, color: b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--text)' }}>
-                          {b.current_qty} / {b.initial_qty} chai
+                          {b.current_qty} / {b.initial_qty} {unitLabels[b.unit] || 'đơn vị'}
                         </div>
-                        {b.ml_per_unit > 0 && <div className="text-muted text-xs mt-1">Còn {b.current_ml} ml</div>}
+                        {b.ml_per_unit > 0 && <div className="text-muted text-xs mt-1">Còn {b.current_ml} {b.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'}</div>}
                       </td>
                       <td style={{ whiteSpace: "nowrap" }}><span className={`badge ${s.cls}`}>{s.label}</span></td>
                       <td style={{ whiteSpace: 'nowrap' }}>
@@ -698,12 +700,12 @@ export default function Inventory() {
                 <div style={{ background: 'var(--surface2)', padding: '1rem', borderRadius: 'var(--r-sm)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '.5rem' }}>
                     <span className="text-sm">Tồn kho nguyên chai:</span>
-                    <strong>{editItem.current_qty} chai</strong>
+                    <strong>{editItem.current_qty} {unitLabels[editItem.unit] || 'đơn vị'}</strong>
                   </div>
                   {editItem.ml_per_unit > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span className="text-sm">Tồn kho dung tích:</span>
-                      <strong>{editItem.current_ml} ml</strong>
+                      <strong>{editItem.current_ml} {editItem.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'}</strong>
                     </div>
                   )}
                 </div>
@@ -711,8 +713,8 @@ export default function Inventory() {
                 <div className="form-group">
                   <label className="form-label">Loại xuất</label>
                   <select className="form-control" value={exportForm.export_type} onChange={e => setExportForm({...exportForm, export_type: e.target.value})}>
-                    <option value="chai">Nguyên chai</option>
-                    {editItem.ml_per_unit > 0 && <option value="ml">Chiết ml</option>}
+                    <option value="chai">{unitLabels[editItem.unit] || 'Nguyên đơn vị'}</option>
+                    {editItem.ml_per_unit > 0 && <option value="ml">{editItem.unit === 'chai' ? 'Chiết ml' : 'Chiết lẻ'}</option>}
                   </select>
                 </div>
                 <div className="form-group">
@@ -781,7 +783,7 @@ export default function Inventory() {
                         </div>
                         <div className="text-sm" style={{ display: 'flex', gap: '1rem', color: 'var(--text-muted)' }}>
                           <span>Thực hiện: <strong style={{ color: 'var(--text)' }}>{log.user_name?.toLowerCase() === 'admin' ? 'Hà Miên' : log.user_name}</strong></span>
-                          <span>Thay đổi: <strong style={{ color: log.qty_change > 0 || log.ml_change > 0 ? 'var(--success)' : (log.qty_change < 0 || log.ml_change < 0 ? 'var(--danger)' : 'var(--text)') }}>{log.qty_change !== 0 ? `${log.qty_change > 0 ? '+' : ''}${log.qty_change} chai` : ''} {log.ml_change !== 0 ? `(${log.ml_change > 0 ? '+' : ''}${log.ml_change} ml)` : ''}</strong></span>
+                          <span>Thay đổi: <strong style={{ color: log.qty_change > 0 || log.ml_change > 0 ? 'var(--success)' : (log.qty_change < 0 || log.ml_change < 0 ? 'var(--danger)' : 'var(--text)') }}>{log.qty_change !== 0 ? `${log.qty_change > 0 ? '+' : ''}${log.qty_change} đơn vị` : ''} {log.ml_change !== 0 ? `(${log.ml_change > 0 ? '+' : ''}${log.ml_change} ${log.sell_type === 'ml' ? 'ml' : 'đơn vị lẻ'})` : ''}</strong></span>
                         </div>
                       </div>
                     );

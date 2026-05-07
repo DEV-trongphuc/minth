@@ -18,6 +18,8 @@ const PAYMENT_CONFIG = {
   unpaid: { label: 'Chưa thanh toán (COD)', color: 'var(--warning)', icon: <Clock size={14} /> }
 };
 
+const unitLabels = { chai: 'Chai', cai: 'Cái', hop: 'Hộp', set: 'Set', tuyp: 'Tuýp', gam: 'Gam (g)' };
+
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -204,8 +206,8 @@ export default function Orders() {
   };
 
   const addToCart = (batch, sellType) => {
-    if (sellType === 'chai' && batch.current_qty <= 0 && editingOrder.status !== 'cancelled') return showAlert('Hết hàng', 'Lô này đã hết chai nguyên!', 'warning');
-    if (sellType === 'ml' && batch.current_ml <= 0 && editingOrder.status !== 'cancelled') return showAlert('Hết hàng', 'Lô này đã hết dung tích chiết!', 'warning');
+    if (sellType === 'chai' && batch.current_qty <= 0 && editingOrder.status !== 'cancelled') return showAlert('Hết hàng', `Lô này đã hết ${unitLabels[batch.unit]?.toLowerCase() || 'hàng'} nguyên!`, 'warning');
+    if (sellType === 'ml' && batch.current_ml <= 0 && editingOrder.status !== 'cancelled') return showAlert('Hết hàng', `Lô này đã hết ${batch.unit === 'chai' ? 'dung tích chiết' : 'số lượng xé lẻ'}!`, 'warning');
 
     const existing = cart.find(c => c.batch_id === batch.id && c.sell_type === sellType);
     if (existing) {
@@ -744,7 +746,7 @@ export default function Orders() {
                             <div key={b.id} style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="hover-bg">
                               <div>
                                 <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{b.product_name}</div>
-                                <div className="text-xs text-muted">Lô: {b.batch_code} (Tồn: {b.current_qty} chai)</div>
+                                <div className="text-xs text-muted">Lô: {b.batch_code} (Tồn: {b.current_qty} {unitLabels[b.unit] || 'đơn vị'})</div>
                               </div>
                               <div style={{ display: 'flex', gap: '0.25rem' }}>
                                 <button className="btn btn-primary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => addToCart(b, 'chai')}>Chai</button>
@@ -762,7 +764,7 @@ export default function Orders() {
                         <div key={item.id} style={{ background: 'var(--surface2)', padding: '0.75rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-light)', position: 'relative' }}>
                           <button className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', color: 'var(--danger)', padding: '0.25rem' }} onClick={() => removeFromCart(idx)}>✕</button>
                           <div style={{ fontWeight: 600, fontSize: '0.9rem', paddingRight: '1.5rem', marginBottom: '0.25rem' }}>{item.product_name}</div>
-                          <div className="text-xs text-muted" style={{ marginBottom: '0.5rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên chai' : 'Chiết ml'})</div>
+                          <div className="text-xs text-muted" style={{ marginTop: '0.15rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : 'Lẻ'})</div>
                           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
                             <div style={{ width: '60px' }}>
                               <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem' }}>SL</label>

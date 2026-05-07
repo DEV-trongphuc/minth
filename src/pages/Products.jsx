@@ -15,7 +15,7 @@ export default function Products() {
   const [editItem, setEditItem] = useState(null);
   const { showConfirm, showAlert } = useDialog();
 
-  const unitLabels = { chai: 'Chai', cai: 'Cái', hop: 'Hộp', set: 'Set' };
+  const unitLabels = { chai: 'Chai', cai: 'Cái', hop: 'Hộp', set: 'Set', tuyp: 'Tuýp', gam: 'Gam (g)' };
 
   const [form, setForm] = useState({ name: '', unit: 'chai', ml_per_unit: 0 });
 
@@ -132,7 +132,7 @@ export default function Products() {
 
     try {
       const method = editItem ? 'PUT' : 'POST';
-      const bodyToSave = { ...form, ml_per_unit: ['cai', 'hop'].includes(form.unit) ? 0 : form.ml_per_unit };
+      const bodyToSave = { ...form, ml_per_unit: ['cai', 'hop', 'gam'].includes(form.unit) ? 0 : form.ml_per_unit };
       const body = editItem ? { id: editItem.id, ...bodyToSave } : bodyToSave;
       const res = await fetch(`${API_BASE_URL}/products.php`, {
         method, headers: { 'Content-Type': 'application/json' },
@@ -359,7 +359,7 @@ export default function Products() {
                       </td>
                       <td><span className="badge badge-muted">{unitLabels[p.unit] || p.unit}</span></td>
                       <td>
-                        {(!['cai', 'hop'].includes(p.unit) && p.ml_per_unit > 0) ? (
+                        {(!['cai', 'hop', 'gam'].includes(p.unit) && p.ml_per_unit > 0) ? (
                           <span className="badge badge-primary">1 {unitLabels[p.unit] || p.unit} = {p.ml_per_unit} {p.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'}</span>
                         ) : (
                           <span className="badge badge-muted">1 {unitLabels[p.unit] || p.unit}</span>
@@ -396,7 +396,7 @@ export default function Products() {
                   <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)', marginBottom: '0.25rem' }}>{p.name}</div>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <span className="badge badge-muted">Đơn vị: {unitLabels[p.unit] || p.unit}</span>
-                    {(!['cai', 'hop'].includes(p.unit) && p.ml_per_unit > 0) ? (
+                    {(!['cai', 'hop', 'gam'].includes(p.unit) && p.ml_per_unit > 0) ? (
                       <span className="badge badge-primary">Quy đổi: 1 {unitLabels[p.unit] || p.unit} = {p.ml_per_unit} {p.unit === 'chai' ? 'ml' : 'đơn vị nhỏ'}</span>
                     ) : (
                       <span className="badge badge-muted">1 {unitLabels[p.unit] || p.unit} (Không xé lẻ)</span>
@@ -445,20 +445,24 @@ export default function Products() {
                     <label className="form-label">Đơn vị nhập kho</label>
                     <select className="form-control" value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })}>
                       <option value="chai">Chai</option>
+                      <option value="tuyp">Tuýp</option>
                       <option value="cai">Cái</option>
                       <option value="set">Set / Combo</option>
                       <option value="hop">Hộp</option>
+                      <option value="gam">Gam (g)</option>
                     </select>
                   </div>
-                  {!['cai', 'hop'].includes(form.unit) && (
+                  {!['cai', 'hop', 'gam'].includes(form.unit) && (
                     <div className="form-group">
                       <label className="form-label">
-                        {form.unit === 'chai' ? 'Tổng thể tích 1 Đơn vị (ml)' : `Số lượng xé lẻ / 1 Set`}
+                        {form.unit === 'chai' ? 'Tổng thể tích 1 Đơn vị (ml)' : 
+                         form.unit === 'tuyp' ? 'Tổng trọng lượng 1 Tuýp (g)' :
+                         `Số lượng xé lẻ / 1 Set`}
                       </label>
-                      <input type="number" className="form-control" placeholder={form.unit === 'chai' ? "VD: 100" : "VD: 10"} min="0" value={form.ml_per_unit} onChange={e => setForm({ ...form, ml_per_unit: Number(e.target.value) })} />
+                      <input type="number" className="form-control" placeholder={form.unit === 'chai' ? "VD: 100" : form.unit === 'tuyp' ? "VD: 50" : "VD: 10"} min="0" value={form.ml_per_unit} onChange={e => setForm({ ...form, ml_per_unit: Number(e.target.value) })} />
                       <div className="form-hint">
-                        {form.unit === 'chai'
-                          ? 'Thể tích của 1 đơn vị nguyên gốc. Lúc bán hàng, bạn có thể linh hoạt chọn chiết ra lọ 10ml, 50ml tùy ý. Để 0 nếu không bán chiết.'
+                        {form.unit === 'chai' || form.unit === 'tuyp'
+                          ? `Dung tích/Trọng lượng của 1 đơn vị nguyên gốc. Lúc bán hàng, bạn có thể linh hoạt chọn chiết ra các mức tùy ý (VD: 10ml, 5g). Để 0 nếu không bán lẻ.`
                           : 'Số lượng đơn vị nhỏ nằm trong 1 đơn vị gốc để có thể xé lẻ ra bán. Nhập 0 nếu không bán lẻ.'}
                       </div>
                     </div>

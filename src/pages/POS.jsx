@@ -18,6 +18,8 @@ const POS = ({ onClose, onSuccess }) => {
   const [shippingFee, setShippingFee] = useState(0);
   const [showGuide, setShowGuide] = useState(false);
   const { showAlert } = useDialog();
+  
+  const unitLabels = { chai: 'Chai', cai: 'Cái', hop: 'Hộp', set: 'Set', tuyp: 'Tuýp', gam: 'Gam (g)' };
 
   useEffect(() => {
     fetchBatches();
@@ -66,8 +68,8 @@ const POS = ({ onClose, onSuccess }) => {
   }, {});
 
   const addToCart = (batch, sellType) => {
-    if (sellType === 'chai' && batch.current_qty <= 0) return showAlert('Hết hàng', 'Lô này đã hết chai nguyên!', 'warning');
-    if (sellType === 'ml' && batch.current_ml <= 0) return showAlert('Hết hàng', 'Lô này đã hết dung tích chiết!', 'warning');
+    if (sellType === 'chai' && batch.current_qty <= 0) return showAlert('Hết hàng', `Lô này đã hết ${unitLabels[batch.unit]?.toLowerCase() || 'hàng'} nguyên!`, 'warning');
+    if (sellType === 'ml' && batch.current_ml <= 0) return showAlert('Hết hàng', `Lô này đã hết ${batch.unit === 'chai' ? 'dung tích chiết' : 'số lượng xé lẻ'}!`, 'warning');
 
     const existing = cart.find(c => c.batch_id === batch.id && c.sell_type === sellType);
     if (existing) {
@@ -164,7 +166,7 @@ const POS = ({ onClose, onSuccess }) => {
               {filteredBatches.slice(0, 5).map(batch => (
                 <div key={batch.id} style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border-light)', cursor: 'pointer' }} onClick={() => setSearch(batch.product_name)} className="hover-bg">
                   <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{batch.product_name}</div>
-                  <div className="text-muted text-xs">Lô: {batch.batch_code} - Tồn: {batch.current_qty} chai</div>
+                  <div className="text-muted text-xs">Lô: {batch.batch_code} - Tồn: {batch.current_qty} {unitLabels[batch.unit] || 'đơn vị'}</div>
                 </div>
               ))}
             </div>
@@ -205,17 +207,17 @@ const POS = ({ onClose, onSuccess }) => {
                   <span style={{ padding: '0.25rem 0.5rem', background: batch.current_qty <= 5 ? 'var(--danger-bg)' : 'var(--primary-bg)', color: batch.current_qty <= 5 ? 'var(--danger)' : 'var(--primary)', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
                     {batch.current_qty > 0 ? `Tồn: ${batch.current_qty}` : 'Hết hàng'}
                   </span>
-                  {batch.ml_per_unit > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{batch.current_ml} ml</span>}
+                  {batch.ml_per_unit > 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{batch.current_ml} {batch.unit === 'chai' ? 'ml' : 'đv lẻ'}</span>}
                 </div>
               </div>
               
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button disabled={batch.current_qty <= 0} onClick={() => addToCart(batch, 'chai')} style={{ flex: 1, padding: '0.55rem', borderRadius: '8px', border: '1px solid var(--primary)', background: 'var(--primary)', color: '#fff', fontSize: '0.85rem', fontWeight: 600, cursor: batch.current_qty <= 0 ? 'not-allowed' : 'pointer', opacity: batch.current_qty <= 0 ? 0.5 : 1, transition: '0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  Bán Chai
+                  Bán {unitLabels[batch.unit] || 'Nguyên'}
                 </button>
                 {batch.ml_per_unit > 0 && (
                   <button disabled={batch.current_ml <= 0} onClick={() => addToCart(batch, 'ml')} style={{ flex: 1, padding: '0.55rem', borderRadius: '8px', border: '1px solid var(--primary)', background: 'var(--primary-bg)', color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600, cursor: batch.current_ml <= 0 ? 'not-allowed' : 'pointer', opacity: batch.current_ml <= 0 ? 0.5 : 1, transition: '0.2s', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    Bán Chiết
+                    Bán {batch.unit === 'chai' ? 'Chiết' : 'Xé lẻ'}
                   </button>
                 )}
               </div>
@@ -238,7 +240,7 @@ const POS = ({ onClose, onSuccess }) => {
               <div key={idx} style={{ background: 'var(--surface)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)', position: 'relative' }}>
                 <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)' }}><Trash2 size={16} /></button>
                 <h4 style={{ fontSize: '0.95rem', margin: '0 0 0.25rem 0', paddingRight: '1.5rem' }}>{item.product_name}</h4>
-                <span className="text-muted text-xs">Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên chai' : 'Chiết ml'})</span>
+                <span className="text-muted text-xs">Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : (item.sell_type === 'ml' ? 'Lẻ' : item.sell_type)})</span>
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                   <div style={{ width: '70px', flexShrink: 0 }}>
                     <label className="text-xs text-muted" style={{display: 'block', marginBottom: '0.2rem'}}>SL</label>
@@ -336,7 +338,7 @@ const POS = ({ onClose, onSuccess }) => {
                       <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--surface2)', borderRadius: 'var(--r-sm)' }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{item.quantity}x {item.product_name}</div>
-                          <div className="text-xs text-muted" style={{ marginTop: '0.15rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : 'Chiết'})</div>
+                          <div className="text-xs text-muted" style={{ marginTop: '0.15rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : 'Lẻ'})</div>
                         </div>
                         <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center' }}>{(item.price * item.quantity).toLocaleString()} đ</div>
                       </div>
