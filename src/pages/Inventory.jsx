@@ -103,17 +103,21 @@ export default function Inventory() {
   const handleSave = async (e) => {
     e.preventDefault();
     const endpoint = `${API_BASE_URL}/batches.php`;
+    const payload = editItem ? { ...form, id: editItem.id } : form;
+    const method = editItem ? 'PUT' : 'POST';
     try {
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      const res = await fetch(endpoint, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (res.ok) { 
         setShowModal(false); 
         fetchData(); 
-        showAlert('Thành công', 'Lưu dữ liệu thành công', 'success');
+        showAlert('Thành công', editItem ? 'Cập nhật lô hàng thành công' : 'Thêm lô hàng mới thành công', 'success');
       }
-      else showAlert('Lỗi', 'Lỗi lưu dữ liệu!', 'danger');
+      else {
+        const err = await res.json().catch(() => ({}));
+        showAlert('Lỗi', err.error || 'Lỗi lưu dữ liệu!', 'danger');
+      }
     } catch { 
-      setShowModal(false); 
-      fetchData(); 
+      showAlert('Lỗi', 'Không thể kết nối đến máy chủ', 'danger');
     }
   };
 
@@ -537,6 +541,7 @@ export default function Inventory() {
                           <button className="btn btn-secondary btn-icon btn-sm" onClick={() => { setExportForm({ batch_id: b.id, qty: '', reason: 'Hàng Tester', export_type: 'chai' }); setEditItem(b); setShowExportModal(true); }} title="Xuất nội bộ"><Share size={14} /></button>
                           <button className="btn btn-secondary btn-icon btn-sm" onClick={() => openHistory(b)} title="Lịch sử lô"><History size={14} /></button>
                           <button className="btn btn-ghost btn-icon btn-sm" onClick={() => openEditModal(b)} title="Sửa"><Edit size={14} /></button>
+                          <button className="btn btn-ghost btn-icon btn-sm" style={{color: 'var(--danger)'}} onClick={() => handleDelete([b.id])} title="Xóa lô"><Trash2 size={14} /></button>
                         </div>
                       </td>
                     </tr>

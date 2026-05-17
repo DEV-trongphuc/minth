@@ -66,6 +66,60 @@ if ($method === 'GET') {
         http_response_code(500);
         echo json_encode(["error" => $e->getMessage()]);
     }
+} elseif ($method === 'PUT') {
+    $data = json_decode(file_get_contents("php://input"));
+    if (!$data || empty($data->id) || empty($data->product_id) || empty($data->initial_qty)) {
+        http_response_code(400);
+        echo json_encode(["error" => "Thiếu thông tin lô hàng"]);
+        exit();
+    }
+    
+    try {
+        $stmtProd = $pdo->prepare("SELECT ml_per_unit FROM products WHERE id = ?");
+        $stmtProd->execute([$data->product_id]);
+        $product = $stmtProd->fetch();
+        
+        $initial_ml = ($product && $product['ml_per_unit']) ? ($data->initial_qty * $product['ml_per_unit']) : 0;
+        
+        $stmtBatch = $pdo->prepare("SELECT initial_qty, initial_ml, current_qty, current_ml FROM batches WHERE id = ?");
+        $stmtBatch->execute([$data->id]);
+        $oldBatch = $stmtBatch->fetch();
+        
+        if (!$oldBatch) {
+             http_response_code(404);
+             echo json_encode(["error" => "Không tìm thấy lô hàng"]);
+             exit();
+        }
+        
+        $diff_qty = $data->initial_qty - $oldBatch['initial_qty'];
+        $diff_ml = $initial_ml - $oldBatch['initial_ml'];
+        
+        $new_current_qty = max(0, $oldBatch['current_qty'] + $diff_qty);
+        $new_current_ml = max(0, $oldBatch['current_ml'] + $diff_ml);
+        
+        $stmt = $pdo->prepare("
+            UPDATE batches 
+            SET product_id = ?, import_date = ?, expiry_date = ?, import_price = ?, 
+                initial_qty = ?, current_qty = ?, initial_ml = ?, current_ml = ?
+            WHERE id = ?
+        ");
+        $stmt->execute([
+            $data->product_id,
+            $data->import_date,
+            empty($data->expiry_date) ? null : $data->expiry_date,
+            $data->import_price,
+            $data->initial_qty,
+            $new_current_qty,
+            $initial_ml,
+            $new_current_ml,
+            $data->id
+        ]);
+        
+        echo json_encode(["message" => "Cập nhật lô hàng thành công"]);
+    } catch (\PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["error" => $e->getMessage()]);
+    }
 } elseif ($method === 'DELETE') {
     $data = json_decode(file_get_contents("php://input"));
     if (!$data || empty($data->id)) {
