@@ -35,8 +35,8 @@ if ($method === 'GET') {
         $initial_ml = ($product && $product['ml_per_unit']) ? ($data->initial_qty * $product['ml_per_unit']) : 0;
         
         $stmt = $pdo->prepare("
-            INSERT INTO batches (product_id, batch_code, import_date, expiry_date, import_price, initial_qty, current_qty, initial_ml, current_ml) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO batches (product_id, batch_code, import_date, expiry_date, import_price, selling_price, initial_qty, current_qty, initial_ml, current_ml) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $data->product_id,
@@ -44,6 +44,7 @@ if ($method === 'GET') {
             $data->import_date,
             empty($data->expiry_date) ? null : $data->expiry_date,
             $data->import_price,
+            $data->selling_price ?? 0.00,
             $data->initial_qty,
             $data->initial_qty, // current = initial
             $initial_ml,
@@ -99,7 +100,7 @@ if ($method === 'GET') {
         
         $stmt = $pdo->prepare("
             UPDATE batches 
-            SET product_id = ?, import_date = ?, expiry_date = ?, import_price = ?, 
+            SET product_id = ?, import_date = ?, expiry_date = ?, import_price = ?, selling_price = ?, 
                 initial_qty = ?, current_qty = ?, initial_ml = ?, current_ml = ?
             WHERE id = ?
         ");
@@ -108,6 +109,7 @@ if ($method === 'GET') {
             $data->import_date,
             empty($data->expiry_date) ? null : $data->expiry_date,
             $data->import_price,
+            $data->selling_price ?? 0.00,
             $data->initial_qty,
             $new_current_qty,
             $initial_ml,

@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['action']) && $_GET['action'] === 'get_items') {
         try {
             $stmt = $pdo->prepare("
-                SELECT oi.*, p.name as product_name, p.image as product_image, b.batch_code, b.current_qty, b.current_ml, p.ml_per_unit 
+                SELECT oi.*, p.name as product_name, p.image as product_image, b.batch_code, b.current_qty, b.current_ml, b.selling_price, p.ml_per_unit 
                 FROM order_items oi 
                 JOIN batches b ON oi.batch_id = b.id 
                 JOIN products p ON b.product_id = p.id 
@@ -100,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             if (!$order) throw new Exception("Không tìm thấy đơn hàng");
             
             if (isset($data['action']) && $data['action'] === 'update_info') {
+                $notes = [];
                 if ($order['customer_id']) {
                     $pdo->prepare("UPDATE customers SET name = ?, phone = ?, address = ? WHERE id = ?")
                         ->execute([$data['customer_name'] ?? '', $data['customer_phone'] ?? '', $data['customer_address'] ?? '', $order['customer_id']]);
@@ -156,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                     $stmtUpdateBatch = $pdo->prepare("UPDATE batches SET current_qty = ?, current_ml = ? WHERE id = ?");
                     
                     foreach ($data['cart'] as $item) {
-                        $stmtBatch = $pdo->prepare("SELECT b.current_qty, b.current_ml, b.import_price, p.ml_per_unit FROM batches b JOIN products p ON b.product_id = p.id WHERE b.id = ? FOR UPDATE");
+                        $stmtBatch = $pdo->prepare("SELECT b.current_qty, b.current_ml, b.import_price, b.selling_price, b.batch_code, p.name as product_name, p.ml_per_unit FROM batches b JOIN products p ON b.product_id = p.id WHERE b.id = ? FOR UPDATE");
                         $stmtBatch->execute([$item['batch_id']]);
                         $batch = $stmtBatch->fetch();
                         
@@ -196,6 +197,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                         $stmtItem->execute([
                             $data['id'], $item['batch_id'], $item['sell_type'], $item['quantity'], $item['price'], $subtotal, $costPerUnit
                         ]);
+
+                        // Tính chênh lệch giá bán niêm yết
+                        if (isset($batch['selling_price']) && (float)$batch['selling_price'] > 0) {
+                            $targetPrice = 0;
+                            if ($item['sell_type'] === 'chai') {
+                                $targetPrice = (float)$batch['selling_price'];
+                            } elseif ($item['sell_type'] === 'ml' && (float)$batch['ml_per_unit'] > 0) {
+                                $targetPrice = (float)$batch['selling_price'] / (float)$batch['ml_per_unit'];
+                            }
+                            
+                            if ($targetPrice > 0) {
+                                $soldPrice = (float)$item['price'];
+                                $diff = $soldPrice - $targetPrice;
+                                if (abs($diff) > 0.01) {
+                                    $diffTotal = abs($diff) * (float)$item['quantity'];
+                                    $formattedDiff = number_format($diffTotal, 0, ',', '.') . "đ";
+                                    $prodInfo = $batch['product_name'] . " (Lô " . $batch['batch_code'] . ")";
+                                    if ($diff < 0) {
+                                        $notes[] = "Đã bán " . $prodInfo . " thấp hơn giá niêm yết " . $formattedDiff;
+                                    } else {
+                                        $notes[] = "Đã bán " . $prodInfo . " cao hơn giá niêm yết " . $formattedDiff;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -205,6 +231,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                 // Recalculate customer tier if paid
                 if ($order['customer_id']) {
                     updateCustomerTier($pdo, $order['customer_id']);
+
+                    // Cập nhật ghi chú của khách hàng nếu có sai lệch giá
+                    if (!empty($notes)) {
+                        $stmtCust = $pdo->prepare("SELECT note FROM customers WHERE id = ?");
+                        $stmtCust->execute([$order['customer_id']]);
+                        $currentNote = $stmtCust->fetchColumn() ?: '';
+                        
+                        $systemNotes = implode("\n", $notes);
+                        $newNote = empty($currentNote) ? $systemNotes : $currentNote . "\n" . $systemNotes;
+                        
+                        $pdo->prepare("UPDATE customers SET note = ? WHERE id = ?")
+                            ->execute([$newNote, $order['customer_id']]);
+                    }
                 }
 
                 $pdo->commit();
@@ -314,6 +353,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $pdo->beginTransaction();
+        $notes = [];
         
         // Xử lý khách hàng
         $customerId = null;
@@ -350,7 +390,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtUpdateBatch = $pdo->prepare("UPDATE batches SET current_qty = ?, current_ml = ? WHERE id = ?");
         
         foreach ($data['cart'] as $item) {
-            $stmtBatch = $pdo->prepare("SELECT b.current_qty, b.current_ml, b.import_price, p.ml_per_unit FROM batches b JOIN products p ON b.product_id = p.id WHERE b.id = ? FOR UPDATE");
+            $stmtBatch = $pdo->prepare("SELECT b.current_qty, b.current_ml, b.import_price, b.selling_price, b.batch_code, p.name as product_name, p.ml_per_unit FROM batches b JOIN products p ON b.product_id = p.id WHERE b.id = ? FOR UPDATE");
             $stmtBatch->execute([$item['batch_id']]);
             $batch = $stmtBatch->fetch();
             
@@ -388,11 +428,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $logMlChange = ($item['sell_type'] === 'ml') ? -$item['quantity'] : (isset($mlDeduct) ? -$mlDeduct : 0);
             $pdo->prepare("INSERT INTO inventory_logs (batch_id, action_type, qty_change, ml_change, reason) VALUES (?, 'SALE', ?, ?, ?)")
                 ->execute([$item['batch_id'], $logQtyChange, $logMlChange, "Bán hàng Đơn #{$orderId}"]);
+
+            // Tính chênh lệch giá bán niêm yết
+            if (isset($batch['selling_price']) && (float)$batch['selling_price'] > 0) {
+                $targetPrice = 0;
+                if ($item['sell_type'] === 'chai') {
+                    $targetPrice = (float)$batch['selling_price'];
+                } elseif ($item['sell_type'] === 'ml' && (float)$batch['ml_per_unit'] > 0) {
+                    $targetPrice = (float)$batch['selling_price'] / (float)$batch['ml_per_unit'];
+                }
+                
+                if ($targetPrice > 0) {
+                    $soldPrice = (float)$item['price'];
+                    $diff = $soldPrice - $targetPrice;
+                    if (abs($diff) > 0.01) {
+                        $diffTotal = abs($diff) * (float)$item['quantity'];
+                        $formattedDiff = number_format($diffTotal, 0, ',', '.') . "đ";
+                        $prodInfo = $batch['product_name'] . " (Lô " . $batch['batch_code'] . ")";
+                        if ($diff < 0) {
+                            $notes[] = "Đã bán " . $prodInfo . " thấp hơn giá niêm yết " . $formattedDiff;
+                        } else {
+                            $notes[] = "Đã bán " . $prodInfo . " cao hơn giá niêm yết " . $formattedDiff;
+                        }
+                    }
+                }
+            }
         }
         
         // Cập nhật hạng thành viên CRM tự động (Recalculate)
         if ($customerId) {
             updateCustomerTier($pdo, $customerId);
+
+            // Cập nhật ghi chú của khách hàng nếu có sai lệch giá
+            if (!empty($notes)) {
+                $stmtCust = $pdo->prepare("SELECT note FROM customers WHERE id = ?");
+                $stmtCust->execute([$customerId]);
+                $currentNote = $stmtCust->fetchColumn() ?: '';
+                
+                $systemNotes = implode("\n", $notes);
+                $newNote = empty($currentNote) ? $systemNotes : $currentNote . "\n" . $systemNotes;
+                
+                $pdo->prepare("UPDATE customers SET note = ? WHERE id = ?")
+                    ->execute([$newNote, $customerId]);
+            }
         }
         
         $pdo->commit();

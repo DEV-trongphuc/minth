@@ -27,7 +27,7 @@ export default function Inventory() {
   const [isInvFilterOpen, setIsInvFilterOpen] = useState(false);
   const { showConfirm, showAlert } = useDialog();
 
-  const [form, setForm] = useState({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '' });
+  const [form, setForm] = useState({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '', selling_price: '' });
   const [totalValue, setTotalValue] = useState('');
   const [priceInputMode, setPriceInputMode] = useState('unit'); // 'unit' | 'total'
   
@@ -62,14 +62,14 @@ export default function Inventory() {
 
   const openAddModal = () => { 
     setEditItem(null); 
-    setForm({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '' }); 
+    setForm({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '', selling_price: '' }); 
     setTotalValue('');
     setPriceInputMode('unit');
     setShowModal(true); 
   };
   const openEditModal = (batch) => { 
     setEditItem(batch); 
-    setForm({ product_id: batch.product_id || '', import_date: batch.import_date, expiry_date: batch.expiry_date || '', import_price: batch.import_price, initial_qty: batch.initial_qty }); 
+    setForm({ product_id: batch.product_id || '', import_date: batch.import_date, expiry_date: batch.expiry_date || '', import_price: batch.import_price, initial_qty: batch.initial_qty, selling_price: batch.selling_price || '' }); 
     setTotalValue(batch.import_price * batch.initial_qty || '');
     setShowModal(true); 
   };
@@ -298,25 +298,19 @@ export default function Inventory() {
             }}>{s.label}</span>
           </div>
 
-          {/* Stats row: 2-col grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'var(--bg)', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'var(--primary-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <DollarSign size={16} color="var(--primary)" strokeWidth={2.5} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Giá vốn</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text)' }}>{Number(b.import_price).toLocaleString('vi-VN')}đ</div>
-              </div>
+          {/* Stats row: 3-col grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', background: 'var(--bg)', padding: '0.6rem 0.5rem', borderRadius: '10px', border: '1px solid var(--border-light)', alignItems: 'center', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Giá vốn</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)' }}>{Number(b.import_price).toLocaleString('vi-VN')}đ</div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'var(--bg)', padding: '0.75rem', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <CalendarDays size={16} color="#6b7280" strokeWidth={2} />
-              </div>
-              <div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ngày nhập</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text)' }}>{b.import_date}</div>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', background: 'var(--bg)', padding: '0.6rem 0.5rem', borderRadius: '10px', border: '1px solid var(--border-light)', alignItems: 'center', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Giá bán</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary)' }}>{b.selling_price && Number(b.selling_price) > 0 ? `${Number(b.selling_price).toLocaleString('vi-VN')}đ` : '-'}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', background: 'var(--bg)', padding: '0.6rem 0.5rem', borderRadius: '10px', border: '1px solid var(--border-light)', alignItems: 'center', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Ngày nhập</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>{b.import_date}</div>
             </div>
           </div>
 
@@ -491,7 +485,7 @@ export default function Inventory() {
                   </th>
                   <th style={{ whiteSpace: "nowrap" }}>Sản phẩm & Mã lô</th>
                   <th style={{ whiteSpace: "nowrap" }}>Ngày nhập / HSD</th>
-                  <th style={{ whiteSpace: "nowrap" }}>Giá vốn</th>
+                  <th style={{ whiteSpace: "nowrap" }}>Giá vốn / Giá bán</th>
                   <th style={{ whiteSpace: "nowrap" }}>Tồn kho</th>
                   <th style={{ whiteSpace: "nowrap" }}>Trạng thái</th>
                   <th style={{ width: 140 }}>Thao tác</th>
@@ -528,7 +522,10 @@ export default function Inventory() {
                           </div>
                         )}
                       </td>
-                      <td style={{ fontWeight: 700, whiteSpace: "nowrap" }}>{Number(b.import_price).toLocaleString('vi-VN')} đ</td>
+                      <td style={{ whiteSpace: "nowrap" }}>
+                        <div style={{ fontWeight: 700 }}>{Number(b.import_price).toLocaleString('vi-VN')} đ</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Giá bán: {b.selling_price && Number(b.selling_price) > 0 ? `${Number(b.selling_price).toLocaleString('vi-VN')} đ` : 'Chưa thiết lập'}</div>
+                      </td>
                       <td style={{ whiteSpace: "nowrap" }}>
                         <div style={{ fontWeight: 600, color: b.current_qty <= lowStockThreshold ? 'var(--danger)' : 'var(--text)' }}>
                           {b.current_qty} / {b.initial_qty} {unitLabels[b.unit] || 'đơn vị'}
@@ -677,6 +674,14 @@ export default function Inventory() {
                       ) : null}
                     </div>
                   )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Giá bán niêm yết / 1 đơn vị (VND)</label>
+                  <input type="text" className="form-control" placeholder="VD: 150.000" value={form.selling_price ? Number(form.selling_price).toLocaleString('vi-VN') : ''} onChange={e => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setForm(prev => ({ ...prev, selling_price: val }));
+                  }} />
+                  <div className="form-hint" style={{ color: 'var(--text-muted)' }}>Giá bán mặc định được gợi ý khi bán sản phẩm từ lô hàng này.</div>
                 </div>
               </div>
               <div className="modal-footer">

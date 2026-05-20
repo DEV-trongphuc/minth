@@ -214,7 +214,18 @@ export default function Orders() {
       setCart(cart.map(c => c === existing ? { ...c, quantity: c.quantity + 1 } : c));
     } else {
       const baseCost = sellType === 'chai' ? batch.import_price : (batch.import_price / batch.ml_per_unit);
-      const suggestedPrice = sellType === 'chai' ? batch.import_price * 1.5 : baseCost * 2;
+      let suggestedPrice = 0;
+      let isExplicitPrice = false;
+      if (batch.selling_price && Number(batch.selling_price) > 0) {
+        isExplicitPrice = true;
+        if (sellType === 'chai') {
+          suggestedPrice = Number(batch.selling_price);
+        } else {
+          suggestedPrice = Number(batch.ml_per_unit) > 0 ? (Number(batch.selling_price) / Number(batch.ml_per_unit)) : (baseCost * 2);
+        }
+      } else {
+        suggestedPrice = sellType === 'chai' ? batch.import_price * 1.5 : baseCost * 2;
+      }
       setCart([...cart, {
         id: Math.random(),
         batch_id: batch.id,
@@ -222,7 +233,7 @@ export default function Orders() {
         batch_code: batch.batch_code,
         sell_type: sellType,
         quantity: 1,
-        price: Math.round(suggestedPrice / 1000) * 1000,
+        price: isExplicitPrice ? Math.round(suggestedPrice) : Math.round(suggestedPrice / 1000) * 1000,
         ml_per_unit: batch.ml_per_unit
       }]);
     }
@@ -746,7 +757,7 @@ export default function Orders() {
                             <div key={b.id} style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="hover-bg">
                               <div>
                                 <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{b.product_name}</div>
-                                <div className="text-xs text-muted">Lô: {b.batch_code} (Tồn: {b.current_qty} {unitLabels[b.unit] || 'đơn vị'})</div>
+                                <div className="text-xs text-muted">Lô: {b.batch_code} (Tồn: {b.current_qty} {unitLabels[b.unit] || 'đơn vị'}){b.selling_price && Number(b.selling_price) > 0 && ` - Giá bán: ${Number(b.selling_price).toLocaleString('vi-VN')}đ`}</div>
                               </div>
                               <div style={{ display: 'flex', gap: '0.25rem' }}>
                                 <button className="btn btn-primary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => addToCart(b, 'chai')}>Chai</button>

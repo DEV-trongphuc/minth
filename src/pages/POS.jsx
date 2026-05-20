@@ -76,10 +76,22 @@ const POS = ({ onClose, onSuccess }) => {
       setCart(cart.map(c => c === existing ? { ...c, quantity: c.quantity + 1 } : c));
     } else {
       const baseCost = sellType === 'chai' ? batch.import_price : (batch.import_price / batch.ml_per_unit);
-      const suggestedPrice = sellType === 'chai' ? batch.import_price * 1.5 : baseCost * 2;
+      let suggestedPrice = 0;
+      let isExplicitPrice = false;
+      if (batch.selling_price && Number(batch.selling_price) > 0) {
+        isExplicitPrice = true;
+        if (sellType === 'chai') {
+          suggestedPrice = Number(batch.selling_price);
+        } else {
+          suggestedPrice = Number(batch.ml_per_unit) > 0 ? (Number(batch.selling_price) / Number(batch.ml_per_unit)) : (baseCost * 2);
+        }
+      } else {
+        suggestedPrice = sellType === 'chai' ? batch.import_price * 1.5 : baseCost * 2;
+      }
       setCart([...cart, {
         batch_id: batch.id, product_name: batch.product_name, batch_code: batch.batch_code,
-        sell_type: sellType, quantity: 1, price: Math.round(suggestedPrice / 1000) * 1000,
+        sell_type: sellType, quantity: 1, 
+        price: isExplicitPrice ? Math.round(suggestedPrice) : Math.round(suggestedPrice / 1000) * 1000,
         base_cost: baseCost
       }]);
     }
@@ -198,8 +210,13 @@ const POS = ({ onClose, onSuccess }) => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', background: 'var(--surface2)', padding: '0.15rem 0.4rem', borderRadius: '4px', color: 'var(--text-muted)' }}>{batch.batch_code}</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>{batch.import_date ? new Date(batch.import_date).toLocaleDateString('vi-VN') : ''}</span>
-                    <span style={{ color: 'var(--border-dark)', fontSize: '0.75rem' }}>•</span>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Vốn: <span style={{ fontWeight: 600, color: 'var(--text)' }}>{batch.import_price ? Number(batch.import_price).toLocaleString('vi-VN') : 0}đ</span></span>
+                    {batch.selling_price && Number(batch.selling_price) > 0 && (
+                      <>
+                        <span style={{ color: 'var(--border-dark)', fontSize: '0.75rem' }}>•</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Giá bán: <span style={{ fontWeight: 600, color: 'var(--primary)' }}>{Number(batch.selling_price).toLocaleString('vi-VN')}đ</span></span>
+                      </>
+                    )}
                   </div>
                 </div>
                 

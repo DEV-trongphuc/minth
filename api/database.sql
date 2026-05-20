@@ -34,6 +34,7 @@ CREATE TABLE `batches` (
   `import_date` date NOT NULL,
   `expiry_date` date DEFAULT NULL,
   `import_price` decimal(15,2) NOT NULL,
+  `selling_price` decimal(15,2) DEFAULT 0.00,
   `initial_qty` int(11) NOT NULL,
   `current_qty` int(11) NOT NULL,
   `initial_ml` int(11) DEFAULT 0,

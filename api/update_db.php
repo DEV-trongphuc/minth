@@ -32,4 +32,12 @@ try {
 } catch (PDOException $e) {
     echo "Cột email có thể đã tồn tại: " . $e->getMessage() . "\n";
 }
+
+try {
+    // Thêm cột selling_price vào bảng batches
+    $pdo->exec("ALTER TABLE batches ADD COLUMN selling_price DECIMAL(15,2) DEFAULT 0.00 AFTER import_price");
+    echo "Thêm cột selling_price vào bảng batches thành công.\n";
+} catch (PDOException $e) {
+    echo "Cột selling_price có thể đã tồn tại: " . $e->getMessage() . "\n";
+}
 ?>
