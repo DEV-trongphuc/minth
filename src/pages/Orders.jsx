@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Package, Search, Filter, Edit, Eye, Clock, CheckCircle, Truck, DollarSign, XCircle, ShoppingCart, ChevronDown, List, LayoutGrid } from 'lucide-react';
+import { Package, Search, Filter, Edit, Eye, Clock, CheckCircle, Truck, DollarSign, XCircle, ShoppingCart, ChevronDown, List, LayoutGrid, User, ShoppingBag, Trash2 } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import { useDialog } from '../components/ui/DialogContext';
 import AddressSelect from '../components/ui/AddressSelect';
@@ -673,97 +673,141 @@ export default function Orders() {
       {/* Edit Order Modal */}
       {editingOrder && createPortal(
         <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) setEditingOrder(null); }}>
-          <div className="modal anim-scale-in" style={{ width: '900px', maxWidth: '95vw', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }}>
-            <div className="modal-header" style={{ flexShrink: 0 }}>
-              <h2 className="modal-title">Chi tiết Đơn hàng #{editingOrder.id}</h2>
-              <button className="btn btn-ghost btn-icon" onClick={() => setEditingOrder(null)}>✕</button>
+          <div className="modal anim-scale-in" style={{ width: '90%', maxWidth: '850px', display: 'flex', flexDirection: 'column', maxHeight: '90vh', overflow: 'hidden' }}>
+            <div className="modal-header" style={{ flexShrink: 0, borderBottom: '1px solid var(--border-light)', paddingBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ background: 'var(--primary-bg)', color: 'var(--primary)', padding: '0.5rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px' }}>
+                  <ShoppingCart size={20} />
+                </div>
+                <div>
+                  <h2 className="modal-title" style={{ margin: 0 }}>Chi tiết Đơn hàng #{editingOrder.id}</h2>
+                  <p className="text-xs text-muted" style={{ margin: '0.15rem 0 0 0' }}>Xem thông tin chi tiết và cập nhật sản phẩm trong đơn hàng</p>
+                </div>
+              </div>
+              <button className="btn btn-ghost btn-icon" onClick={() => setEditingOrder(null)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem' }}>✕</button>
             </div>
-            <div className="modal-body" style={{ flex: 1, overflowY: 'auto', display: 'flex', gap: '1.5rem', flexWrap: 'wrap', padding: '1.5rem' }}>
+            <div className="modal-body" style={{ 
+              flex: 1, 
+              overflowY: 'auto', 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+              gap: '2rem', 
+              padding: '1.5rem' 
+            }}>
               {/* Cột trái: Khách hàng */}
-              <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <h3 style={{ fontSize: '1.05rem', borderBottom: '2px solid var(--primary-light)', paddingBottom: '0.5rem', color: 'var(--primary)', margin: 0 }}>Thông tin Khách hàng</h3>
-                <div className="form-group">
-                  <label className="form-label">Tên khách hàng <span className="text-danger">*</span></label>
-                  <input className="form-control" value={editForm.customer_name} onChange={e => setEditForm({ ...editForm, customer_name: e.target.value })} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Số điện thoại <span className="text-danger">*</span></label>
-                  <input
-                    type="tel"
-                    className="form-control"
-                    value={editForm.customer_phone}
-                    onChange={e => setEditForm({ ...editForm, customer_phone: e.target.value })}
-                    style={{ borderColor: !editForm.customer_phone ? 'var(--danger)' : undefined }}
-                    placeholder="Bắt buộc nhập số điện thoại..."
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Địa chỉ giao hàng</label>
-                  <AddressSelect
-                    value={editForm.customer_address}
-                    onChange={addr => setEditForm({ ...editForm, customer_address: addr })}
-                  />
-                </div>
-                <div className="form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <label className="form-label" style={{ margin: 0 }}>Phí giao hàng (VNĐ)</label>
-                    <div style={{ display: 'flex', gap: '0.35rem' }}>
-                      <button 
-                        type="button" 
-                        className={`btn btn-xs ${Number(editForm.shipping_customer_pay) === 1 ? 'btn-primary' : 'btn-ghost'}`} 
-                        style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', height: 'auto', minHeight: 0 }} 
-                        onClick={() => setEditForm({...editForm, shipping_customer_pay: 1})}
-                      >
-                        Thu khách
-                      </button>
-                      <button 
-                        type="button" 
-                        className={`btn btn-xs ${Number(editForm.shipping_customer_pay) === 0 ? 'btn-danger' : 'btn-ghost'}`} 
-                        style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', height: 'auto', minHeight: 0 }} 
-                        onClick={() => setEditForm({...editForm, shipping_customer_pay: 0})}
-                      >
-                        Shop trả
-                      </button>
-                    </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3 style={{ fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', margin: 0, fontWeight: 700 }}>
+                  <User size={18} /> Thông tin Khách hàng
+                </h3>
+                <div style={{ background: 'var(--surface2)', padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--border-light)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontWeight: 600 }}>Tên khách hàng <span style={{ color: 'var(--danger)' }}>*</span></label>
+                    <input className="form-control" style={{ borderRadius: '8px' }} value={editForm.customer_name} onChange={e => setEditForm({ ...editForm, customer_name: e.target.value })} />
                   </div>
-                  <input 
-                    className="form-control" 
-                    type="number" 
-                    value={editForm.shipping_fee} 
-                    onChange={e => setEditForm({ ...editForm, shipping_fee: e.target.value })} 
-                    style={{ color: Number(editForm.shipping_customer_pay) === 0 ? 'var(--danger)' : 'inherit', fontWeight: Number(editForm.shipping_customer_pay) === 0 ? 600 : 400 }}
-                  />
-                  {Number(editForm.shipping_customer_pay) === 0 && Number(editForm.shipping_fee) > 0 && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--danger)', marginTop: '0.35rem', fontWeight: 600 }}>
-                      * Shop chịu phí vận chuyển {Number(editForm.shipping_fee).toLocaleString()}đ
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontWeight: 600 }}>Số điện thoại <span style={{ color: 'var(--danger)' }}>*</span></label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      value={editForm.customer_phone}
+                      onChange={e => setEditForm({ ...editForm, customer_phone: e.target.value })}
+                      style={{ borderColor: !editForm.customer_phone ? 'var(--danger)' : undefined, borderRadius: '8px' }}
+                      placeholder="Bắt buộc nhập số điện thoại..."
+                      required
+                    />
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontWeight: 600 }}>Địa chỉ giao hàng</label>
+                    <AddressSelect
+                      value={editForm.customer_address}
+                      onChange={addr => setEditForm({ ...editForm, customer_address: addr })}
+                    />
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                      <label className="form-label" style={{ margin: 0, fontWeight: 600 }}>Phí giao hàng (VNĐ)</label>
+                      <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--bg)', padding: '0.15rem', borderRadius: '6px', border: '1px solid var(--border-light)' }}>
+                        <button 
+                          type="button" 
+                          className="btn" 
+                          style={{ 
+                            fontSize: '0.7rem', 
+                            padding: '0.2rem 0.5rem', 
+                            height: 'auto', 
+                            minHeight: 0,
+                            borderRadius: '4px',
+                            background: Number(editForm.shipping_customer_pay) === 1 ? 'var(--primary)' : 'transparent',
+                            color: Number(editForm.shipping_customer_pay) === 1 ? '#fff' : 'var(--text-muted)',
+                            border: 'none',
+                            fontWeight: 600
+                          }} 
+                          onClick={() => setEditForm({...editForm, shipping_customer_pay: 1})}
+                        >
+                          Thu khách
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn" 
+                          style={{ 
+                            fontSize: '0.7rem', 
+                            padding: '0.2rem 0.5rem', 
+                            height: 'auto', 
+                            minHeight: 0,
+                            borderRadius: '4px',
+                            background: Number(editForm.shipping_customer_pay) === 0 ? 'var(--danger)' : 'transparent',
+                            color: Number(editForm.shipping_customer_pay) === 0 ? '#fff' : 'var(--text-muted)',
+                            border: 'none',
+                            fontWeight: 600
+                          }} 
+                          onClick={() => setEditForm({...editForm, shipping_customer_pay: 0})}
+                        >
+                          Shop trả
+                        </button>
+                      </div>
                     </div>
-                  )}
+                    <input 
+                      className="form-control" 
+                      type="number" 
+                      value={editForm.shipping_fee} 
+                      onChange={e => setEditForm({ ...editForm, shipping_fee: e.target.value })} 
+                      style={{ borderRadius: '8px', color: Number(editForm.shipping_customer_pay) === 0 ? 'var(--danger)' : 'inherit', fontWeight: Number(editForm.shipping_customer_pay) === 0 ? 600 : 400 }}
+                    />
+                    {Number(editForm.shipping_customer_pay) === 0 && Number(editForm.shipping_fee) > 0 && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--danger)', marginTop: '0.25rem', fontWeight: 600 }}>
+                        * Shop chịu phí vận chuyển {Number(editForm.shipping_fee).toLocaleString()}đ
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Cột phải: Sản phẩm */}
-              <div style={{ flex: '2 1 400px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <h3 style={{ fontSize: '1.05rem', borderBottom: '2px solid var(--primary-light)', paddingBottom: '0.5rem', color: 'var(--primary)', margin: 0 }}>Chi tiết Sản phẩm</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3 style={{ fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', margin: 0, fontWeight: 700 }}>
+                  <ShoppingBag size={18} /> Chi tiết Sản phẩm
+                </h3>
 
                 {loadingItems ? (
-                  <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Đang tải sản phẩm...</div>
+                  <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Đang tải sản phẩm...</div>
                 ) : (
-                  <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%', minHeight: 0 }}>
                     {/* Thêm sản phẩm */}
-                    <div style={{ position: 'relative' }}>
-                      <input type="text" className="form-control" placeholder="Gõ tên hoặc lô để thêm sản phẩm..." value={searchBatch} onChange={e => setSearchBatch(e.target.value)} />
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <div className="search-wrap">
+                        <Search size={16} color="var(--text-light)" />
+                        <input type="text" className="form-control" style={{ borderRadius: '8px', paddingLeft: '2.5rem' }} placeholder="Gõ tên hoặc lô để thêm sản phẩm..." value={searchBatch} onChange={e => setSearchBatch(e.target.value)} />
+                      </div>
                       {searchBatch && (
-                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: 'var(--shadow-md)' }}>
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: 'var(--shadow-lg)', marginTop: '0.25rem' }}>
                           {filteredBatchesForCart.slice(0, 5).map(b => (
-                            <div key={b.id} style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="hover-bg">
+                            <div key={b.id} style={{ padding: '0.6rem 0.85rem', borderBottom: '1px solid var(--border-light)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} className="hover-bg" onClick={() => addToCart(b, 'chai')}>
                               <div>
-                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{b.product_name}</div>
+                                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)' }}>{b.product_name}</div>
                                 <div className="text-xs text-muted">Lô: {b.batch_code} (Tồn: {b.current_qty} {unitLabels[b.unit] || 'đơn vị'}){b.selling_price && Number(b.selling_price) > 0 && ` - Giá bán: ${Number(b.selling_price).toLocaleString('vi-VN')}đ`}</div>
                               </div>
-                              <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                <button className="btn btn-primary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => addToCart(b, 'chai')}>Chai</button>
-                                {b.ml_per_unit > 0 && <button className="btn btn-secondary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }} onClick={() => addToCart(b, 'ml')}>ML</button>}
+                              <div style={{ display: 'flex', gap: '0.35rem' }} onClick={e => e.stopPropagation()}>
+                                <button className="btn btn-primary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', borderRadius: '6px' }} onClick={() => addToCart(b, 'chai')}>Chai</button>
+                                {b.ml_per_unit > 0 && <button className="btn btn-secondary btn-sm" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', borderRadius: '6px' }} onClick={() => addToCart(b, 'ml')}>ML</button>}
                               </div>
                             </div>
                           ))}
@@ -772,40 +816,49 @@ export default function Orders() {
                     </div>
 
                     {/* Danh sách giỏ hàng */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-                      {cart.length === 0 ? <div className="text-muted text-center" style={{ padding: '1rem' }}>Đơn hàng trống</div> : cart.map((item, idx) => {
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '260px', overflowY: 'auto', paddingRight: '0.25rem', minHeight: '60px' }}>
+                      {cart.length === 0 ? (
+                        <div className="text-muted text-center" style={{ padding: '2rem', border: '1px dashed var(--border)', borderRadius: '10px', background: 'var(--bg)' }}>Đơn hàng trống</div>
+                      ) : cart.map((item, idx) => {
                         const targetPrice = item.sell_type === 'chai' 
                           ? Number(item.selling_price) 
                           : (Number(item.ml_per_unit) > 0 ? Number(item.selling_price) / Number(item.ml_per_unit) : 0);
                         const discountPerUnit = targetPrice - Number(item.price);
                         const totalDiscount = discountPerUnit * Number(item.quantity);
                         return (
-                          <div key={item.id} style={{ background: 'var(--surface2)', padding: '0.75rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-light)', position: 'relative' }}>
-                            <button className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', color: 'var(--danger)', padding: '0.25rem' }} onClick={() => removeFromCart(idx)}>✕</button>
-                            <div style={{ fontWeight: 600, fontSize: '0.9rem', paddingRight: '1.5rem', marginBottom: '0.25rem' }}>{item.product_name}</div>
-                            <div className="text-xs text-muted" style={{ marginTop: '0.15rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
-                              <span>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : 'Lẻ'})</span>
+                          <div key={item.id} style={{ background: 'var(--surface2)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--border-light)', position: 'relative', boxShadow: 'var(--shadow-xs)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <button 
+                              className="btn btn-ghost btn-sm btn-icon" 
+                              style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', color: 'var(--text-light)', border: 'none', background: 'transparent', cursor: 'pointer', transition: 'color 0.2s' }} 
+                              onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-light)'}
+                              onClick={() => removeFromCart(idx)}
+                              title="Xóa sản phẩm"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                            <div style={{ fontWeight: 700, fontSize: '0.925rem', paddingRight: '2rem', color: 'var(--text)' }}>{item.product_name}</div>
+                            <div className="text-xs text-muted" style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                              <span style={{ fontWeight: 500 }}>Lô: <strong style={{ color: 'var(--text)' }}>{item.batch_code}</strong> ({item.sell_type === 'chai' ? 'Nguyên chai' : 'Chiết lẻ'})</span>
                               {targetPrice > 0 && (
-                                <span style={{ fontSize: '0.75rem' }}>
-                                  Giá niêm yết: {Math.round(targetPrice).toLocaleString('vi-VN')} đ / {item.sell_type === 'chai' ? 'chai' : 'ml'}
-                                </span>
+                                <span>Giá niêm yết: {Math.round(targetPrice).toLocaleString('vi-VN')} đ / {item.sell_type === 'chai' ? 'chai' : 'ml'}</span>
                               )}
                               {totalDiscount > 0.01 && (
-                                <span style={{ color: 'var(--danger)', fontWeight: 600, fontSize: '0.75rem' }}>
-                                  Đã giảm: {Math.round(totalDiscount).toLocaleString('vi-VN')} đ ({Math.round(discountPerUnit).toLocaleString('vi-VN')} đ / {item.sell_type === 'chai' ? 'chai' : 'ml'})
+                                <span style={{ color: 'var(--danger)', fontWeight: 700, background: 'var(--danger-bg)', padding: '0.15rem 0.5rem', borderRadius: '4px', marginTop: '0.15rem', alignSelf: 'flex-start' }}>
+                                  Đã giảm: {Math.round(totalDiscount).toLocaleString('vi-VN')} đ
                                 </span>
                               )}
                             </div>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', marginTop: '0.5rem' }}>
-                              <div style={{ width: '60px' }}>
-                                <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem' }}>SL</label>
-                                <input type="number" className="form-control" style={{ padding: '0.35rem' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
+                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', marginTop: '0.25rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-light)' }}>
+                              <div style={{ width: '65px' }}>
+                                <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>SL</label>
+                                <input type="number" className="form-control" style={{ padding: '0.4rem 0.5rem', borderRadius: '6px', textAlign: 'center' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
                               </div>
                               <div style={{ flex: 1 }}>
-                                <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem' }}>Đơn giá (đ)</label>
-                                <input type="text" className="form-control" style={{ padding: '0.35rem' }} value={item.price ? item.price.toLocaleString('vi-VN') : ''} onChange={e => updateCartItem(idx, 'price', e.target.value.replace(/\D/g, ''))} />
+                                <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 600 }}>Đơn giá (đ)</label>
+                                <input type="text" className="form-control" style={{ padding: '0.4rem 0.5rem', borderRadius: '6px' }} value={item.price ? item.price.toLocaleString('vi-VN') : ''} onChange={e => updateCartItem(idx, 'price', e.target.value.replace(/\D/g, ''))} />
                               </div>
-                              <div style={{ fontWeight: 700, color: 'var(--primary)', flexShrink: 0, paddingBottom: '0.35rem' }}>
+                              <div style={{ fontWeight: 800, color: 'var(--primary)', flexShrink: 0, paddingBottom: '0.4rem', fontSize: '1rem' }}>
                                 = {(item.price * item.quantity).toLocaleString()} đ
                               </div>
                             </div>
@@ -814,19 +867,19 @@ export default function Orders() {
                       })}
                     </div>
 
-                    <div style={{ marginTop: 'auto', background: 'var(--primary-light)', padding: '1rem', borderRadius: 'var(--r-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>Tổng thu khách:</span>
-                      <span style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>
+                    <div style={{ marginTop: 'auto', background: 'var(--primary-bg)', border: '1px solid var(--primary-light)', padding: '1rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                      <span style={{ fontWeight: 700, color: 'var(--primary-dark)', fontSize: '0.95rem' }}>Tổng thu khách:</span>
+                      <span style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '-0.02em' }}>
                         {(cart.reduce((s, c) => s + (c.price * c.quantity), 0) + (Number(editForm.shipping_customer_pay) === 1 ? Number(editForm.shipping_fee) || 0 : 0)).toLocaleString('vi-VN')} đ
                       </span>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
-            <div className="modal-footer" style={{ flexShrink: 0 }}>
-              <button className="btn btn-secondary" onClick={() => setEditingOrder(null)}>Hủy</button>
-              <button className="btn btn-primary" onClick={handleUpdateInfo} disabled={loadingItems}>Lưu thay đổi</button>
+            <div className="modal-footer" style={{ flexShrink: 0, borderTop: '1px solid var(--border-light)', paddingTop: '1rem', marginTop: 0 }}>
+              <button className="btn btn-secondary" style={{ borderRadius: '8px' }} onClick={() => setEditingOrder(null)}>Hủy</button>
+              <button className="btn btn-primary" style={{ borderRadius: '8px' }} onClick={handleUpdateInfo} disabled={loadingItems}>Lưu thay đổi</button>
             </div>
           </div>
         </div>,
