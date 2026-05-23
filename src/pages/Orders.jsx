@@ -92,7 +92,8 @@ export default function Orders() {
           sell_type: i.sell_type,
           quantity: Number(i.quantity),
           price: Number(i.price_per_unit),
-          ml_per_unit: Number(i.ml_per_unit)
+          ml_per_unit: Number(i.ml_per_unit),
+          selling_price: Number(i.selling_price)
         }));
         setCart(parsedItems);
         setOriginalCart(parsedItems.map(item => ({...item})));
@@ -234,7 +235,8 @@ export default function Orders() {
         sell_type: sellType,
         quantity: 1,
         price: isExplicitPrice ? Math.round(suggestedPrice) : Math.round(suggestedPrice / 1000) * 1000,
-        ml_per_unit: batch.ml_per_unit
+        ml_per_unit: batch.ml_per_unit,
+        selling_price: Number(batch.selling_price)
       }]);
     }
     setSearchBatch('');
@@ -771,26 +773,45 @@ export default function Orders() {
 
                     {/* Danh sách giỏ hàng */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-                      {cart.length === 0 ? <div className="text-muted text-center" style={{ padding: '1rem' }}>Đơn hàng trống</div> : cart.map((item, idx) => (
-                        <div key={item.id} style={{ background: 'var(--surface2)', padding: '0.75rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-light)', position: 'relative' }}>
-                          <button className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', color: 'var(--danger)', padding: '0.25rem' }} onClick={() => removeFromCart(idx)}>✕</button>
-                          <div style={{ fontWeight: 600, fontSize: '0.9rem', paddingRight: '1.5rem', marginBottom: '0.25rem' }}>{item.product_name}</div>
-                          <div className="text-xs text-muted" style={{ marginTop: '0.15rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : 'Lẻ'})</div>
-                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
-                            <div style={{ width: '60px' }}>
-                              <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem' }}>SL</label>
-                              <input type="number" className="form-control" style={{ padding: '0.35rem' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
+                      {cart.length === 0 ? <div className="text-muted text-center" style={{ padding: '1rem' }}>Đơn hàng trống</div> : cart.map((item, idx) => {
+                        const targetPrice = item.sell_type === 'chai' 
+                          ? Number(item.selling_price) 
+                          : (Number(item.ml_per_unit) > 0 ? Number(item.selling_price) / Number(item.ml_per_unit) : 0);
+                        const discountPerUnit = targetPrice - Number(item.price);
+                        const totalDiscount = discountPerUnit * Number(item.quantity);
+                        return (
+                          <div key={item.id} style={{ background: 'var(--surface2)', padding: '0.75rem', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-light)', position: 'relative' }}>
+                            <button className="btn btn-ghost btn-sm" style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', color: 'var(--danger)', padding: '0.25rem' }} onClick={() => removeFromCart(idx)}>✕</button>
+                            <div style={{ fontWeight: 600, fontSize: '0.9rem', paddingRight: '1.5rem', marginBottom: '0.25rem' }}>{item.product_name}</div>
+                            <div className="text-xs text-muted" style={{ marginTop: '0.15rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                              <span>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : 'Lẻ'})</span>
+                              {targetPrice > 0 && (
+                                <span style={{ fontSize: '0.75rem' }}>
+                                  Giá niêm yết: {Math.round(targetPrice).toLocaleString('vi-VN')} đ / {item.sell_type === 'chai' ? 'chai' : 'ml'}
+                                </span>
+                              )}
+                              {totalDiscount > 0.01 && (
+                                <span style={{ color: 'var(--danger)', fontWeight: 600, fontSize: '0.75rem' }}>
+                                  Đã giảm: {Math.round(totalDiscount).toLocaleString('vi-VN')} đ ({Math.round(discountPerUnit).toLocaleString('vi-VN')} đ / {item.sell_type === 'chai' ? 'chai' : 'ml'})
+                                </span>
+                              )}
                             </div>
-                            <div style={{ flex: 1 }}>
-                              <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem' }}>Đơn giá (đ)</label>
-                              <input type="text" className="form-control" style={{ padding: '0.35rem' }} value={item.price ? item.price.toLocaleString('vi-VN') : ''} onChange={e => updateCartItem(idx, 'price', e.target.value.replace(/\D/g, ''))} />
-                            </div>
-                            <div style={{ fontWeight: 700, color: 'var(--primary)', flexShrink: 0, paddingBottom: '0.35rem' }}>
-                              = {(item.price * item.quantity).toLocaleString()} đ
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', marginTop: '0.5rem' }}>
+                              <div style={{ width: '60px' }}>
+                                <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem' }}>SL</label>
+                                <input type="number" className="form-control" style={{ padding: '0.35rem' }} value={item.quantity} min="1" onChange={e => updateCartItem(idx, 'quantity', e.target.value)} />
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <label className="text-xs text-muted" style={{ display: 'block', marginBottom: '0.25rem' }}>Đơn giá (đ)</label>
+                                <input type="text" className="form-control" style={{ padding: '0.35rem' }} value={item.price ? item.price.toLocaleString('vi-VN') : ''} onChange={e => updateCartItem(idx, 'price', e.target.value.replace(/\D/g, ''))} />
+                              </div>
+                              <div style={{ fontWeight: 700, color: 'var(--primary)', flexShrink: 0, paddingBottom: '0.35rem' }}>
+                                = {(item.price * item.quantity).toLocaleString()} đ
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     <div style={{ marginTop: 'auto', background: 'var(--primary-light)', padding: '1rem', borderRadius: 'var(--r-sm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

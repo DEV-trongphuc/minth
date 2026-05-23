@@ -177,7 +177,7 @@ export default function Customers() {
         ))}
       </div>
 
-      {c.note && <div className="text-xs text-muted" style={{ fontStyle: 'italic', padding: '.5rem .75rem', background: 'var(--warning-bg)', borderRadius: 'var(--r-xs)', borderLeft: '3px solid var(--warning)', display: 'flex', gap: '0.35rem', alignItems: 'flex-start' }}><MessageSquare size={12} style={{ marginTop: '0.1rem', flexShrink: 0 }} /> <span>{c.note}</span></div>}
+      {c.note && <div className="text-xs text-muted" style={{ fontStyle: 'italic', padding: '.5rem .75rem', background: 'var(--warning-bg)', borderRadius: 'var(--r-xs)', borderLeft: '3px solid var(--warning)', display: 'flex', gap: '0.35rem', alignItems: 'flex-start' }}><MessageSquare size={12} style={{ marginTop: '0.1rem', flexShrink: 0 }} /> <span style={{ whiteSpace: 'pre-line' }}>{c.note}</span></div>}
 
       <div style={{ display: 'flex', gap: '.5rem', marginTop: 'auto' }}>
         <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={e => { e.stopPropagation(); setDetailItem(c); }}><Eye size={13} /> Chi tiết</button>
@@ -463,7 +463,7 @@ export default function Customers() {
                     ].map(([k, v]) => (
                       <div key={k} style={{ display: 'flex', gap: '1rem', padding: '.625rem 0', borderBottom: '1px solid var(--border-light)' }}>
                         <span className="text-sm text-muted" style={{ minWidth: 80 }}>{k}:</span>
-                        <span className="text-sm" style={{ fontWeight: 500 }}>{v}</span>
+                        <span className="text-sm" style={{ fontWeight: 500, whiteSpace: k === 'Ghi chú' ? 'pre-line' : 'normal' }}>{v}</span>
                       </div>
                     ))}
                   </div>
@@ -524,17 +524,36 @@ export default function Customers() {
                 <div className="text-center text-muted" style={{ padding: '2rem' }}>Đang tải chi tiết...</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {orderItems.map(item => (
-                    <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--surface2)', borderRadius: 'var(--r-sm)' }}>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.quantity}x {item.product_name}</div>
-                        <div className="text-xs text-muted" style={{ marginTop: '0.2rem' }}>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : 'Lẻ'})</div>
+                  {orderItems.map(item => {
+                    const targetPrice = item.sell_type === 'chai' 
+                      ? Number(item.selling_price) 
+                      : (Number(item.ml_per_unit) > 0 ? Number(item.selling_price) / Number(item.ml_per_unit) : 0);
+                    const discountPerUnit = targetPrice - Number(item.price_per_unit);
+                    const totalDiscount = discountPerUnit * Number(item.quantity);
+                    return (
+                      <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--surface2)', borderRadius: 'var(--r-sm)', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.quantity}x {item.product_name}</div>
+                          <div className="text-xs text-muted" style={{ marginTop: '0.2rem', display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                            <span>Lô: {item.batch_code} ({item.sell_type === 'chai' ? 'Nguyên' : 'Lẻ'})</span>
+                            {targetPrice > 0 && (
+                              <span style={{ fontSize: '0.75rem' }}>
+                                Giá niêm yết: {Math.round(targetPrice).toLocaleString('vi-VN')} đ / {item.sell_type === 'chai' ? 'chai' : 'ml'}
+                              </span>
+                            )}
+                            {totalDiscount > 0.01 && (
+                              <span style={{ color: 'var(--danger)', fontWeight: 600, fontSize: '0.75rem' }}>
+                                Đã giảm: {Math.round(totalDiscount).toLocaleString('vi-VN')} đ ({Math.round(discountPerUnit).toLocaleString('vi-VN')} đ / {item.sell_type === 'chai' ? 'chai' : 'ml'})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ fontWeight: 700, textAlign: 'right' }}>
+                          <div>{(item.price_per_unit * item.quantity).toLocaleString('vi-VN')} đ</div>
+                        </div>
                       </div>
-                      <div style={{ fontWeight: 700 }}>
-                        {(item.price_per_unit * item.quantity).toLocaleString('vi-VN')} đ
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   
                   <div style={{ marginTop: '1rem', borderTop: '1px dashed var(--border)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>

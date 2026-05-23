@@ -23,6 +23,8 @@ export default function Inventory() {
   const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState('date_desc');
   const [isSortByOpen, setIsSortByOpen] = useState(false);
+  const [groupBy, setGroupBy] = useState('date'); // 'date' | 'product' | 'none'
+  const [isGroupByOpen, setIsGroupByOpen] = useState(false);
   const [invFilter, setInvFilter] = useState('thismonth');
   const [isInvFilterOpen, setIsInvFilterOpen] = useState(false);
   const { showConfirm, showAlert } = useDialog();
@@ -176,17 +178,51 @@ export default function Inventory() {
       return stockStatus(b).id === statusFilter;
     })
     .sort((a, b) => {
-      if (sortBy === 'date_desc') return new Date(b.import_date) - new Date(a.import_date);
-      if (sortBy === 'date_asc') return new Date(a.import_date) - new Date(b.import_date);
-      if (sortBy === 'status_asc') {
-        const order = { 'out_of_stock': 1, 'low_stock': 2, 'in_stock': 3 };
-        return order[stockStatus(a).id] - order[stockStatus(b).id];
+      if (groupBy === 'date') {
+        const dateA = new Date(a.import_date);
+        const dateB = new Date(b.import_date);
+        const isAsc = sortBy === 'date_asc';
+        if (dateA - dateB !== 0) {
+          return isAsc ? dateA - dateB : dateB - dateA;
+        }
+        if (sortBy === 'status_asc') {
+          const order = { 'out_of_stock': 1, 'low_stock': 2, 'in_stock': 3 };
+          return order[stockStatus(a).id] - order[stockStatus(b).id];
+        }
+        if (sortBy === 'status_desc') {
+          const order = { 'in_stock': 1, 'low_stock': 2, 'out_of_stock': 3 };
+          return order[stockStatus(a).id] - order[stockStatus(b).id];
+        }
+        return 0;
+      } else if (groupBy === 'product') {
+        const nameA = a.product_name || '';
+        const nameB = b.product_name || '';
+        const nameComp = nameA.localeCompare(nameB, 'vi');
+        if (nameComp !== 0) return nameComp;
+        
+        if (sortBy === 'date_asc') return new Date(a.import_date) - new Date(b.import_date);
+        if (sortBy === 'status_asc') {
+          const order = { 'out_of_stock': 1, 'low_stock': 2, 'in_stock': 3 };
+          return order[stockStatus(a).id] - order[stockStatus(b).id];
+        }
+        if (sortBy === 'status_desc') {
+          const order = { 'in_stock': 1, 'low_stock': 2, 'out_of_stock': 3 };
+          return order[stockStatus(a).id] - order[stockStatus(b).id];
+        }
+        return new Date(b.import_date) - new Date(a.import_date); // default date_desc
+      } else {
+        if (sortBy === 'date_desc') return new Date(b.import_date) - new Date(a.import_date);
+        if (sortBy === 'date_asc') return new Date(a.import_date) - new Date(b.import_date);
+        if (sortBy === 'status_asc') {
+          const order = { 'out_of_stock': 1, 'low_stock': 2, 'in_stock': 3 };
+          return order[stockStatus(a).id] - order[stockStatus(b).id];
+        }
+        if (sortBy === 'status_desc') {
+          const order = { 'in_stock': 1, 'low_stock': 2, 'out_of_stock': 3 };
+          return order[stockStatus(a).id] - order[stockStatus(b).id];
+        }
+        return 0;
       }
-      if (sortBy === 'status_desc') {
-        const order = { 'in_stock': 1, 'low_stock': 2, 'out_of_stock': 3 };
-        return order[stockStatus(a).id] - order[stockStatus(b).id];
-      }
-      return 0;
     });
 
   const getExpiryWarning = (dateStr) => {
@@ -449,6 +485,23 @@ export default function Inventory() {
             )}
           </div>
 
+          <div style={{ position: 'relative', flex: '1 1 120px' }} tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsGroupByOpen(false); }}>
+            <div onClick={() => setIsGroupByOpen(!isGroupByOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', fontWeight: 600, fontSize: '0.85rem' }}>
+              <span>{
+                groupBy === 'date' ? 'Nhóm theo ngày' :
+                groupBy === 'product' ? 'Nhóm theo SP' : 'Không nhóm'
+              }</span>
+              <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isGroupByOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
+            </div>
+            {isGroupByOpen && (
+              <div className="anim-fade-up" style={{ position: 'absolute', top: 'calc(100% + 4px)', right: 0, background: 'var(--surface)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 50, padding: '0.4rem', width: 'max-content', minWidth: '100%' }}>
+                {[{v:'date', l:'Nhóm theo ngày'}, {v:'product', l:'Nhóm theo sản phẩm'}, {v:'none', l:'Không nhóm'}].map(o => (
+                  <button key={o.v} onClick={() => { setGroupBy(o.v); setIsGroupByOpen(false); }} style={{ width: '100%', textAlign: 'left', padding: '0.5rem 0.875rem', background: groupBy === o.v ? 'var(--primary-bg)' : 'transparent', color: groupBy === o.v ? 'var(--primary-dark)' : 'var(--text)', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: groupBy === o.v ? 600 : 500, fontSize: '0.85rem' }}>{o.l}</button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div style={{ position: 'relative', flex: '1 1 120px' }} tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setIsSortByOpen(false); }}>
             <div onClick={() => setIsSortByOpen(!isSortByOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', fontWeight: 600, fontSize: '0.85rem' }}>
               <span>{
@@ -494,14 +547,23 @@ export default function Inventory() {
               <tbody>
                 {filtered.map((b, i) => {
                   const s = stockStatus(b);
-                  const showHeader = (sortBy === 'date_desc' || sortBy === 'date_asc') && (i === 0 || b.import_date !== filtered[i - 1].import_date);
+                  const showDateHeader = groupBy === 'date' && (i === 0 || b.import_date !== filtered[i - 1].import_date);
+                  const showProductHeader = groupBy === 'product' && (i === 0 || b.product_name !== filtered[i - 1].product_name);
                   return (
                     <React.Fragment key={b.id}>
-                      {showHeader && (
+                      {showDateHeader && (
                         <tr>
                           <td colSpan="7" style={{ background: 'var(--surface2)', fontWeight: 600, padding: '0.75rem 1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                             <CalendarDays size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.4rem', marginTop: '-2px' }}/>
                             Ngày nhập lô: <span style={{ color: 'var(--text)' }}>{b.import_date}</span>
+                          </td>
+                        </tr>
+                      )}
+                      {showProductHeader && (
+                        <tr>
+                          <td colSpan="7" style={{ background: 'var(--surface2)', fontWeight: 600, padding: '0.75rem 1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            <Package size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '0.4rem', marginTop: '-2px' }}/>
+                            Sản phẩm: <span style={{ color: 'var(--text)' }}>{b.product_name}</span>
                           </td>
                         </tr>
                       )}
@@ -554,12 +616,18 @@ export default function Inventory() {
         <div className="mobile-only">
           <div className="grid-3-cards">
             {filtered.map((b, i) => {
-              const showHeader = (sortBy === 'date_desc' || sortBy === 'date_asc') && (i === 0 || b.import_date !== filtered[i - 1].import_date);
+              const showDateHeader = groupBy === 'date' && (i === 0 || b.import_date !== filtered[i - 1].import_date);
+              const showProductHeader = groupBy === 'product' && (i === 0 || b.product_name !== filtered[i - 1].product_name);
               return (
                 <React.Fragment key={b.id}>
-                  {showHeader && (
+                  {showDateHeader && (
                     <div style={{ gridColumn: '1 / -1', background: 'var(--surface2)', padding: '0.6rem 1rem', borderRadius: 'var(--r-sm)', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--border-light)' }}>
                       <CalendarDays size={14} /> Ngày nhập lô: <span style={{ color: 'var(--text)' }}>{b.import_date}</span>
+                    </div>
+                  )}
+                  {showProductHeader && (
+                    <div style={{ gridColumn: '1 / -1', background: 'var(--surface2)', padding: '0.6rem 1rem', borderRadius: 'var(--r-sm)', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--border-light)' }}>
+                      <Package size={14} /> Sản phẩm: <span style={{ color: 'var(--text)' }}>{b.product_name}</span>
                     </div>
                   )}
                   {renderCard(b)}
@@ -573,12 +641,18 @@ export default function Inventory() {
         /* ─── CARD VIEW ─── */
         <div className="grid-3-cards">
           {filtered.map((b, i) => {
-            const showHeader = (sortBy === 'date_desc' || sortBy === 'date_asc') && (i === 0 || b.import_date !== filtered[i - 1].import_date);
+            const showDateHeader = groupBy === 'date' && (i === 0 || b.import_date !== filtered[i - 1].import_date);
+            const showProductHeader = groupBy === 'product' && (i === 0 || b.product_name !== filtered[i - 1].product_name);
             return (
               <React.Fragment key={b.id}>
-                {showHeader && (
+                {showDateHeader && (
                   <div style={{ gridColumn: '1 / -1', background: 'var(--surface2)', padding: '0.6rem 1rem', borderRadius: 'var(--r-sm)', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--border-light)' }}>
                     <CalendarDays size={14} /> Ngày nhập lô: <span style={{ color: 'var(--text)' }}>{b.import_date}</span>
+                  </div>
+                )}
+                {showProductHeader && (
+                  <div style={{ gridColumn: '1 / -1', background: 'var(--surface2)', padding: '0.6rem 1rem', borderRadius: 'var(--r-sm)', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--border-light)' }}>
+                    <Package size={14} /> Sản phẩm: <span style={{ color: 'var(--text)' }}>{b.product_name}</span>
                   </div>
                 )}
                 {renderCard(b)}
