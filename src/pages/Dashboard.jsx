@@ -139,9 +139,9 @@ export default function Dashboard() {
           <p style={{ fontSize: '0.9rem', opacity: 0.85, margin: '0.25rem 0 0 0' }}>Có <b style={{ color: '#fcd34d' }}>{report.pending_orders || 0}</b> đơn chờ xử lý và <b style={{ color: '#fcd34d' }}>{(report.low_stock || []).length}</b> sản phẩm sắp hết hàng.</p>
         </div>
 
-        <div style={{ zIndex: 1, display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div style={{ zIndex: 1, display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {filter === 'custom' && (
-            <div className="anim-slide-in" style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.4rem', borderRadius: '8px', backdropFilter: 'blur(10px)' }}>
+            <div className="anim-slide-in" style={{ display: 'flex', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.4rem', borderRadius: '8px', backdropFilter: 'blur(10px)', flexWrap: 'wrap' }}>
               <input type="date" style={{ padding: '0.2rem 0.5rem', border: 'none', borderRadius: '4px', fontSize: '0.8rem', outline: 'none' }} value={customStart} onChange={e=>setCustomStart(e.target.value)} />
               <input type="date" style={{ padding: '0.2rem 0.5rem', border: 'none', borderRadius: '4px', fontSize: '0.8rem', outline: 'none' }} value={customEnd} onChange={e=>setCustomEnd(e.target.value)} />
               <button onClick={fetchReport} style={{ background: '#fff', color: 'var(--primary)', padding: '0.2rem 0.75rem', borderRadius: '4px', border: 'none', fontWeight: 700, cursor: 'pointer', fontSize: '0.8rem' }}>Lọc</button>

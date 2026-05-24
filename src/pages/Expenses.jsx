@@ -317,7 +317,7 @@ export default function Expenses() {
       </div>
 
       {/* Table */}
-      <div className="card card-no-pad desktop-only" style={{ overflow: 'hidden' }}>
+      <div className="card card-no-pad tablet-hidden" style={{ overflow: 'hidden' }}>
         <div className="table-wrap">
           <table className="data-table">
             <thead>
@@ -379,7 +379,7 @@ export default function Expenses() {
       </div>
 
       {/* Mobile Card List */}
-      <div className="mobile-only">
+      <div className="tablet-visible">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0 0.5rem', marginBottom: '1rem' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Đang tải dữ liệu...</div>

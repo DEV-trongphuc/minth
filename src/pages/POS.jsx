@@ -160,8 +160,8 @@ const POS = ({ onClose, onSuccess }) => {
   };
 
   return createPortal(
-    <div className="modal-overlay" style={{ zIndex: 1000 }} onClick={e => { if (e.target === e.currentTarget && onClose) onClose(); }}>
-      <div className="modal" style={{ width: '98vw', maxWidth: '1400px', height: '95vh', padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="modal-overlay pos-overlay" style={{ zIndex: 1000 }} onClick={e => { if (e.target === e.currentTarget && onClose) onClose(); }}>
+      <div className="modal pos-modal" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="modal-header" style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-light)', flexShrink: 0, background: 'var(--surface)' }}>
           <h2 className="modal-title" style={{ fontSize: '1.25rem' }}>Tạo Đơn Hàng Mới (POS)</h2>
           <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
@@ -295,7 +295,7 @@ const POS = ({ onClose, onSuccess }) => {
                   <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                     <span className="text-xs text-muted" style={{ display: 'flex', alignItems: 'center', marginRight: '0.25rem' }}>Chọn nhanh:</span>
                     {[10, 20, 50, 100].map(v => (
-                      <button key={v} type="button" className={`badge ${item.quantity === v ? 'badge-primary' : 'badge-muted'}`} style={{ cursor: 'pointer', border: item.quantity === v ? 'none' : '1px solid var(--border)', padding: '0.2rem 0.5rem' }} onClick={() => updateCartItem(idx, 'quantity', v)}>
+                      <button key={v} type="button" className={`badge ${item.quantity === v ? 'badge-primary' : 'badge-muted'}`} style={{ cursor: 'pointer', border: item.quantity === v ? 'none' : '1px solid var(--border)', padding: '0.35rem 0.75rem', fontSize: '0.8rem', minHeight: '32px', minWidth: '48px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => updateCartItem(idx, 'quantity', v)}>
                         {v}ml
                       </button>
                     ))}
@@ -470,11 +470,41 @@ const POS = ({ onClose, onSuccess }) => {
         document.body
       )}
       <style>{`
+        .pos-modal {
+          width: 98vw;
+          max-width: 1400px;
+          height: 95vh;
+          background: var(--surface);
+          border-radius: var(--r-lg);
+          box-shadow: var(--shadow-lg);
+          animation: modal-pop .25s cubic-bezier(.34, 1.56, .64, 1);
+        }
         .pos-layout {
           display: grid; 
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
           gap: 1.5rem; 
           height: calc(100vh - 120px);
+        }
+        @media (max-width: 1023px) {
+          .pos-overlay {
+            padding: 0 !important;
+          }
+          .pos-modal {
+            width: 100vw !important;
+            max-width: none !important;
+            height: 100vh !important;
+            max-height: none !important;
+            border-radius: 0 !important;
+          }
+          .pos-layout {
+            display: flex;
+            flex-direction: column;
+            height: auto;
+          }
+          .pos-card {
+            min-height: 50vh;
+            padding: 1rem 0.5rem !important;
+          }
         }
         @media (max-width: 768px) {
           .pos-layout {

@@ -1216,6 +1216,12 @@ body {
   }
 }
 
+@media (max-width: 480px) {
+  .grid-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dashboard-products-row {
   display: grid;
   grid-template-columns: 7fr 3fr;
