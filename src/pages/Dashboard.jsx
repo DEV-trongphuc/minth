@@ -11,15 +11,19 @@ import { API_BASE_URL } from '../config';
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Filler, Legend, ArcElement);
 
 const FILTERS = [
+  { value: 'thisyear', label: 'Năm nay' },
   { value: '7days', label: '7 Ngày' },
   { value: '30days', label: '30 Ngày' },
   { value: 'thismonth', label: 'Tháng này' },
   { value: 'lastmonth', label: 'Tháng trước' },
+  { value: 'thisquarter', label: 'Quý này' },
+  { value: 'lastquarter', label: 'Quý trước' },
+  { value: 'lastyear', label: 'Năm trước' },
   { value: 'custom', label: 'Tùy chỉnh' },
 ];
 
 export default function Dashboard() {
-  const [filter, setFilter] = useState('thismonth');
+  const [filter, setFilter] = useState('thisyear');
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const unitLabels = { chai: 'Chai', cai: 'Cái', hop: 'Hộp', set: 'Set', tuyp: 'Tuýp', gam: 'Gam (g)' };
   const [isFilterOpen, setIsFilterOpen] = useState(false);

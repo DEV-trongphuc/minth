@@ -66,7 +66,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     try {
         $query = "
-            SELECT o.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address
+            SELECT o.*, c.name as customer_name, c.phone as customer_phone, c.address as customer_address,
+            COALESCE((
+                SELECT SUM(
+                    CASE 
+                        WHEN oi.sell_type = 'chai' AND b.selling_price > oi.price_per_unit THEN (b.selling_price - oi.price_per_unit) * oi.quantity
+                        WHEN oi.sell_type = 'ml' AND p.ml_per_unit > 0 AND (b.selling_price / p.ml_per_unit) > oi.price_per_unit THEN ((b.selling_price / p.ml_per_unit) - oi.price_per_unit) * oi.quantity
+                        ELSE 0
+                    END
+                )
+                FROM order_items oi
+                JOIN batches b ON oi.batch_id = b.id
+                JOIN products p ON b.product_id = p.id
+                WHERE oi.order_id = o.id
+            ), 0) as total_discount
             FROM orders o
             LEFT JOIN customers c ON o.customer_id = c.id
         ";

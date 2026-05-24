@@ -5,7 +5,7 @@ header("Content-Type: application/json; charset=UTF-8");
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    $filter = $_GET['filter'] ?? '7days';
+    $filter = $_GET['filter'] ?? 'thisyear';
     $startDate = '';
     $endDate = date('Y-m-d 23:59:59');
 
@@ -23,12 +23,44 @@ if ($method === 'GET') {
             $startDate = date('Y-m-01 00:00:00', strtotime('first day of last month'));
             $endDate = date('Y-m-t 23:59:59', strtotime('last day of last month'));
             break;
+        case 'thisquarter':
+            $current_month = date('n');
+            $current_year = date('Y');
+            $quarter = ceil($current_month / 3);
+            $start_month = str_pad(($quarter - 1) * 3 + 1, 2, '0', STR_PAD_LEFT);
+            $end_month = str_pad($start_month + 2, 2, '0', STR_PAD_LEFT);
+            $startDate = $current_year . '-' . $start_month . '-01 00:00:00';
+            $endDate = date('Y-m-t 23:59:59', strtotime($current_year . '-' . $end_month . '-01'));
+            break;
+        case 'lastquarter':
+            $current_month = date('n');
+            $current_year = date('Y');
+            $quarter = ceil($current_month / 3) - 1;
+            if ($quarter == 0) {
+                $quarter = 4;
+                $current_year--;
+            }
+            $start_month = str_pad(($quarter - 1) * 3 + 1, 2, '0', STR_PAD_LEFT);
+            $end_month = str_pad($start_month + 2, 2, '0', STR_PAD_LEFT);
+            $startDate = $current_year . '-' . $start_month . '-01 00:00:00';
+            $endDate = date('Y-m-t 23:59:59', strtotime($current_year . '-' . $end_month . '-01'));
+            break;
+        case 'thisyear':
+            $startDate = date('Y-01-01 00:00:00');
+            $endDate = date('Y-12-31 23:59:59');
+            break;
+        case 'lastyear':
+            $last_year = date('Y') - 1;
+            $startDate = $last_year . '-01-01 00:00:00';
+            $endDate = $last_year . '-12-31 23:59:59';
+            break;
         case 'custom':
             $startDate = ($_GET['start'] ?? date('Y-m-d')) . ' 00:00:00';
             $endDate = ($_GET['end'] ?? date('Y-m-d')) . ' 23:59:59';
             break;
         default:
-            $startDate = date('Y-m-d 00:00:00', strtotime('-6 days'));
+            $startDate = date('Y-01-01 00:00:00');
+            $endDate = date('Y-12-31 23:59:59');
     }
 
     try {

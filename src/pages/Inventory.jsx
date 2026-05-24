@@ -25,8 +25,10 @@ export default function Inventory() {
   const [isSortByOpen, setIsSortByOpen] = useState(false);
   const [groupBy, setGroupBy] = useState('date'); // 'date' | 'product' | 'none'
   const [isGroupByOpen, setIsGroupByOpen] = useState(false);
-  const [invFilter, setInvFilter] = useState('thismonth');
+  const [invFilter, setInvFilter] = useState('thisyear');
   const [isInvFilterOpen, setIsInvFilterOpen] = useState(false);
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
   const { showConfirm, showAlert } = useDialog();
 
   const [form, setForm] = useState({ product_id: '', import_date: new Date().toISOString().split('T')[0], expiry_date: '', import_price: '', initial_qty: '', selling_price: '' });
@@ -171,7 +173,59 @@ export default function Inventory() {
     return acc;
   }, {});
 
-  const filtered = batches
+  const now = new Date();
+  const invFilteredBatches = batches.filter(b => {
+    if (!b.import_date) return false;
+    const d = new Date(b.import_date);
+    if (invFilter === 'thismonth') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    if (invFilter === 'lastmonth') {
+      const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      return d.getFullYear() === lm.getFullYear() && d.getMonth() === lm.getMonth();
+    }
+    if (invFilter === 'thisquarter') {
+      const q = Math.floor(now.getMonth() / 3);
+      const startMonth = q * 3;
+      return d.getFullYear() === now.getFullYear() && d.getMonth() >= startMonth && d.getMonth() < startMonth + 3;
+    }
+    if (invFilter === 'lastquarter') {
+      let lqYear = now.getFullYear();
+      let lqStartMonth = Math.floor(now.getMonth() / 3) * 3 - 3;
+      if (lqStartMonth < 0) {
+        lqStartMonth = 9;
+        lqYear -= 1;
+      }
+      return d.getFullYear() === lqYear && d.getMonth() >= lqStartMonth && d.getMonth() < lqStartMonth + 3;
+    }
+    if (invFilter === 'thisyear') return d.getFullYear() === now.getFullYear();
+    if (invFilter === 'lastyear') return d.getFullYear() === now.getFullYear() - 1;
+    if (invFilter === '30days') return (now - d) / 86400000 <= 30;
+    if (invFilter === '7days') return (now - d) / 86400000 <= 7;
+    if (invFilter === 'custom') {
+      if (customStart && customEnd) {
+        return b.import_date >= customStart && b.import_date <= customEnd;
+      }
+      return true;
+    }
+    return true; // all
+  });
+  const invTotalBatches = invFilteredBatches.length;
+  const invTotalCapital = invFilteredBatches.reduce((s, b) => s + (Number(b.import_price) * Number(b.initial_qty)), 0);
+  const invOutOfStock = invFilteredBatches.filter(b => b.current_qty <= 0 && b.current_ml <= 0).length;
+
+  const INV_FILTERS = [
+    { v: 'thisyear', l: 'Năm nay' },
+    { v: 'thismonth', l: 'Tháng này' },
+    { v: 'lastmonth', l: 'Tháng trước' },
+    { v: 'thisquarter', l: 'Quý này' },
+    { v: 'lastquarter', l: 'Quý trước' },
+    { v: 'lastyear', l: 'Năm trước' },
+    { v: '30days', l: '30 ngày' },
+    { v: '7days', l: '7 ngày' },
+    { v: 'custom', l: 'Tùy chỉnh' },
+    { v: 'all', l: 'Tất cả' },
+  ];
+
+  const filtered = invFilteredBatches
     .filter(b => b.product_name?.toLowerCase().includes(search.toLowerCase()) || b.batch_code?.toLowerCase().includes(search.toLowerCase()))
     .filter(b => {
       if (statusFilter === 'all') return true;
@@ -267,30 +321,7 @@ export default function Inventory() {
     } catch {}
   };
 
-  const now = new Date();
-  const invFilteredBatches = batches.filter(b => {
-    if (!b.import_date) return false;
-    const d = new Date(b.import_date);
-    if (invFilter === 'thismonth') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-    if (invFilter === 'lastmonth') {
-      const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      return d.getFullYear() === lm.getFullYear() && d.getMonth() === lm.getMonth();
-    }
-    if (invFilter === '30days') return (now - d) / 86400000 <= 30;
-    if (invFilter === '7days') return (now - d) / 86400000 <= 7;
-    return true; // all
-  });
-  const invTotalBatches = invFilteredBatches.length;
-  const invTotalCapital = invFilteredBatches.reduce((s, b) => s + (Number(b.import_price) * Number(b.initial_qty)), 0);
-  const invOutOfStock = invFilteredBatches.filter(b => b.current_qty <= 0 && b.current_ml <= 0).length;
 
-  const INV_FILTERS = [
-    { v: 'thismonth', l: 'Tháng này' },
-    { v: 'lastmonth', l: 'Tháng trước' },
-    { v: '30days', l: '30 ngày' },
-    { v: '7days', l: '7 ngày' },
-    { v: 'all', l: 'Tất cả' },
-  ];
 
   const renderCard = (b) => {
     const s = stockStatus(b);
@@ -408,6 +439,13 @@ export default function Inventory() {
             <button className={`view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="Xem dạng danh sách"><List size={16} /></button>
             <button className={`view-btn ${viewMode === 'card' ? 'active' : ''}`} onClick={() => setViewMode('card')} title="Xem dạng card"><LayoutGrid size={16} /></button>
           </div>
+          {invFilter === 'custom' && (
+            <div className="anim-slide-in" style={{ display: 'flex', gap: '0.35rem', background: 'var(--surface)', padding: '0.25rem 0.5rem', borderRadius: '8px', border: '1px solid var(--border)', alignItems: 'center', height: '100%', minHeight: '36px' }}>
+              <input type="date" style={{ padding: '0.1rem 0.35rem', border: 'none', background: 'transparent', fontSize: '0.8rem', outline: 'none', color: 'var(--text)', fontFamily: 'Outfit' }} value={customStart} onChange={e=>setCustomStart(e.target.value)} />
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>-</span>
+              <input type="date" style={{ padding: '0.1rem 0.35rem', border: 'none', background: 'transparent', fontSize: '0.8rem', outline: 'none', color: 'var(--text)', fontFamily: 'Outfit' }} value={customEnd} onChange={e=>setCustomEnd(e.target.value)} />
+            </div>
+          )}
           {/* Inv Date Filter */}
           <div style={{ position: 'relative', flexShrink: 0 }} tabIndex={0} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setIsInvFilterOpen(false); }}>
             <div onClick={() => setIsInvFilterOpen(!isInvFilterOpen)} className="form-control" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', fontWeight: 600, fontSize: '0.85rem', padding: '0.45rem 0.875rem', height: '100%', minHeight: '36px' }}>

@@ -388,6 +388,11 @@ export default function Orders() {
                           <span style={{ display: 'flex', alignItems: 'center', gap: '.25rem', fontSize: '.8rem', color: payInfo.color, fontWeight: 500 }}>
                             {payInfo.icon} {payInfo.label}
                           </span>
+                          {Number(o.total_discount) > 0 && (
+                            <div style={{ fontSize: '0.7rem', color: 'var(--danger)', fontWeight: 600, marginTop: '2px' }}>
+                              (Đã giảm: {Math.round(Number(o.total_discount)).toLocaleString('vi-VN')} đ)
+                            </div>
+                          )}
                         </td>
                         <td style={{ whiteSpace: "nowrap" }}>
                           <span className="badge" style={{ background: statusInfo.bg, color: statusInfo.color, display: 'flex', alignItems: 'center', gap: '.25rem', width: 'fit-content' }}>
@@ -492,13 +497,18 @@ export default function Orders() {
                         <span style={{ fontWeight: 800, color: 'var(--text)' }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</span>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <span className="badge" style={{ background: statusInfo.bg, color: statusInfo.color, display: 'flex', alignItems: 'center', gap: '.25rem' }}>
                           {statusInfo.icon} {statusInfo.label}
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '.25rem', fontSize: '.75rem', color: payInfo.color, fontWeight: 600, background: 'var(--surface2)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-full)' }}>
                           {payInfo.icon} {payInfo.label}
                         </span>
+                        {Number(o.total_discount) > 0 && (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--danger)', fontWeight: 600, background: 'var(--danger-bg)', padding: '0.2rem 0.5rem', borderRadius: 'var(--r-full)' }}>
+                            Giảm: {Math.round(Number(o.total_discount)).toLocaleString('vi-VN')} đ
+                          </span>
+                        )}
                       </div>
 
                       <div style={{ marginTop: '0.5rem', paddingTop: '0.75rem', borderTop: '1px dashed var(--border-light)', display: 'flex', gap: '0.5rem' }}>
@@ -596,13 +606,18 @@ export default function Orders() {
                         <span style={{ fontWeight: 800, color: 'var(--text)', fontSize: '1.1rem' }}>{Number(o.total_amount).toLocaleString('vi-VN')} đ</span>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <span className="badge" style={{ background: statusInfo.bg, color: statusInfo.color, display: 'flex', alignItems: 'center', gap: '.25rem' }}>
                           {statusInfo.icon} {statusInfo.label}
                         </span>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '.25rem', fontSize: '.75rem', color: payInfo.color, fontWeight: 600, background: 'var(--surface2)', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-full)' }}>
                           {payInfo.icon} {payInfo.label}
                         </span>
+                        {Number(o.total_discount) > 0 && (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--danger)', fontWeight: 600, background: 'var(--danger-bg)', padding: '0.2rem 0.6rem', borderRadius: 'var(--r-full)' }}>
+                            Giảm: {Math.round(Number(o.total_discount)).toLocaleString('vi-VN')} đ
+                          </span>
+                        )}
                       </div>
 
                       <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px dashed var(--border-light)', display: 'flex', gap: '0.5rem' }}>
