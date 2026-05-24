@@ -265,7 +265,7 @@ export default function Customers() {
         </div>
       ) : (
         <>
-          <div className="table-wrap desktop-only" style={{ background: 'var(--surface)', borderRadius: 'var(--r-md)', overflow: 'hidden', border: '1.5px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+          <div className="table-wrap tablet-hidden" style={{ background: 'var(--surface)', borderRadius: 'var(--r-md)', overflow: 'hidden', border: '1.5px solid var(--border)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
             <table className="data-table" style={{ margin: 0 }}>
               <thead>
                 <tr>
@@ -313,7 +313,7 @@ export default function Customers() {
           </div>
         
         {/* MOBILE CARD VIEW */}
-        <div className="mobile-only">
+        <div className="tablet-visible">
           <div className="grid-3-cards">
             {paginatedCustomers.map(c => <CustomerCard key={c.id} c={c} />)}
           </div>
@@ -434,7 +434,7 @@ export default function Customers() {
               <button className="btn btn-ghost btn-icon" onClick={() => setDetailItem(null)}>✕</button>
             </div>
             <div className="modal-body" style={{ padding: '1.5rem', maxHeight: '75vh', overflowY: 'auto' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+              <div className="customer-detail-grid">
                 
                 {/* Left Column: Personal Info & Stats */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

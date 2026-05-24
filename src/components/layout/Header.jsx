@@ -113,7 +113,7 @@ const Header = ({ toggleSidebar, pageName }) => {
           {showDropdown && (
             <>
               <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99 }} onClick={() => setShowDropdown(false)} />
-              <div style={{ position: 'absolute', top: '120%', right: 0, width: '320px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-lg)', zIndex: 100, overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: '120%', right: 0, width: 'min(320px, 92vw)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-lg)', zIndex: 100, overflow: 'hidden' }}>
                 <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span>Cảnh báo hệ thống</span>
                   <span className="badge badge-danger">{notifications.length}</span>

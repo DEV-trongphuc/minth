@@ -429,7 +429,7 @@ export default function Inventory() {
 
       {/* Summary Stats */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
+        <div className="inventory-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
           {[{
             icon: <Layers size={20} color="var(--primary)" />,
             label: 'Lô nhập',
@@ -528,7 +528,7 @@ export default function Inventory() {
       ) : viewMode === 'list' ? (
         /* ─── LIST VIEW ─── */
         <>
-        <div className="card card-no-pad desktop-only">
+        <div className="card card-no-pad tablet-hidden">
           <div className="table-wrap">
             <table className="data-table">
               <thead>
@@ -613,7 +613,7 @@ export default function Inventory() {
         </div>
 
         {/* MOBILE CARD VIEW FOR INVENTORY (FALLBACK FOR LIST MODE) */}
-        <div className="mobile-only">
+        <div className="tablet-visible">
           <div className="grid-3-cards">
             {filtered.map((b, i) => {
               const showDateHeader = groupBy === 'date' && (i === 0 || b.import_date !== filtered[i - 1].import_date);

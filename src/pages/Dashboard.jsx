@@ -129,13 +129,7 @@ export default function Dashboard() {
     <div className="anim-fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       
       {/* 1. GREETING BAR (Slim Hero) */}
-      <div style={{
-        background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))',
-        borderRadius: 'var(--r-lg)', padding: '1.25rem 2rem', color: '#fff',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem',
-        boxShadow: '0 8px 20px -6px rgba(124, 58, 237, 0.3)',
-        position: 'relative'
-      }}>
+      <div className="dashboard-hero">
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', borderRadius: 'var(--r-lg)', pointerEvents: 'none' }}>
           <div style={{ position: 'absolute', right: '-5%', top: '-50%', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)', borderRadius: '50%' }} />
         </div>
@@ -381,10 +375,10 @@ export default function Dashboard() {
               <button className="btn-icon-bare" onClick={() => setShowExpenseModal(false)} style={{ color: 'var(--text-muted)', background: 'var(--surface2)', width: 32, height: 32, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}><X size={18}/></button>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 350px) 1fr', flex: 1, overflow: 'hidden' }}>
+            <div className="expense-modal-layout">
               
               {/* Left Column: Summary */}
-              <div style={{ padding: '2rem', background: 'var(--surface2)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="expense-modal-left">
                 <div>
                   <h3 style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1.25rem' }}>Phân bổ chi phí</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -426,7 +420,7 @@ export default function Dashboard() {
               </div>
 
               {/* Right Column: Details List */}
-              <div style={{ display: 'flex', flexDirection: 'column', background: 'var(--surface)', overflow: 'hidden' }}>
+              <div className="expense-modal-right">
                 <div style={{ display: 'flex', padding: '0.5rem 1.5rem', borderBottom: '1px solid var(--border)', gap: '1.5rem', background: 'var(--surface)' }}>
                   <button 
                     onClick={() => setInventoryTab('loss_logs')} 

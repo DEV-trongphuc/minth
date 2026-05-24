@@ -309,8 +309,8 @@ export default function Products() {
         </div>, document.body
       )}
 
-      <div className="card card-no-pad desktop-only">
-        <div className="table-wrap desktop-only">
+      <div className="card card-no-pad tablet-hidden">
+        <div className="table-wrap tablet-hidden">
           <table className="data-table">
             <thead>
               <tr>
@@ -381,7 +381,7 @@ export default function Products() {
       </div>
 
       {/* MOBILE CARD VIEW */}
-      <div className="mobile-only">
+      <div className="tablet-visible">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {filtered.map(p => (
             <div key={p.id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

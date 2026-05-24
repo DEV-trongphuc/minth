@@ -176,9 +176,9 @@ export default function Settings() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <div className="settings-layout">
         {/* Sidebar Nav */}
-        <div className="card" style={{ flex: '1 1 250px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <div className="settings-sidebar">
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -192,7 +192,7 @@ export default function Settings() {
         </div>
 
         {/* Content Area */}
-        <div className="card" style={{ flex: '3 1 500px', padding: '2rem', minHeight: '400px' }}>
+        <div className="card settings-content">
           
           {activeTab === 'account' && (
             <div className="animate-fade-in">
@@ -279,7 +279,7 @@ export default function Settings() {
 
               <form onSubmit={handleSaveTiers} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div style={{ background: 'var(--surface2)', padding: '1.25rem', borderRadius: 'var(--r-md)' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 150px 40px', gap: '0.75rem', marginBottom: '0.75rem', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  <div className="crm-tier-header">
                     <div>Tên Hạng</div>
                     <div>Chi tiêu tối thiểu (đ)</div>
                     <div>Màu sắc</div>
@@ -287,7 +287,7 @@ export default function Settings() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                     {crmTiers.map((tier, index) => (
-                      <div key={index} style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr 150px 40px', gap: '0.75rem', alignItems: 'center' }}>
+                      <div key={index} className="crm-tier-row">
                         <input type="text" value={tier.name} onChange={e => updateTier(index, 'name', e.target.value)} className="form-control" placeholder="Tên Hạng (Ví dụ: Kim cương)" required />
                         <div style={{ position: 'relative' }}>
                           <input type="number" value={tier.min_spend} onChange={e => updateTier(index, 'min_spend', Number(e.target.value))} className="form-control" style={{ paddingRight: '2rem' }} required min="0" />
@@ -331,7 +331,7 @@ export default function Settings() {
                     ))}
                   </div>
                   
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', background: 'var(--surface2)', padding: '1rem', borderRadius: 'var(--r-sm)' }}>
+                  <div className="crm-tag-input-row">
                     <input type="text" id="newTagName" placeholder="Tên Thẻ mới (Ví dụ: Khách sỉ)" className="form-control" style={{ flex: 1, minWidth: '150px' }} />
                     <input type="color" id="newTagColor" defaultValue="#ec4899" className="form-control" style={{ width: '60px', padding: '0.2rem', cursor: 'pointer', height: '38px' }} title="Chọn màu" />
                     <button type="button" onClick={() => {

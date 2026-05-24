@@ -345,7 +345,7 @@ export default function Orders() {
           <>
             {viewMode === 'list' ? (
               <>
-                <div className="table-wrap desktop-only" style={{ overflowX: 'auto', paddingBottom: '20px' }}>
+                <div className="table-wrap tablet-hidden" style={{ overflowX: 'auto', paddingBottom: '20px' }}>
               <table className="data-table">
                 <thead>
                   <tr>
@@ -459,7 +459,7 @@ export default function Orders() {
             </div>
 
             {/* MOBILE CARD VIEW FOR LIST MODE (FALLBACK) */}
-            <div className="mobile-only">
+            <div className="tablet-visible">
               <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {filteredOrders.map(o => {
                   const statusInfo = STATUS_CONFIG[o.status] || STATUS_CONFIG.pending;

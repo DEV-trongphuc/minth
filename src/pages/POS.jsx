@@ -17,6 +17,7 @@ const POS = ({ onClose, onSuccess }) => {
   const [orderConfig, setOrderConfig] = useState({ status: 'pending', payment_status: 'paid', shipping_customer_pay: true });
   const [shippingFee, setShippingFee] = useState(0);
   const [showGuide, setShowGuide] = useState(false);
+  const [activeTab, setActiveTab] = useState('products');
   const { showAlert } = useDialog();
   
   const unitLabels = { chai: 'Chai', cai: 'Cái', hop: 'Hộp', set: 'Set', tuyp: 'Tuýp', gam: 'Gam (g)' };
@@ -166,9 +167,19 @@ const POS = ({ onClose, onSuccess }) => {
           <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body" style={{ flex: 1, padding: '1rem', overflowY: 'auto', background: 'var(--bg)' }}>
+          {/* Tabs for mobile */}
+          <div className="pos-mobile-tabs">
+            <button className={`pos-tab-btn ${activeTab === 'products' ? 'active' : ''}`} onClick={() => setActiveTab('products')}>
+              <Package size={16} /> <span>Sản phẩm ({filteredBatches.length})</span>
+            </button>
+            <button className={`pos-tab-btn ${activeTab === 'cart' ? 'active' : ''}`} onClick={() => setActiveTab('cart')}>
+              <ShoppingCart size={16} /> <span>Giỏ hàng ({cart.reduce((sum, item) => sum + item.quantity, 0)})</span>
+            </button>
+          </div>
+
           <div className="animate-fade-in pos-layout">
       {/* Product Selection */}
-      <div className="card pos-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden', padding: '1.5rem 1rem' }}>
+      <div className={`card pos-card products-column ${activeTab === 'products' ? 'active' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden', padding: '1.5rem 1rem' }}>
         <h2 style={{ fontSize: '1.25rem', padding: '0 0.5rem' }}>Bán hàng (POS) & Kiểm kho</h2>
         <div style={{ position: 'relative', padding: '0 0.5rem', zIndex: 10 }}>
           <Search size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)' }} />
@@ -247,7 +258,7 @@ const POS = ({ onClose, onSuccess }) => {
       </div>
 
       {/* Cart Checkout */}
-      <div className="card pos-card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
+      <div className={`card pos-card cart-column ${activeTab === 'cart' ? 'active' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflow: 'hidden' }}>
         <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ShoppingCart size={20} color="var(--primary)" /> Đơn hàng</h2>
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {cart.length === 0 ? (
@@ -320,7 +331,7 @@ const POS = ({ onClose, onSuccess }) => {
             
             <div className="modal-body" style={{ display: 'flex', gap: '1.5rem', padding: '1.5rem', flexWrap: 'wrap' }}>
               {/* Thông tin Khách hàng */}
-              <div style={{ flex: '1 1 350px', background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border-light)' }}>
+              <div className="checkout-panel">
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '2px solid var(--primary-light)', paddingBottom: '0.5rem', color: 'var(--primary)' }}>
                   <UserPlus size={20} /> Thông tin Khách hàng
                 </h3>
@@ -344,8 +355,8 @@ const POS = ({ onClose, onSuccess }) => {
               </div>
 
               {/* Tóm tắt Đơn hàng */}
-              <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border-light)', flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: '1 1 290px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="checkout-panel-inner">
                   <h3 style={{ fontSize: '1.1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '2px solid var(--primary-light)', paddingBottom: '0.5rem', color: 'var(--primary)' }}>
                     <Package size={20} /> Tóm tắt Đơn hàng
                   </h3>

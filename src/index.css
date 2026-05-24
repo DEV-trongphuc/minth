@@ -261,6 +261,12 @@ body {
   }
 }
 
+@media (max-width: 480px) {
+  .page-content {
+    padding: 0.75rem 0.5rem;
+  }
+}
+
 /* ── TOPBAR ── */
 .topbar {
   background: var(--surface);
@@ -1273,5 +1279,352 @@ body {
 @media (max-width: 1024px) {
   .hide-on-tablet {
     display: none !important;
+  }
+}
+
+/* ── EXPENSE MODAL RESPONSIVE ── */
+.expense-modal-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 350px) 1fr;
+  flex: 1;
+  overflow: hidden;
+}
+
+.expense-modal-left {
+  padding: 2rem;
+  background: var(--surface2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.expense-modal-right {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .expense-modal-layout {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: calc(90vh - 64px);
+  }
+  
+  .expense-modal-left {
+    padding: 1.25rem 1rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+  
+  .expense-modal-right {
+    overflow: visible;
+  }
+}
+
+/* ── DASHBOARD HERO RESPONSIVE ── */
+.dashboard-hero {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  border-radius: var(--r-lg);
+  padding: 1.25rem 2rem;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  box-shadow: 0 8px 20px -6px rgba(124, 58, 237, 0.3);
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .dashboard-hero {
+    padding: 1rem;
+  }
+}
+
+/* ── POS MOBILE/TABLET REDESIGN ── */
+.pos-mobile-tabs {
+  display: none;
+  background: var(--surface2);
+  padding: 0.35rem;
+  border-radius: var(--r-sm);
+  margin: 0 0.5rem 1rem 0.5rem;
+  border: 1px solid var(--border-light);
+  gap: 0.25rem;
+}
+
+.pos-tab-btn {
+  flex: 1;
+  padding: 0.65rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: var(--transition);
+}
+
+.pos-tab-btn.active {
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 1023px) {
+  .pos-mobile-tabs {
+    display: flex;
+  }
+  
+  .pos-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    height: auto !important;
+  }
+  
+  .pos-card.products-column,
+  .pos-card.cart-column {
+    display: none !important;
+  }
+  
+  .pos-card.products-column.active,
+  .pos-card.cart-column.active {
+    display: flex !important;
+    min-height: 60vh;
+  }
+}
+
+/* ── CHECKOUT MODAL RESPONSIVE ── */
+.checkout-panel {
+  flex: 1 1 290px;
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-light);
+}
+
+.checkout-panel-inner {
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-light);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 480px) {
+  .checkout-panel,
+  .checkout-panel-inner {
+    padding: 1rem !important;
+  }
+}
+
+/* ── TABLET RESPONSIVE UTILITIES ── */
+@media (max-width: 1023px) {
+  .tablet-hidden {
+    display: none !important;
+  }
+  
+  .tablet-visible {
+    display: block !important;
+  }
+  
+  .tablet-visible-flex {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tablet-visible,
+  .tablet-visible-flex {
+    display: none !important;
+  }
+}
+
+/* ── INVENTORY GRID STATS ── */
+@media (max-width: 480px) {
+  .inventory-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .inventory-stats-grid > div:last-child {
+    grid-column: span 2;
+  }
+}
+
+/* ── SETTINGS RESPONSIVE ── */
+.settings-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.settings-sidebar {
+  flex: 1 1 250px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-xs);
+}
+
+@media (max-width: 768px) {
+  .settings-layout {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .settings-sidebar {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+    flex: none !important;
+    padding: 0.5rem !important;
+    border-radius: var(--r-sm) !important;
+    scrollbar-width: none;
+  }
+  
+  .settings-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .settings-sidebar button {
+    flex: 0 0 auto !important;
+    padding: 0.5rem 0.85rem !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+.settings-content {
+  flex: 3 1 500px;
+  padding: 2rem;
+  min-height: 400px;
+}
+
+@media (max-width: 480px) {
+  .settings-content {
+    padding: 1rem !important;
+  }
+}
+
+/* ── CRM TIERS RESPONSIVE ── */
+.crm-tier-header {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 150px 40px;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.crm-tier-row {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr 150px 40px;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .crm-tier-header {
+    display: none !important;
+  }
+  
+  .crm-tier-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: var(--r-sm);
+    border: 1px solid var(--border-light);
+    position: relative;
+    padding-right: 3rem !important;
+  }
+  
+  .crm-tier-row > button {
+    position: absolute !important;
+    top: 50% !important;
+    right: 0.5rem !important;
+    transform: translateY(-50%) !important;
+  }
+}
+
+/* ── MOBILE MODAL PADDING & FOOTER STACK ── */
+@media (max-width: 480px) {
+  .modal-header {
+    padding: 1rem 1rem 0 !important;
+  }
+  
+  .modal-body {
+    padding: 1rem !important;
+  }
+  
+  .modal-footer {
+    padding: 0 1rem 1rem !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+  }
+  
+  .modal-footer button {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+}
+
+/* ── CRM TAG INPUT ROW RESPONSIVE ── */
+.crm-tag-input-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  background: var(--surface2);
+  padding: 1rem;
+  border-radius: var(--r-sm);
+}
+
+@media (max-width: 480px) {
+  .crm-tag-input-row {
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+  }
+  .crm-tag-input-row input[type="text"] {
+    flex: 1 1 100% !important;
+  }
+  .crm-tag-input-row input[type="color"] {
+    flex: 1 1 calc(50% - 0.25rem) !important;
+    width: auto !important;
+  }
+  .crm-tag-input-row button {
+    flex: 1 1 calc(50% - 0.25rem) !important;
+  }
+}
+
+/* ── CUSTOMER DETAIL GRID RESPONSIVE ── */
+.customer-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 480px) {
+  .customer-detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
   }
 }

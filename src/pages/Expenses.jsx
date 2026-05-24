@@ -317,7 +317,7 @@ export default function Expenses() {
       </div>
 
       {/* Table */}
-      <div className="card card-no-pad" style={{ overflow: 'hidden' }}>
+      <div className="card card-no-pad desktop-only" style={{ overflow: 'hidden' }}>
         <div className="table-wrap">
           <table className="data-table">
             <thead>
@@ -375,6 +375,40 @@ export default function Expenses() {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Mobile Card List */}
+      <div className="mobile-only">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0 0.5rem', marginBottom: '1rem' }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Đang tải dữ liệu...</div>
+          ) : filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'var(--surface)', borderRadius: '12px', border: '1px dashed var(--border)' }}>
+              <div style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}><Wallet size={36} opacity={0.3} /></div>
+              <div style={{ fontWeight: 600, color: 'var(--text-light)' }}>Chưa có khoản chi phí nào</div>
+            </div>
+          ) : (
+            filtered.map(item => (
+              <div key={item.id} className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', border: '1px solid var(--border-light)', boxShadow: 'var(--shadow-xs)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input type="checkbox" className="custom-check" checked={selectedIds.includes(item.id)} onChange={() => setSelectedIds(prev => prev.includes(item.id) ? prev.filter(i => i !== item.id) : [...prev, item.id])} />
+                    <span className="badge badge-muted" style={{ fontWeight: 600, background: 'var(--bg)', color: 'var(--text)' }}>{item.category}</span>
+                  </div>
+                  <span className="text-xs text-muted" style={{ fontWeight: 600 }}>{new Date(item.expense_date).toLocaleDateString('vi-VN')}</span>
+                </div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text)', lineHeight: 1.4 }}>{item.description || <span className="text-muted italic">Không có nội dung</span>}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px dashed var(--border-light)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
+                  <span style={{ fontWeight: 800, color: 'var(--danger)', fontSize: '1.1rem' }}>-{Number(item.amount).toLocaleString('vi-VN')} đ</span>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn btn-secondary btn-icon btn-sm" onClick={() => openEditModal(item)}><Edit size={14} /></button>
+                    <button className="btn btn-ghost btn-icon btn-sm" style={{ color: 'var(--danger)', background: 'var(--danger-bg)' }} onClick={() => handleDelete([item.id])}><Trash2 size={14} /></button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
