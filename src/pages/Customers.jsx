@@ -199,8 +199,8 @@ export default function Customers() {
           <div className="desktop-only" style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: '1rem', background: 'var(--surface2)', padding: '0.5rem 0.75rem', borderRadius: 'var(--r-sm)', alignItems: 'center' }}>
             <strong style={{ color: 'var(--text)' }}>Hướng dẫn phân hạng:</strong>
             {crmTiers.map(t => (
-              <span key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span className={`badge badge-${t.color}`} style={{ padding: '0.1rem 0.3rem' }}>{t.name}</span>
+              <span key={t.name} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <span className={`badge badge-${t.color}`} style={{ padding: '0.1rem 0.35rem' }}>{t.name}</span>
                 {t.min_spend > 0 ? `> ${(t.min_spend).toLocaleString('vi-VN')}đ` : 'Mặc định'}
               </span>
             ))}

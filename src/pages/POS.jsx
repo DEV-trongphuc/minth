@@ -168,13 +168,23 @@ const POS = ({ onClose, onSuccess }) => {
         </div>
         <div className="modal-body" style={{ flex: 1, padding: '1rem', overflowY: 'auto', background: 'var(--bg)' }}>
           {/* Tabs for mobile */}
-          <div className="pos-mobile-tabs">
-            <button className={`pos-tab-btn ${activeTab === 'products' ? 'active' : ''}`} onClick={() => setActiveTab('products')}>
-              <Package size={16} /> <span>Sản phẩm ({filteredBatches.length})</span>
-            </button>
-            <button className={`pos-tab-btn ${activeTab === 'cart' ? 'active' : ''}`} onClick={() => setActiveTab('cart')}>
-              <ShoppingCart size={16} /> <span>Giỏ hàng ({cart.reduce((sum, item) => sum + item.quantity, 0)})</span>
-            </button>
+          <div className="pos-mobile-tabs-container">
+            <div className="pos-mobile-tabs">
+              <button className={`pos-tab-btn ${activeTab === 'products' ? 'active' : ''}`} onClick={() => setActiveTab('products')}>
+                <Package size={16} /> <span>Sản phẩm ({filteredBatches.length})</span>
+              </button>
+              <button className={`pos-tab-btn ${activeTab === 'cart' ? 'active' : ''}`} onClick={() => setActiveTab('cart')}>
+                <ShoppingCart size={16} />
+                <span>Giỏ hàng</span>
+                {cart.reduce((sum, item) => sum + item.quantity, 0) > 0 ? (
+                  <span className="badge-danger-red-circle animate-fade-in">
+                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                  </span>
+                ) : (
+                  <span style={{ marginLeft: '4px' }}>(0)</span>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="animate-fade-in pos-layout">
