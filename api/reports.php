@@ -71,6 +71,11 @@ if ($method === 'GET') {
                 SUM(CASE WHEN payment_status = 'paid' THEN total_amount ELSE 0 END) as total_revenue,
                 SUM(
                   CASE WHEN payment_status = 'paid' THEN 
+                    COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
+                  ELSE 0 END
+                ) as total_cogs,
+                SUM(
+                  CASE WHEN payment_status = 'paid' THEN 
                     total_amount 
                     - COALESCE((SELECT SUM(cost_per_unit * quantity) FROM order_items WHERE order_id = orders.id), 0)
                     - CASE WHEN shipping_customer_pay = 0 THEN shipping_fee ELSE 0 END
@@ -246,6 +251,7 @@ if ($method === 'GET') {
 
         // Calculations
         $totalRev = (float)$stats['total_revenue'];
+        $totalCogs = (float)($stats['total_cogs'] ?? 0);
         $totalOrd = (int)$stats['total_orders'];
         $grossProfit = (float)$stats['gross_profit'];
         $netProfit = $grossProfit - $totalExpenses - (float)$opCost;
@@ -303,6 +309,7 @@ if ($method === 'GET') {
 
         echo json_encode([
             "total_revenue" => $totalRev,
+            "total_cogs" => $totalCogs,
             "gross_profit" => $grossProfit,
             "total_expenses" => $totalExpenses,
             "net_profit" => $netProfit,

@@ -31,7 +31,7 @@ export default function Dashboard() {
   const [customEnd, setCustomEnd] = useState('');
   const [inventoryTab, setInventoryTab] = useState('low_stock'); // 'low_stock' | 'expiring'
   const [report, setReport] = useState({
-    total_revenue: 0, gross_profit: 0, total_orders: 0, aov: 0, profit_margin: 0,
+    total_revenue: 0, total_cogs: 0, gross_profit: 0, total_orders: 0, aov: 0, profit_margin: 0,
     chart_data: [], donut_data: [], top_products: [], low_stock: [], expiring_soon: [],
     total_shipping: 0, shop_paid_shipping: 0, op_cost: 0, total_expenses: 0, top_customers: [], recent_orders: [], geo_sales: [], weekday_sales: {},
     expense_details: [], inventory_loss_details: [], shipping_details: []
@@ -181,9 +181,15 @@ export default function Dashboard() {
         <div className="card hover-shadow" style={{ display: 'flex', flexDirection: 'column', padding: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--text-muted)' }}><TrendingUp size={18} color="var(--success)" /><span style={{ fontWeight: 600, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Lợi nhuận gộp</span></div>
           <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{Math.round(Number(report.gross_profit || 0)).toLocaleString('vi-VN')} đ</div>
-          <div style={{ marginTop: 'auto', paddingTop: '1rem', width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 600 }}><span className="text-muted">Biên lợi nhuận</span><span style={{ color: 'var(--success)' }}>{Number(report.profit_margin || 0).toFixed(1)}%</span></div>
-            <div style={{ width: '100%', height: '4px', background: 'var(--surface2)', borderRadius: '4px', overflow: 'hidden' }}><div style={{ width: `${Math.min(report.profit_margin || 0, 100)}%`, height: '100%', background: 'var(--success)', borderRadius: '4px' }}/></div>
+          <div style={{ marginTop: 'auto', paddingTop: '1rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 600 }}>
+              <span className="text-muted">Tổng giá vốn hàng bán:</span>
+              <span style={{ color: 'var(--text)', fontWeight: 700 }}>{Math.round(Number(report.total_cogs || 0)).toLocaleString('vi-VN')} đ</span>
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem', fontWeight: 600 }}><span className="text-muted">Biên lợi nhuận</span><span style={{ color: 'var(--success)' }}>{Number(report.profit_margin || 0).toFixed(1)}%</span></div>
+              <div style={{ width: '100%', height: '4px', background: 'var(--surface2)', borderRadius: '4px', overflow: 'hidden' }}><div style={{ width: `${Math.min(Math.max(report.profit_margin || 0, 0), 100)}%`, height: '100%', background: 'var(--success)', borderRadius: '4px' }}/></div>
+            </div>
           </div>
         </div>
 
@@ -214,7 +220,7 @@ export default function Dashboard() {
           <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>
             <span className="text-muted" style={{fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
               Hao hụt kho, Vận hành & Ship shop trả
-              <span style={{ color: 'var(--primary)', fontSize: '0.7rem', fontWeight: 700 }}>Bấm để xem chi tiết</span>
+              <span style={{ color: 'var(--primary)', fontSize: '0.75rem', fontWeight: 700, whiteSpace: 'nowrap', marginLeft: '0.5rem' }}>Chi tiết</span>
             </span>
             <span>LN Ròng: <span style={{ color: 'var(--success)', fontWeight: 700 }}>{Math.round(Number(report.net_profit || 0)).toLocaleString('vi-VN')} đ</span></span>
           </div>

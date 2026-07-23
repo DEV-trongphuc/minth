@@ -143,6 +143,98 @@ export default function Customers() {
     }, 'danger');
   };
 
+  const renderFormattedNotes = (noteText, isModal = false) => {
+    if (!noteText || !noteText.trim()) {
+      return isModal ? <span className="text-sm text-muted">Chưa có ghi chú</span> : null;
+    }
+
+    const lines = noteText.split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length === 0) return null;
+
+    const maxShow = isModal ? lines.length : 3;
+    const displayLines = lines.slice(0, maxShow);
+    const hiddenCount = lines.length - maxShow;
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', width: '100%' }}>
+        {displayLines.map((line, idx) => {
+          const saleMatch = line.match(/^Đã bán\s+(.+?)\s+(thấp|cao)\s+hơn giá niêm yết\s+(.+)$/i);
+
+          if (saleMatch) {
+            const [, product, type, amount] = saleMatch;
+            const isDiscount = type.toLowerCase() === 'thấp';
+
+            return (
+              <div 
+                key={idx}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justify: 'space-between',
+                  gap: '0.5rem',
+                  padding: isModal ? '0.5rem 0.75rem' : '0.35rem 0.6rem',
+                  background: isDiscount ? 'rgba(239, 68, 68, 0.04)' : 'rgba(16, 185, 129, 0.04)',
+                  border: `1px solid ${isDiscount ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)'}`,
+                  borderRadius: '6px',
+                  fontSize: isModal ? '0.825rem' : '0.75rem'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, minWidth: 0 }}>
+                  <ShoppingBag size={isModal ? 14 : 12} style={{ color: isDiscount ? '#ef4444' : '#10b981', flexShrink: 0 }} />
+                  <span style={{ fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {product}
+                  </span>
+                </div>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.2rem',
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '4px',
+                  fontWeight: 700,
+                  fontSize: isModal ? '0.75rem' : '0.7rem',
+                  whiteSpace: 'nowrap',
+                  background: isDiscount ? '#fef2f2' : '#ecfdf5',
+                  color: isDiscount ? '#dc2626' : '#059669',
+                  border: `1px solid ${isDiscount ? '#fca5a5' : '#a7f3d0'}`,
+                  flexShrink: 0
+                }}>
+                  {isDiscount ? `Giảm ${amount}` : `Tăng ${amount}`}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div 
+              key={idx}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.4rem',
+                padding: isModal ? '0.5rem 0.75rem' : '0.35rem 0.6rem',
+                background: 'var(--surface2)',
+                border: '1px solid var(--border-light)',
+                borderRadius: '6px',
+                fontSize: isModal ? '0.825rem' : '0.75rem',
+                color: 'var(--text)'
+              }}
+            >
+              <MessageSquare size={isModal ? 14 : 12} style={{ color: 'var(--primary)', marginTop: '0.15rem', flexShrink: 0 }} />
+              <span style={{ fontWeight: 500, lineHeight: 1.4 }}>{line}</span>
+            </div>
+          );
+        })}
+
+        {hiddenCount > 0 && !isModal && (
+          <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 600, textAlign: 'right' }}>
+            + {hiddenCount} ghi chú khác (bấm xem chi tiết)
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const CustomerCard = ({ c }) => (
     <div className="customer-card" onClick={() => setDetailItem(c)}>
       {c.tier === 'VIP' && (
@@ -177,7 +269,11 @@ export default function Customers() {
         ))}
       </div>
 
-      {c.note && <div className="text-xs text-muted" style={{ fontStyle: 'italic', padding: '.5rem .75rem', background: 'var(--warning-bg)', borderRadius: 'var(--r-xs)', borderLeft: '3px solid var(--warning)', display: 'flex', gap: '0.35rem', alignItems: 'flex-start' }}><MessageSquare size={12} style={{ marginTop: '0.1rem', flexShrink: 0 }} /> <span style={{ whiteSpace: 'pre-line' }}>{c.note}</span></div>}
+      {c.note && (
+        <div style={{ marginTop: '0.25rem' }}>
+          {renderFormattedNotes(c.note, false)}
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '.5rem', marginTop: 'auto' }}>
         <button className="btn btn-secondary btn-sm" style={{ flex: 1 }} onClick={e => { e.stopPropagation(); setDetailItem(c); }}><Eye size={13} /> Chi tiết</button>
@@ -459,13 +555,17 @@ export default function Customers() {
                       ['Giới tính', detailItem.gender || 'Chưa cập nhật'], 
                       ['Ngày sinh', detailItem.birthday && !isNaN(new Date(detailItem.birthday)) ? new Date(detailItem.birthday).toLocaleDateString('vi-VN') : 'Chưa cập nhật'], 
                       ['Địa chỉ', detailItem.address || 'Chưa có'], 
-                      ['Ghi chú', detailItem.note || 'Trống']
                     ].map(([k, v]) => (
                       <div key={k} style={{ display: 'flex', gap: '1rem', padding: '.625rem 0', borderBottom: '1px solid var(--border-light)' }}>
                         <span className="text-sm text-muted" style={{ minWidth: 80 }}>{k}:</span>
-                        <span className="text-sm" style={{ fontWeight: 500, whiteSpace: k === 'Ghi chú' ? 'pre-line' : 'normal' }}>{v}</span>
+                        <span className="text-sm" style={{ fontWeight: 500 }}>{v}</span>
                       </div>
                     ))}
+
+                    <div style={{ paddingTop: '0.75rem', marginTop: '0.25rem' }}>
+                      <div className="text-sm text-muted" style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Ghi chú & Nhật ký bán hàng:</div>
+                      {renderFormattedNotes(detailItem.note, true)}
+                    </div>
                   </div>
                 </div>
 
